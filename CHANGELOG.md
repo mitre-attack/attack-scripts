@@ -1,6 +1,6 @@
 # V1.1 - 29 March 2019
 ## New Scripts
-- Added [techniques_from_data_src.py](scripts/techniques_from_data_src.py).
+- Added [techniques_from_data_source.py](scripts/techniques_from_data_source.py).
 
 # V1.0 - 1 March 2019
 ## New Scripts

@@ -13,6 +13,12 @@ Note: this repository is a work in progress. In the coming months we will be add
 2. Activate the environment: `source env/bin/activate`
 3. Install requirements into the virtual environment: `pip3 install -r requirements.txt`
 
+## Training
+
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/mitre-attack/attack-scripts/master)
+
+This repository also contains Jupyter notebooks and other material for ATT&CK training. The `trainings` directory has that content, which can be launched via Binder. The `binder` directory has requirements for that notebook, per the Binder documentation.
+
 ## Related MITRE Work
 #### CTI
 [Cyber Threat Intelligence repository](https://github.com/mitre/cti) of the ATT&CK catalog expressed in STIX 2.0 JSON.
