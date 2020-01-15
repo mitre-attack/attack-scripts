@@ -24,7 +24,7 @@ This repository also contains Jupyter notebooks and other material for ATT&CK tr
 [Cyber Threat Intelligence repository](https://github.com/mitre/cti) of the ATT&CK catalog expressed in STIX 2.0 JSON.
 
 #### ATT&CK
-ATT&CK<sup>™</sup> is a curated knowledge base and model for cyber adversary behavior, reflecting the various phases of an adversary’s lifecycle and the platforms they are known to target. ATT&CK is useful for understanding security risk against known adversary behavior, for planning security improvements, and verifying defenses work as expected.
+ATT&CK® is a curated knowledge base and model for cyber adversary behavior, reflecting the various phases of an adversary’s lifecycle and the platforms they are known to target. ATT&CK is useful for understanding security risk against known adversary behavior, for planning security improvements, and verifying defenses work as expected.
 
 https://attack.mitre.org
 
@@ -39,7 +39,7 @@ https://oasis-open.github.io/cti-documentation/
 
 ## Notice
 
-Copyright 2019 The MITRE Corporation
+Copyright 2020 The MITRE Corporation
 
 Approved for Public Release; Distribution Unlimited. Case Number 19-0486.
 
@@ -55,6 +55,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-This project makes use of ATT&CK<sup>™</sup>
+This project makes use of ATT&CK®
 
 [ATT&CK Terms of Use](https://attack.mitre.org/resources/terms-of-use/)
