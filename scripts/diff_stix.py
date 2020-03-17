@@ -122,7 +122,16 @@ class DiffStix(object):
             # }
             # software...
         }
+        self.stixIDToName = {} # stixID to object name
+        self.new_subtechnique_of_rels = [] # all subtechnique-of relationships in the new data
+        self.old_subtechnique_of_rels = [] # all subtechnique-of relationships in the old data
+        self.new_id_to_technique = {} # stixID => technique for every technique in the new data
+        self.old_id_to_technique = {} # stixID => technique for every technique in the old data
+        # build the bove data structures
         self.load_data()
+        # remove duplicate relationships
+        self.new_subtechnique_of_rels = [i for n, i in enumerate(self.new_subtechnique_of_rels) if i not in self.new_subtechnique_of_rels[n+1:]]
+        self.old_subtechnique_of_rels = [i for n, i in enumerate(self.old_subtechnique_of_rels) if i not in self.old_subtechnique_of_rels[n+1:]]
 
 
     def verboseprint(self, *args, **kwargs):
@@ -186,26 +195,43 @@ class DiffStix(object):
                         "data_store": data_store
                     }
 
+                def parse_subtechniques(data_store, new=False):
+                    # parse dataStore sub-technique-of relationships
+                    if new: 
+                        for technique in list(data_store.query(attackTypeToStixFilter["technique"])):
+                            self.new_id_to_technique[technique["id"]] = technique
+                        self.new_subtechnique_of_rels += list(data_store.query([
+                            Filter("type", "=", "relationship"),
+                            Filter("relationship_type", "=", "subtechnique-of")
+                        ]))
+                    else:
+                        for technique in list(data_store.query(attackTypeToStixFilter["technique"])):
+                            self.old_id_to_technique[technique["id"]] = technique
+                        self.old_subtechnique_of_rels += list(data_store.query([
+                            Filter("type", "=", "relationship"),
+                            Filter("relationship_type", "=", "subtechnique-of")
+                        ]))
+
                 # load data from directory according to domain
-                def load_dir(dir):
+                def load_dir(dir, new=False):
                     data_store = MemoryStore()
                     datafile = os.path.join(dir, domain + ".json")
                     data_store.load_from_file(datafile)
-
+                    parse_subtechniques(data_store, new)
                     return load_datastore(data_store)
 
                 # load data from TAXII server according to domain
-                def load_taxii():
+                def load_taxii(new=False):
                     collection = Collection("https://cti-taxii.mitre.org/stix/collections/" + domainToTaxiiCollectionId[domain])
                     data_store = TAXIICollectionSource(collection)
-
+                    parse_subtechniques(data_store, new)
                     return load_datastore(data_store)
 
                 if self.use_taxii:
-                    old = load_taxii()
+                    old = load_taxii(False)
                 else:
-                    old = load_dir(self.old)
-                new = load_dir(self.new)
+                    old = load_dir(self.old, False)
+                new = load_dir(self.new, True)
 
                 intersection = old["keys"] & new["keys"]
                 additions = new["keys"] - old["keys"]
@@ -226,7 +252,12 @@ class DiffStix(object):
                                 Filter('type', '=', 'relationship'),
                                 Filter('relationship_type', '=', 'revoked-by'),
                                 Filter('source_ref', '=', key)
-                            ])[0]["target_ref"]
+                            ])
+                            if (len(revoked_by_key) == 0): 
+                                print("WARNING: revoked object", key, "has no revoked-by relationship")
+                                continue
+                            else: revoked_by_key = revoked_by_key[0]["target_ref"]
+
                             new["id_to_obj"][key]["revoked_by"] = new["id_to_obj"][revoked_by_key]
 
                             revocations.add(key)
@@ -240,11 +271,11 @@ class DiffStix(object):
                         try:
                             old_version = float(old["id_to_obj"][key]["x_mitre_version"])
                         except: 
-                            print("old\n\t" +key)
+                            print("ERROR: cannot get old version for object: " + key)
                         try:
                             new_version = float(new["id_to_obj"][key]["x_mitre_version"])
                         except: 
-                            print("new\n\t" + key)
+                            print("ERROR: cannot get new version for object: " + key)
 
                         # check for changes
                         if new_version > old_version:
@@ -307,12 +338,91 @@ class DiffStix(object):
             key += "\n" + "* Object deletions: " + statusDescriptions['deletions']
         return f"{key}"
 
+    def has_subtechniques(self, sdo, new=False):
+        """return true or false depending on whether the SDO has sub-techniques. new determines whether to parse from the new or old data"""
+        if new: return len(list(filter(lambda rel: rel["target_ref"] == sdo["id"], self.new_subtechnique_of_rels))) > 0
+        else:   return len(list(filter(lambda rel: rel["target_ref"] == sdo["id"], self.old_subtechnique_of_rels))) > 0
 
     def get_markdown_string(self):
         """
         Return a markdown string summarizing detected differences.
         """
         
+        def getSectionList(items, obj_type, section):
+            """
+            parse a list of items in a section and return a string for the items
+            """
+            
+            # get parents which have children
+            childless = list(filter(lambda item: not self.has_subtechniques(item, True) and not ("x_mitre_is_subtechnique" in item and item["x_mitre_is_subtechnique"]), items))
+            parents = list(filter(lambda item: self.has_subtechniques(item, True) and not ("x_mitre_is_subtechnique" in item and item["x_mitre_is_subtechnique"]), items))
+            children = { item["id"]: item for item in filter(lambda item: "x_mitre_is_subtechnique" in item and item["x_mitre_is_subtechnique"], items) }
+
+
+
+            parentToChildren = {} # stixID => [ children ]
+            for relationship in self.new_subtechnique_of_rels:
+                if relationship["target_ref"] in parentToChildren:
+                    if relationship["source_ref"] in children:
+                        parentToChildren[relationship["target_ref"]].append(children[relationship["source_ref"]])
+                else:
+                    if relationship["source_ref"] in children:
+                        parentToChildren[relationship["target_ref"]] = children[relationship["source_ref"]]
+                        parentToChildren[relationship["target_ref"]] = [ children[relationship["source_ref"]] ]
+
+
+            # now group parents and children
+            groupings = []
+
+            for parent in childless + parents:
+                parent_children = parentToChildren.pop(parent["id"]) if parent["id"] in parentToChildren else []
+                groupings.append({
+                    "parent": parent,
+                    "parentInSection": True,
+                    "children": parent_children
+                })
+
+            for parentID in parentToChildren:
+                groupings.append({
+                    "parent": self.new_id_to_technique[parentID],
+                    "parentInSection": False,
+                    "children": parentToChildren[parentID]
+                })
+            
+            groupings = sorted(groupings, key=lambda grouping: grouping["parent"]["name"])
+            
+            def placard(item):
+                """get a section list item for the given SDO according to section type"""
+                if section == "revocations":
+                    revoker = item['revoked_by']
+                    if "x_mitre_is_subtechnique" in revoker and revoker["x_mitre_is_subtechnique"]:
+                        # get revoking technique's parent for display
+                        parentID = list(filter(lambda rel: rel["source_ref"] == revoker["id"], self.new_subtechnique_of_rels))[0]["target_ref"]
+                        parentName = self.new_id_to_technique[parentID]["name"] if parentID in self.new_id_to_technique else "ERROR NO PARENT"
+                        return f"{item['name']} (revoked by { parentName}: [{revoker['name']}]({self.site_prefix}/{self.getUrlFromStix(revoker)}))"
+                    else:
+                        return f"{item['name']} (revoked by [{revoker['name']}]({self.site_prefix}/{self.getUrlFromStix(revoker)}))"
+                if section == "deletions":
+                    return f"{item['name']}"
+                else:
+                    return f"[{item['name']}]({self.site_prefix}/{self.getUrlFromStix(item)})"
+
+
+            # build sectionList string
+            sectionString = ""
+            for grouping in groupings:
+                if grouping["parentInSection"]:
+                    sectionString += f"* { placard(grouping['parent']) }\n"
+                # else:
+                #     sectionString += f"* _{grouping['parent']['name']}_\n"
+                for child in sorted(grouping["children"], key=lambda child: child["name"]):
+                    if grouping["parentInSection"]:
+                        sectionString += f"\t* {placard(child) }\n"
+                    else:
+                        sectionString += f"* { grouping['parent']['name'] }: { placard(child) }\n"
+
+            return sectionString
+
         self.verboseprint("generating markdown string... ", end="", flush="true")
 
         content = ""
@@ -321,17 +431,9 @@ class DiffStix(object):
             for domain in self.data[obj_type]:
                 domain_sections = ""
                 for section in self.data[obj_type][domain]:
-                    if section == "revocations":
-                        # handle revoked by
-                        section_items = list(map(lambda d: f"* {d['name']} (revoked by [{d['revoked_by']['name']}]({self.site_prefix}/{self.getUrlFromStix(d['revoked_by'])}))", self.data[obj_type][domain][section]))
-                    elif section == "deletions": 
-                        section_items = list(map(lambda d: f"* {d['name']}", self.data[obj_type][domain][section]))
-                    else:
-                        section_items = list(map(lambda d: f"* [{d['name']}]({self.site_prefix}/{self.getUrlFromStix(d)})", self.data[obj_type][domain][section]))
-                    
-                    if len(section_items) > 0:
-                        section_items = "\n".join(sorted(section_items))
-                    else:
+                    if len(self.data[obj_type][domain][section]) > 0: # if there are items in the section
+                        section_items = getSectionList(self.data[obj_type][domain][section], obj_type, section)
+                    else: # no items in section
                         section_items = "No changes"
                     header = sectionNameToSectionHeaders[section] + ":"
                     if "{obj_type}" in header:
