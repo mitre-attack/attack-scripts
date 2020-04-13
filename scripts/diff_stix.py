@@ -487,7 +487,7 @@ class DiffStix(object):
 
             # build layer structure
             layer_json = {
-                "version": "2.2",
+                "version": "3.0",
                 "name": f"{thedate} {domainToDomainLabel[domain]} Updates",
                 "description": f"{domainToDomainLabel[domain]} updates for the {thedate} release of ATT&CK",
                 "domain": domainToLayerFileDomain[domain],
