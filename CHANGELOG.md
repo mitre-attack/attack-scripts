@@ -1,3 +1,7 @@
+# Changes staged on develop
+## Improvements
+- Updated [diff_stix.py](scripts/diff_stix.py) with sub-techniques support. See issue [#12](https://github.com/mitre-attack/attack-scripts/issues/12).
+
 # V1.3 - 8 January 2019
 ## New Scripts
 - Added [diff_stix.py](scripts/diff_stix.py).
