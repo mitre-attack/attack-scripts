@@ -358,10 +358,11 @@ class DiffStix(object):
             parents = list(filter(lambda item: self.has_subtechniques(item, True) and not ("x_mitre_is_subtechnique" in item and item["x_mitre_is_subtechnique"]), items))
             children = { item["id"]: item for item in filter(lambda item: "x_mitre_is_subtechnique" in item and item["x_mitre_is_subtechnique"], items) }
 
-
+            subtechnique_of_rels = self.new_subtechnique_of_rels if section != "deletions" else self.old_subtechnique_of_rels
+            id_to_technique = self.new_id_to_technique if section != "deletions" else self.old_id_to_technique
 
             parentToChildren = {} # stixID => [ children ]
-            for relationship in self.new_subtechnique_of_rels:
+            for relationship in subtechnique_of_rels:
                 if relationship["target_ref"] in parentToChildren:
                     if relationship["source_ref"] in children:
                         parentToChildren[relationship["target_ref"]].append(children[relationship["source_ref"]])
@@ -384,7 +385,7 @@ class DiffStix(object):
 
             for parentID in parentToChildren:
                 groupings.append({
-                    "parent": self.new_id_to_technique[parentID],
+                    "parent": id_to_technique[parentID],
                     "parentInSection": False,
                     "children": parentToChildren[parentID]
                 })
@@ -397,8 +398,8 @@ class DiffStix(object):
                     revoker = item['revoked_by']
                     if "x_mitre_is_subtechnique" in revoker and revoker["x_mitre_is_subtechnique"]:
                         # get revoking technique's parent for display
-                        parentID = list(filter(lambda rel: rel["source_ref"] == revoker["id"], self.new_subtechnique_of_rels))[0]["target_ref"]
-                        parentName = self.new_id_to_technique[parentID]["name"] if parentID in self.new_id_to_technique else "ERROR NO PARENT"
+                        parentID = list(filter(lambda rel: rel["source_ref"] == revoker["id"], subtechnique_of_rels))[0]["target_ref"]
+                        parentName = id_to_technique[parentID]["name"] if parentID in id_to_technique else "ERROR NO PARENT"
                         return f"{item['name']} (revoked by { parentName}: [{revoker['name']}]({self.site_prefix}/{self.getUrlFromStix(revoker)}))"
                     else:
                         return f"{item['name']} (revoked by [{revoker['name']}]({self.site_prefix}/{self.getUrlFromStix(revoker)}))"
