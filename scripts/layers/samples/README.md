@@ -1,6 +1,6 @@
 # Sample Scripts
 
-The scripts in this folder are used to generate the [sample layers in the ATT&CK Navigator repository](https://github.com/mitre-attack/attack-navigator/tree/master/layers/data/samples). Run the scripts with the -h flag for usage instructions.
+The scripts in this folder are used to generate the [sample layers in the ATT&CK Navigator repository](https://github.com/mitre-attack/attack-navigator/tree/develop/layers/data/samples). Run the scripts with the -h flag for usage instructions.
 
 | script | sample layers | description |
 |:-------|:------------|:--------|
