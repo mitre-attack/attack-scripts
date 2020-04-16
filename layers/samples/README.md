@@ -1,0 +1,10 @@
+# Sample Scripts
+
+The scripts in this folder are used to generate the [sample layers in the ATT&CK Navigator repository](https://github.com/mitre-attack/attack-navigator/tree/master/layers/data/samples). Run the scripts with the -h flag for usage instructions.
+
+| script | sample layers | description |
+|:-------|:------------|:--------|
+| [heatmap.py](heatmap.py) | [heatmap_layer.json](https://github.com/mitre-attack/attack-navigator/tree/develop/layers/data/samples/heatmap_layer.json) | Generates a layer wherein all techniques have randomized scores from 1-100. |
+| [bear_APT.py](bear_APT.py) | [bear_APT.json](https://github.com/mitre-attack/attack-navigator/tree/develop/layers/data/samples/bear_APT.json) | Parses STIX data to create a layer showing all techniques used by an APT group with phrase 'bear' in the group aliases. |
+| [apt3_apt29_software.py](apt3_apt29_software.py) | [APT3_+_APT29_with_software.json](https://github.com/mitre-attack/attack-navigator/tree/develop/layers/data/samples/APT3_+_APT29_with_software.json), [APT3_+_APT29_with_software_and_notional_no_detection.json](https://github.com/mitre-attack/attack-navigator/tree/develop/layers/data/samples/APT3_+_APT29_with_software_and_notional_no_detection.json) | Creates a layer file showing techniques used by APT3 and APT29 as well as software used by those groups, and a second layer showing the same but with the added concept of detectability by a notional organization. |
+| [software_execution.py](software_execution.py) | [software_execution.json](https://github.com/mitre-attack/attack-navigator/tree/develop/layers/data/samples/software_execution.json), [software_malware_execution.json](https://github.com/mitre-attack/attack-navigator/tree/develop/layers/data/samples/software_malware_execution.json), [software_tool_execution.json](https://github.com/mitre-attack/attack-navigator/tree/develop/layers/data/samples/software_tool_execution.json) | Generates layers showing all techniques that can be executed by software. |
