@@ -1,4 +1,4 @@
-from layers.objects.exceptions import typeChecker, categoryChecker, UNSETVALUE
+from layers.core.exceptions import typeChecker, categoryChecker, UNSETVALUE
 
 
 class Layout:

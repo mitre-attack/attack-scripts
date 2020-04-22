@@ -1,14 +1,14 @@
-from layers.objects.filter import Filter
-from layers.objects.layout import Layout
-from layers.objects.technique import Technique
-from layers.objects.gradient import Gradient
-from layers.objects.legenditem import LegendItem
-from layers.objects.metadata import Metadata
-from layers.objects.exceptions import UNSETVALUE, typeChecker, BadInput, \
+from layers.core.filter import Filter
+from layers.core.layout import Layout
+from layers.core.technique import Technique
+from layers.core.gradient import Gradient
+from layers.core.legenditem import LegendItem
+from layers.core.metadata import Metadata
+from layers.core.exceptions import UNSETVALUE, typeChecker, BadInput, \
     handler, categoryChecker, UnknownLayerProperty
 
 
-class LayerObj:
+class _LayerObj:
     def __init__(self, version, name, domain):
         """
             Initialization - Creates a layer object

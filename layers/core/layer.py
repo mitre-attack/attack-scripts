@@ -1,7 +1,7 @@
 import json
-from layers.objects.exceptions import UninitializedLayer, BadType, BadInput, \
+from layers.core.exceptions import UninitializedLayer, BadType, BadInput, \
     handler
-from layers.objects.layerobj import LayerObj
+from layers.core.layerobj import _LayerObj
 
 
 class Layer:
@@ -32,7 +32,7 @@ class Layer:
         else:
             self.data = init_dict
         if self.data != {}:
-            self.build()
+            self._build()
 
     def load_file(self, filename):
         """
@@ -42,7 +42,7 @@ class Layer:
         with open(filename, 'r') as fio:
             raw = fio.read()
             self.data = json.load(raw)
-            self.build()
+            self._build()
 
     def export_file(self, filename):
         """
@@ -56,12 +56,12 @@ class Layer:
         else:
             raise UninitializedLayer
 
-    def build(self):
+    def _build(self):
         """
             Loads the data stored in self.data into a LayerObj (self.layer)
         """
         try:
-            self.__layer = LayerObj(self.data['version'], self.data['name'],
+            self.__layer = _LayerObj(self.data['version'], self.data['name'],
                                     self.data['domain'])
         except BadType or BadInput as e:
             handler(type(self).__name__, 'Layer is malformed: {}. '

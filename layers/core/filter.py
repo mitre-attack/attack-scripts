@@ -1,4 +1,4 @@
-from layers.objects.exceptions import typeCheckerArray, categoryChecker, \
+from layers.core.exceptions import typeCheckerArray, categoryChecker, \
     UNSETVALUE
 
 

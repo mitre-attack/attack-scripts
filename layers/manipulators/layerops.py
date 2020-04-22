@@ -1,6 +1,6 @@
 # Example Use:
-# from layers.layerops import LayerOps
-# from layers.objects.layer import Layer()
+# from layers.manipulators.layerops import LayerOps
+# from layers.core.layer import Layer
 
 # demo = Layer()
 # demo.load_file("C:\Users\attack\Downloads\layer.json")
@@ -14,13 +14,13 @@
 
 # lo2 = LayerOps(score=lambda x: x['a'], color=lambda x: x['b'],
 #                desc=lambda x: "This is a dict example")
-# out_layer = lo2.process({'a': demo, 'b': demo2})
-# dict_layer = out_layer.get_dict()
+# out_layer2 = lo2.process({'a': demo, 'b': demo2})
+# dict_layer = out_layer2.get_dict()
 # print(dict_layer)
 # out_layer2.export_file("C:\demo_layer2.json")
 
 import copy
-from layers.objects.layer import Layer
+from layers.core.layer import Layer
 
 
 class InvalidFormat(Exception):
@@ -37,7 +37,7 @@ class MismatchedDomain(Exception):
 
 class LayerOps:
     def __init__(self, score=None, comment=None, enabled=None, colors=None,
-                 metadata=None, name=None, desc=None):
+                 metadata=None, name=None, desc=None, default_values=None):
         """
             Initialization - configures the object to handle processing
                 based on user provided Lambdas
@@ -47,6 +47,8 @@ class LayerOps:
             :param metadata: lambda to generate metadata
             :param name: new name to apply to the resulting layer
             :param desc: new description to apply to the resulting layer
+            :param default_values: dictionary containing desired default
+                values for missing data element values
         """
         self.score = score
         self.comment = comment
@@ -55,13 +57,14 @@ class LayerOps:
         self.metadata = metadata
         self.name = name
         self.desc = desc
-        self.default_values = {
-            "comment": "",
-            "enabled": True,
-            "color": "#ffffff",
-            "score": 1,
-            "metadata": []
-        }
+        if default_values is None:
+            self.default_values = {
+                "comment": "",
+                "enabled": True,
+                "color": "#ffffff",
+                "score": 1,
+                "metadata": []
+            }
 
     def process(self, data, defaults=None):
         """

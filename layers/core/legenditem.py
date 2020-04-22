@@ -1,4 +1,4 @@
-from layers.objects.exceptions import typeChecker
+from layers.core.exceptions import typeChecker
 
 
 class LegendItem:
