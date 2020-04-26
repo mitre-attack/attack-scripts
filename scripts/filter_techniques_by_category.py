@@ -47,7 +47,7 @@ def filter_for_term_relationships(src, relationship_type, object_id, source=True
 
 
 def filter_by_type_and_id(src, object_type, object_id):
-    """Filters data source by list of ids"""
+    """Filters data source by id and type"""
     filters = [
         stix2.Filter("type", "=", object_type),
         stix2.Filter("id", "=", object_id),
