@@ -1,5 +1,5 @@
 from layers.core.exceptions import BadInput, handler, typeChecker, \
-    UNSETVALUE, UnknownTechniqueProperty
+    UNSETVALUE, UnknownTechniqueProperty, BadType
 from layers.core.metadata import Metadata
 
 
@@ -70,8 +70,12 @@ class Technique:
 
     @score.setter
     def score(self, score):
-        typeChecker(type(self).__name__, score, int, "score")
-        self.__score = score
+        try:
+            typeChecker(type(self).__name__, score, int, "score")
+            self.__score = score
+        except BadType:
+            typeChecker(type(self).__name__, score, float, "score")
+            self.__score = int(score)
 
     @property
     def color(self):

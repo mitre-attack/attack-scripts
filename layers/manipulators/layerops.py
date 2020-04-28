@@ -20,7 +20,7 @@
 # out_layer2.export_file("C:\demo_layer2.json")
 
 import copy
-from layers.core.layer import Layer
+from layers.core import Layer
 
 
 class InvalidFormat(Exception):
@@ -57,14 +57,16 @@ class LayerOps:
         self.metadata = metadata
         self.name = name
         self.desc = desc
-        if default_values is None:
-            self.default_values = {
-                "comment": "",
-                "enabled": True,
-                "color": "#ffffff",
-                "score": 1,
-                "metadata": []
-            }
+        self.default_values = {
+            "comment": "",
+            "enabled": True,
+            "color": "#ffffff",
+            "score": 1,
+            "metadata": []
+        }
+        if default_values is not None:
+            for entry in default_values:
+                self.default_values[entry] = default_values[entry]
 
     def process(self, data, defaults=None):
         """
