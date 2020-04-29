@@ -1,3 +1,7 @@
+# Changes staged on develop
+## Improvements
+- New script [technique_mappings_to_csv.py](technique_mappings_to_csv.py) added to support mapping Techniques with Mitigations, Groups or Software. The output is a CSV file. Added in PR [#23](https://github.com/mitre-attack/attack-scripts/pull/23)
+
 # V1.3 - 8 January 2019
 ## New Scripts
 - Added [diff_stix.py](scripts/diff_stix.py).
