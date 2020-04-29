@@ -7,7 +7,7 @@ import taxii2client
 
 
 def build_taxii_source(collection_name):
-    """Downloads latest Enterprise ATT&CK content from GitHub."""
+    """Downloads latest Enterprise or Mobile ATT&CK content from MITRE TAXII Server."""
     # Establish TAXII2 Collection instance for Enterprise ATT&CK collection
     collection_map = {
         "enterprise_attack": "95ecc380-afe9-11e4-9b6c-751b66dd541e",
@@ -32,7 +32,7 @@ def get_all_techniques(src, source_name):
 
 
 def filter_for_term_relationships(src, relationship_type, object_id, target=True):
-    """Filters data source by relationship that matches type and source or target"""
+    """Filters data source by type, relationship_type and source or target"""
     filters = [
         stix2.Filter("type", "=", "relationship"),
         stix2.Filter("relationship_type", "=", relationship_type),
@@ -85,9 +85,9 @@ def escape_chars(a_string):
 
 def arg_parse():
     """Function to handle script arguments."""
-    parser = argparse.ArgumentParser(description="Fetches the current ATT&CK content expressed as STIX2 and creates spreadsheet matching Techniques with Mitigations or Groups.")
-    parser.add_argument("-c", "--collection", type=str, required=True, choices=["enterprise_attack", "mobile_attack"], help="Which collection to use (Enterprise, Mobile).")
-    parser.add_argument("-o", "--operation", type=str, required=True, choices=["groups", "mitigations", "software"], help="Operation to perform on ATT&CK content.")
+    parser = argparse.ArgumentParser(description="Fetches the current ATT&CK content expressed as STIX2 and creates spreadsheet mapping Techniques with Mitigations, Groups or Software.")
+    parser.add_argument("-d", "--domain", type=str, required=True, choices=["enterprise_attack", "mobile_attack"], help="Which ATT&CK domain to use (Enterprise, Mobile).")
+    parser.add_argument("-m", "--mapping-type", type=str, required=True, choices=["groups", "mitigations", "software"], help="Which type of object to output mappings for using ATT&CK content.")
     parser.add_argument("-s", "--save", type=str, required=False, help="Save the CSV file with a different filename.")
     return parser
 
