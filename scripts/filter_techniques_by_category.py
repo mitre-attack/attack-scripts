@@ -21,45 +21,46 @@ def build_taxii_source(collection_name):
     return stix2.MemorySource(stix_data=taxii_ds.query())
 
 
-def get_all_techniques(src):
+def get_all_techniques(src, source_name):
     """Filters data source by attack-pattern which extracts all ATT&CK Techniques"""
     filters = [
-        stix2.Filter('type', '=', 'attack-pattern'),
-        stix2.Filter('external_references.source_name', '=', 'mitre-attack'),
+        stix2.Filter("type", "=", "attack-pattern"),
+        stix2.Filter("external_references.source_name", "=", source_name),
     ]
     results = src.query(filters)
     return remove_deprecated(results)
 
 
-def filter_for_term_relationships(src, relationship_type, object_id, source=True):
+def filter_for_term_relationships(src, relationship_type, object_id, target=True):
     """Filters data source by relationship that matches type and source or target"""
     filters = [
         stix2.Filter("type", "=", "relationship"),
         stix2.Filter("relationship_type", "=", relationship_type),
     ]
-    if source:
-        filters.append(stix2.Filter("source_ref", "=", object_id))
-    else:
+    if target:
         filters.append(stix2.Filter("target_ref", "=", object_id))
+    else:
+        filters.append(stix2.Filter("source_ref", "=", object_id))
 
     results = src.query(filters)
     return remove_deprecated(results)
 
 
-def filter_by_type_and_id(src, object_type, object_id):
+def filter_by_type_and_id(src, object_type, object_id, source_name):
     """Filters data source by id and type"""
     filters = [
         stix2.Filter("type", "=", object_type),
         stix2.Filter("id", "=", object_id),
+        stix2.Filter("external_references.source_name", "=", source_name),
     ]
     results = src.query(filters)
     return remove_deprecated(results)
 
 
-def grab_external_id(stix_object):
+def grab_external_id(stix_object, source_name):
     """Grab external id from STIX2 object"""
     for external_reference in stix_object.get("external_references", []):
-        if external_reference.get("source_name") == "mitre-attack":
+        if external_reference.get("source_name") == source_name:
             return external_reference["external_id"]
 
 
@@ -86,85 +87,72 @@ def arg_parse():
     """Function to handle script arguments."""
     parser = argparse.ArgumentParser(description="Fetches the current ATT&CK content expressed as STIX2 and creates spreadsheet matching Techniques with Mitigations or Groups.")
     parser.add_argument("-c", "--collection", type=str, required=True, choices=["enterprise_attack", "mobile_attack"], help="Which collection to use (Enterprise, Mobile).")
-    parser.add_argument("-o", "--operation", type=str, required=True, choices=["groups", "mitigations"], help="Operation to perform on ATT&CK content.")
+    parser.add_argument("-o", "--operation", type=str, required=True, choices=["groups", "mitigations", "software"], help="Operation to perform on ATT&CK content.")
     parser.add_argument("-s", "--save", type=str, required=False, help="Save the CSV file with a different filename.")
     return parser
 
 
-def do_groups(ds):
-    """Main logic to match techniques to groups"""
-    all_attack_patterns = get_all_techniques(ds)
+def do_mapping(ds, fieldnames, relationship_type, type_filter, source_name, sorting_keys):
+    """Main logic to map techniques to mitigations, groups or software"""
+    all_attack_patterns = get_all_techniques(ds, source_name)
     writable_results = []
 
     for attack_pattern in all_attack_patterns:
-        tid = grab_external_id(attack_pattern)
-
-        # Grabs uses relationships for identified techniques
-        relationships = filter_for_term_relationships(ds, "uses", attack_pattern.id, source=False)
+        # Grabs relationships for identified techniques
+        relationships = filter_for_term_relationships(ds, relationship_type, attack_pattern.id)
 
         for relationship in relationships:
             # Groups are defined in STIX as intrusion-set objects
-            groups = filter_by_type_and_id(ds, "intrusion-set", relationship.source_ref)
-
-            if groups:
-                group = groups[0]
-                gid = grab_external_id(group)
-                writable_results.append(
-                    {
-                        "TID": tid,
-                        "Technique Name": attack_pattern.name,
-                        "GID": gid,
-                        "Group Name": group.name,
-                        "Group Description": group.description,
-                        "Usage": relationship.description
-                    }
-                )
-    return sorted(writable_results, key=lambda x: (x["TID"], x["GID"]))
-
-
-def do_mitigations(ds):
-    """Main logic to match techniques to mitigations"""
-    all_attack_patterns = get_all_techniques(ds)
-    writable_results = []
-
-    for attack_pattern in all_attack_patterns:
-        tid = grab_external_id(attack_pattern)
-
-        # Grabs mitigation relationships for identified techniques
-        relationships = filter_for_term_relationships(ds, "mitigates", attack_pattern.id, source=False)
-
-        for relationship in relationships:
             # Mitigations are defined in STIX as course-of-action objects
-            mitigation = filter_by_type_and_id(ds, "course-of-action", relationship.source_ref)
+            # Software are defined in STIX as malware objects
+            stix_results = filter_by_type_and_id(ds, type_filter, relationship.source_ref, source_name)
 
-            if mitigation:
-                mitigation = mitigation[0]
-                mid = grab_external_id(mitigation)
-                writable_results.append(
-                    {
-                        "TID": tid,
-                        "Technique Name": attack_pattern.name,
-                        "MID": mid,
-                        "Mitigation Name": mitigation.name,
-                        "Mitigation Description": escape_chars(mitigation.description),
-                        "Application": escape_chars(relationship.description),
-                    }
+            if stix_results:
+                row_data = (
+                    grab_external_id(attack_pattern, source_name),
+                    attack_pattern.name,
+                    grab_external_id(stix_results[0], source_name),
+                    stix_results[0].name,
+                    escape_chars(stix_results[0].description),
+                    escape_chars(relationship.description),
                 )
-    return sorted(writable_results, key=lambda x: (x["TID"], x["MID"]))
+
+                writable_results.append(dict(zip(fieldnames, row_data)))
+
+    return sorted(writable_results, key=lambda x: (x[sorting_keys[0]], x[sorting_keys[1]]))
 
 
 def main(args):
     data_source = build_taxii_source(args.collection)
     op = args.operation
 
+    source_map = {
+        "enterprise_attack": "mitre-attack",
+        "mobile_attack": "mitre-mobile-attack",
+    }
+    source_name = source_map[args.collection]
+
     if op == "groups":
         filename = args.save or "groups.csv"
-        fieldnames = ["TID", "Technique Name", "GID", "Group Name", "Group Description", "Usage"]
-        rowdicts = do_groups(data_source)
+        fieldnames = ("TID", "Technique Name", "GID", "Group Name", "Group Description", "Usage")
+        relationship_type = "uses"
+        type_filter = "intrusion-set"
+        sorting_keys = ("TID", "GID")
+        rowdicts = do_mapping(data_source, fieldnames, relationship_type, type_filter, source_name, sorting_keys)
     elif op == "mitigations":
         filename = args.save or "mitigations.csv"
-        fieldnames = ["TID", "Technique Name", "MID", "Mitigation Name", "Mitigation Description", "Application"]
-        rowdicts = do_mitigations(data_source)
+        fieldnames = ("TID", "Technique Name", "MID", "Mitigation Name", "Mitigation Description", "Application")
+        relationship_type = "mitigates"
+        type_filter = "course-of-action"
+        sorting_keys = ("TID", "MID")
+        rowdicts = do_mapping(data_source, fieldnames, relationship_type, type_filter, source_name, sorting_keys)
+    elif op == "software":
+        filename = args.save or "software.csv"
+        fieldnames = ("TID", "Technique Name", "SID", "Software Name", "Software Description", "Use")
+        relationship_type = "uses"
+        type_filter = "malware"
+        sorting_keys = ("TID", "SID")
+        rowdicts = do_mapping(data_source, fieldnames, relationship_type, type_filter, source_name, sorting_keys)
     else:
         raise RuntimeError("Unknown option: %s" % op)
 
