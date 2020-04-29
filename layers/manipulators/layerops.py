@@ -50,14 +50,14 @@ class LayerOps:
             :param default_values: dictionary containing desired default
                 values for missing data element values
         """
-        self.score = score
-        self.comment = comment
-        self.enabled = enabled
-        self.colors = colors
-        self.metadata = metadata
-        self.name = name
-        self.desc = desc
-        self.default_values = {
+        self._score = score
+        self._comment = comment
+        self._enabled = enabled
+        self._colors = colors
+        self._metadata = metadata
+        self._name = name
+        self._desc = desc
+        self._default_values = {
             "comment": "",
             "enabled": True,
             "color": "#ffffff",
@@ -66,13 +66,13 @@ class LayerOps:
         }
         if default_values is not None:
             for entry in default_values:
-                self.default_values[entry] = default_values[entry]
+                self._default_values[entry] = default_values[entry]
 
-    def process(self, data, defaults=None):
+    def process(self, data, default_values=None):
         """
             takes a list or dict of Layer objects, and processes them
             :param data: A dict or list of Layer objects.
-            :param defaults: dictionary containing desired default values for
+            :param default_values: dictionary containing desired default values for
                 missing data element values
             :raises InvalidFormat: An error indicating that the layer data
                 wasn't provided in a list or dict
@@ -94,8 +94,10 @@ class LayerOps:
         da = temp
         corpus = self._build_template(temp)
 
-        if defaults is not None:
-            defaults = self.default_values
+        defaults = self._default_values
+        if default_values is not None:
+            for entry in default_values:
+                defaults[entry] = default_values[entry]
 
         return self._compute(data, da, corpus, out, defaults)
 
@@ -113,43 +115,43 @@ class LayerOps:
             :returns: a Layer object representing the resultant layer
         """
         composite = copy.deepcopy(corpus)
-        if self.score is not None:
+        if self._score is not None:
             for entry in composite:
                 entry['score'] = self._applyOperation(da, entry, 'score',
-                                                      self.score, defaults)
+                                                      self._score, defaults)
 
-        if self.comment is not None:
+        if self._comment is not None:
             for entry in composite:
                 entry['comment'] = self._applyOperation(da, entry, 'comment',
-                                                        self.comment, defaults)
+                                                        self._comment, defaults)
 
-        if self.enabled is not None:
+        if self._enabled is not None:
             for entry in composite:
                 entry['enabled'] = self._applyOperation(da, entry, 'enabled',
-                                                        self.enabled, defaults)
+                                                        self._enabled, defaults)
 
-        if self.colors is not None:
+        if self._colors is not None:
             for entry in composite:
                 entry['color'] = self._applyOperation(da, entry, 'color',
-                                                      self.colors, defaults)
+                                                      self._colors, defaults)
 
-        if self.metadata is not None:
+        if self._metadata is not None:
             for entry in composite:
                 entry['metadata'] = self._applyOperation(da, entry, 'metadata',
-                                                         self.metadata,
+                                                         self._metadata,
                                                          defaults)
 
         processed = copy.deepcopy(out)
         processed['techniques'] = composite
-        if self.name is not None:
+        if self._name is not None:
             processed['name'] = self._applyOperation(data, None, 'name',
-                                                     self.name, defaults,
+                                                     self._name, defaults,
                                                      glob='name')
 
-        if self.desc is not None:
+        if self._desc is not None:
             processed['description'] = self._applyOperation(data, None,
                                                             'description',
-                                                            self.desc,
+                                                            self._desc,
                                                             defaults,
                                                             glob='description')
 
@@ -310,7 +312,7 @@ class LayerOps:
                         if name in defaults:
                             values.append(defaults[name])
                             continue
-                    values.append(self.default_values[name])
+                    values.append(self._default_values[name])
         else:
             values = {}
             if glob:
@@ -333,7 +335,7 @@ class LayerOps:
                         if name in defaults:
                             values[elm] = defaults[name]
                             continue
-                    values[elm] = self.default_values[name]
+                    values[elm] = self._default_values[name]
         try:
             return lda(values)
         except IndexError and KeyError:

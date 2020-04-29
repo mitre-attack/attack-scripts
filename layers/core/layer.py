@@ -5,7 +5,7 @@ from layers.core.layerobj import _LayerObj
 
 
 class Layer:
-    def __init__(self, init_dict={}, strict=True):
+    def __init__(self, init_data={}, strict=True):
         """
              Initialization - create a new Layer object
              :param init_dict: Optionally provide base Layer json or string
@@ -13,7 +13,10 @@ class Layer:
          """
         self.__layer = None
         self.strict = strict
-        self.load_input(init_dict)
+        if isinstance(init_data, str):
+            self.from_str(init_data)
+        else:
+            self.from_dict(init_data)
 
     @property
     def layer(self):
@@ -21,30 +24,36 @@ class Layer:
             return self.__layer
         return "No Layer Loaded Yet!"
 
-    def load_input(self, init_dict):
+    def from_str(self, init_str):
         """
-            loads input from a string or dictionary format
-            :param init_dit: the string or dictionary representing the layer
-                data to be loaded
+            Loads a raw layer string into the object
+            :param init_str: the string representing the layer data to
+                be loaded
         """
-        if isinstance(init_dict, str):
-            self.data = json.loads(init_dict)
-        else:
-            self.data = init_dict
-        if self.data != {}:
+        self._data = json.loads(init_str)
+        self._build()
+
+    def from_dict(self, init_dict):
+        """
+            Loads a raw layer string into the object
+            :param init_dict: the dictionary representing the layer data to
+                be loaded
+        """
+        self._data = init_dict
+        if self._data != {}:
             self._build()
 
-    def load_file(self, filename):
+    def from_file(self, filename):
         """
              loads input from a layer file specified by filename
              :param filename: the target filename to load from
         """
         with open(filename, 'r') as fio:
             raw = fio.read()
-            self.data = json.load(raw)
+            self._data = json.loads(raw)
             self._build()
 
-    def export_file(self, filename):
+    def to_file(self, filename):
         """
             saves the current state of the layer to a layer file specified by
                 filename
@@ -61,8 +70,8 @@ class Layer:
             Loads the data stored in self.data into a LayerObj (self.layer)
         """
         try:
-            self.__layer = _LayerObj(self.data['version'], self.data['name'],
-                                    self.data['domain'])
+            self.__layer = _LayerObj(self._data['version'], self._data['name'],
+                                    self._data['domain'])
         except BadType or BadInput as e:
             handler(type(self).__name__, 'Layer is malformed: {}. '
                                          'Unable to load.'.format(e))
@@ -74,10 +83,10 @@ class Layer:
             self.__layer = None
             return
 
-        for key in self.data:
+        for key in self._data:
             if key not in ['version', 'name', 'domain']:
                 try:
-                    self.__layer._linker(key, self.data[key])
+                    self.__layer._linker(key, self._data[key])
                 except Exception as e:
                     if self.strict:
                         handler(type(self).__name__, "{} error. "
@@ -86,10 +95,19 @@ class Layer:
                         self.__layer = None
                         return
 
-    def get_dict(self):
+    def to_dict(self):
         """
             Converts the currently loaded layer file into a dict
             :returns: A dict representation of the current layer object
         """
         if self.__layer is not None:
             return self.__layer.get_dict()
+
+    def to_str(self):
+        """
+            Converts the currently loaded layer file into a string
+                representation of a dictionary
+            :returns: A string representation of the current layer object
+        """
+        if self.__layer is not None:
+            return json.dumps(self.to_dict())

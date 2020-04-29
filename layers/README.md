@@ -23,10 +23,12 @@ The Layer class provides format validation and read/write capabilities to aid in
 
 | method [x = Layer()]| description |
 |:-------|:------------|
-| x.load_input(_input_) | Loads an ATT&CK layer from either a dictionary or a string representation of a dictionary. |
-| x.load_file(_input_) | Loads an ATT&CK layer from a file location specified by the _input_. |
-| x.export_file(_input_) | Saves the current state of the loaded ATT&CK layer to a json file denoted by the _input_. |
-| x.get_dict() | Returns a representation of the current ATT&CK layer object as a dictionary. | 
+| x.from_str(_input_) | Loads an ATT&CK layer from either a string representation of a dictionary. |
+| x.from_dict(_input_) | Loads an ATT&CK layer from either a dictionary. |
+| x.from_file(_input_) | Loads an ATT&CK layer from a file location specified by the _input_. |
+| x.to_file(_input_) | Saves the current state of the loaded ATT&CK layer to a json file denoted by the _input_. |
+| x.to_dict() | Returns a representation of the current ATT&CK layer object as a dictionary. |
+| x.to_str() | Returns a representation of the current ATT&CK layer object as a string representation of a dictionary. | 
 
 #### Example Usage
 
@@ -43,14 +45,14 @@ example_layer_out_location = "/path/to/new/layer/file.json"
 from layers.core import Layer
 
 layer1 = Layer(example_layer_dict)              # Create a new layer and load existing data
-layer1.export_file(example_layer_out_location)  # Write out the loaded layer to the specified file
+layer1.to_file(example_layer_out_location)  # Write out the loaded layer to the specified file
 
 layer2 = Layer()                                # Create a new layer object
-layer2.load_input(example_layer_dict)           # Load layer data into existing layer object
-print(layer2.get_dict())                        # Retrieve the loaded layer's data as a dictionary, and print it
+layer2.from_dict(example_layer_dict)           # Load layer data into existing layer object
+print(layer2.to_dict())                        # Retrieve the loaded layer's data as a dictionary, and print it
 
 layer3 = Layer()                                # Create a new layer object
-layer3.load_file(example_layer_location)        # Load layer data from a file into existing layer object
+layer3.from_file(example_layer_location)        # Load layer data from a file into existing layer object
 ```
 
 ## layerops.py
@@ -65,9 +67,10 @@ Layerops.py provides the LayerOps class, which is a way to combine layer files i
 
 ##### .process() Method
 ```python
-x.process(data, defaults=defaults)
+x.process(data, default_values=default_values)
 ```
-The process method applies the lambda functions stored during initialization to the layer objects in _data_. _data_ must be either a list or a dictionary of Layer objects, and is expected to match the format of the lambda equations provided during initialization.
+The process method applies the lambda functions stored during initialization to the layer objects in _data_. _data_ must be either a list or a dictionary of Layer objects, and is expected to match the format of the lambda equations provided during initialization. default_values is an optional dictionary argument that overrides the currently stored default
+ values with new ones for this specific processing operation.
 
 #### Example Usage
 ```python
@@ -75,37 +78,37 @@ from layers.manipulators.layerops import LayerOps
 from layers.core.layer import Layer
 
 demo = Layer()
-demo.load_file("C:\Users\attack\Downloads\layer.json")
+demo.from_file("C:\Users\attack\Downloads\layer.json")
 demo2 = Layer()
-demo2.load_file("C:\Users\attack\Downloads\layer2.json")
+demo2.from_file("C:\Users\attack\Downloads\layer2.json")
 demo3 = Layer()
-demo3.load_file("C:\Users\attack\Downloads\layer3.json")
+demo3.from_file("C:\Users\attack\Downloads\layer3.json")
 
 # Example 1) Build a LayerOps object that takes a list and averages scores across the layers
 lo = LayerOps(score=lambda x: sum(x) / len(x), 
               name=lambda x: x[1], 
               desc=lambda x: "This is an list example")     # Build LayerOps object
 out_layer = lo.process([demo, demo2])                       # Trigger processing on a list of demo and demo2 layers
-out_layer.export_file("C:\demo_layer1.json")                # Save averaged layer to file
+out_layer.to_file("C:\demo_layer1.json")                    # Save averaged layer to file
 out_layer2 = lo.process([demo, demo2, demo3])               # Trigger processing on a list of demo, demo2, demo3
-visual_aid = out_layer2.get_dict("C:\demo_layer2.json")     # Retrieve dictionary representation of processed layer
+visual_aid = out_layer2.to_dict()                           # Retrieve dictionary representation of processed layer
 
 # Example 2) Build a LayerOps object that takes a dictionary and averages scores across the layers
 lo2 = LayerOps(score=lambda x: sum([x[y] for y in x]) / len([x[y] for y in x]), 
                color=lambda x: x['b'], 
                desc=lambda x: "This is a dict example")      # Build LayerOps object, with lambda
 out_layer3 = lo2.process({'a': demo, 'b': demo2})            # Trigger processing on a dictionary of demo and demo2
-dict_layer = out_layer3.get_dict()                           # Retrieve dictionary representation of processed layer
+dict_layer = out_layer3.to_dict()                            # Retrieve dictionary representation of processed layer
 print(dict_layer)                                            # Display retrieved dictionary
 out_layer4 = lo2.process({'a': demo, 'b': demo2, 'c': demo3})# Trigger processing on a dictionary of demo, demo2, demo3
-out_layer4.export_file("C:\demo_layer4.json")                # Save averaged layer to file
+out_layer4.to_file("C:\demo_layer4.json")                    # Save averaged layer to file
 
 # Example 3) Build a LayerOps object that takes a single element dictionary and inverts the score
 lo3 = LayerOps(score=lambda x: 100 - x['a'],
                desc= lambda x: "This is a simple example")  # Build LayerOps object to invert score (0-100 scale)
 out_layer5 = lo3.process({'a': demo})                       # Trigger processing on dictionary of demo
-print(out_layer5.get_dict())                                # Display processed layer in dictionary form
-out_layer5.export_file("C:\demo_layer5.json")               # Save inverted score layer to file
+print(out_layer5.to_dict())                                 # Display processed layer in dictionary form
+out_layer5.to_file("C:\demo_layer5.json")                   # Save inverted score layer to file
 
 # Example 4) Build a LayerOps object that combines the comments from elements in the list, with custom defaults
 lo4 = LayerOps(score=lambda x: '; '.join(x),
@@ -114,5 +117,5 @@ lo4 = LayerOps(score=lambda x: '; '.join(x),
                 },
                desc= lambda x: "This is a defaults example")  # Build LayerOps object to combine descriptions, defaults
 out_layer6 = lo4.process([demo2, demo3])                      # Trigger processing on a list of demo2 and demo0
-out_layer6.export_file("C:\demo_layer6.json")                 # Save combined comment layer to file
+out_layer6.to_file("C:\demo_layer6.json")                     # Save combined comment layer to file
 ```
