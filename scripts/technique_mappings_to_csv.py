@@ -123,14 +123,14 @@ def do_mapping(ds, fieldnames, relationship_type, type_filter, source_name, sort
 
 
 def main(args):
-    data_source = build_taxii_source(args.collection)
-    op = args.operation
+    data_source = build_taxii_source(args.domain)
+    op = args.mapping_type
 
     source_map = {
         "enterprise_attack": "mitre-attack",
         "mobile_attack": "mitre-mobile-attack",
     }
-    source_name = source_map[args.collection]
+    source_name = source_map[args.domain]
 
     if op == "groups":
         filename = args.save or "groups.csv"
