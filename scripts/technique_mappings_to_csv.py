@@ -4,6 +4,7 @@ import io
 
 import stix2
 import taxii2client
+import tqdm
 
 
 def build_taxii_source(collection_name):
@@ -97,7 +98,7 @@ def do_mapping(ds, fieldnames, relationship_type, type_filter, source_name, sort
     all_attack_patterns = get_all_techniques(ds, source_name)
     writable_results = []
 
-    for attack_pattern in all_attack_patterns:
+    for attack_pattern in tqdm.tqdm(all_attack_patterns, desc="parsing data for techniques"):
         # Grabs relationships for identified techniques
         relationships = filter_for_term_relationships(ds, relationship_type, attack_pattern.id)
 
