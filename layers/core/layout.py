@@ -1,4 +1,7 @@
-from layers.core.exceptions import typeChecker, categoryChecker, UNSETVALUE
+try:
+    from ..core.exceptions import typeChecker, categoryChecker, UNSETVALUE
+except ValueError:
+    from core.exceptions import typeChecker, categoryChecker, UNSETVALUE
 
 
 class Layout:

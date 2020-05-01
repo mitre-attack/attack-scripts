@@ -1,4 +1,7 @@
-from layers.core.exceptions import typeChecker
+try:
+    from ..core.exceptions import typeChecker
+except ValueError:
+    from core.exceptions import typeChecker
 
 
 class Metadata:

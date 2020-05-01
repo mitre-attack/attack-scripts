@@ -1,12 +1,21 @@
-from layers.core.filter import Filter
-from layers.core.layout import Layout
-from layers.core.technique import Technique
-from layers.core.gradient import Gradient
-from layers.core.legenditem import LegendItem
-from layers.core.metadata import Metadata
-from layers.core.exceptions import UNSETVALUE, typeChecker, BadInput, \
-    handler, categoryChecker, UnknownLayerProperty
-
+try:
+    from ..core.filter import Filter
+    from ..core.layout import Layout
+    from ..core.technique import Technique
+    from ..core.gradient import Gradient
+    from ..core.legenditem import LegendItem
+    from ..core.metadata import Metadata
+    from ..core.exceptions import UNSETVALUE, typeChecker, BadInput, handler, \
+        categoryChecker, UnknownLayerProperty
+except ValueError:
+    from core.filter import Filter
+    from core.layout import Layout
+    from core.technique import Technique
+    from core.gradient import Gradient
+    from core.legenditem import LegendItem
+    from core.metadata import Metadata
+    from core.exceptions import UNSETVALUE, typeChecker, BadInput, handler, \
+        categoryChecker, UnknownLayerProperty
 
 class _LayerObj:
     def __init__(self, version, name, domain):

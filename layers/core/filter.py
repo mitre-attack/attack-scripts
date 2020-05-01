@@ -1,5 +1,9 @@
-from layers.core.exceptions import typeCheckerArray, categoryChecker, \
-    UNSETVALUE
+try:
+    from ..core.exceptions import typeCheckerArray, categoryChecker, \
+        UNSETVALUE
+except ValueError:
+    from core.exceptions import typeCheckerArray, categoryChecker, \
+        UNSETVALUE
 
 
 class Filter:

@@ -1,7 +1,12 @@
 import json
-from layers.core.exceptions import UninitializedLayer, BadType, BadInput, \
-    handler
-from layers.core.layerobj import _LayerObj
+try:
+    from ..core.exceptions import UninitializedLayer, BadType, BadInput, \
+        handler
+    from ..core.layerobj import _LayerObj
+except ValueError:
+    from core.exceptions import UninitializedLayer, BadType, BadInput, \
+        handler
+    from core.layerobj import _LayerObj
 
 
 class Layer:

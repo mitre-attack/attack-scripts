@@ -1,6 +1,11 @@
-from layers.core.exceptions import BadInput, handler, typeChecker, \
-    UNSETVALUE, UnknownTechniqueProperty, BadType
-from layers.core.metadata import Metadata
+try:
+    from ..core.exceptions import BadInput, handler, typeChecker, \
+        UNSETVALUE, UnknownTechniqueProperty, BadType
+    from ..core.metadata import Metadata
+except ValueError:
+    from core.exceptions import BadInput, handler, typeChecker, \
+        UNSETVALUE, UnknownTechniqueProperty, BadType
+    from core.metadata import Metadata
 
 
 class Technique:

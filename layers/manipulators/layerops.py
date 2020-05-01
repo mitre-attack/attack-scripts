@@ -20,7 +20,10 @@
 # out_layer2.export_file("C:\demo_layer2.json")
 
 import copy
-from layers.core import Layer
+try:
+    from core import Layer
+except ModuleNotFoundError:
+    from ..core import Layer
 
 
 class InvalidFormat(Exception):

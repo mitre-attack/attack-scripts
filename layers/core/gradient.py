@@ -1,4 +1,7 @@
-from layers.core.exceptions import typeChecker, typeCheckerArray
+try:
+    from ..core.exceptions import typeChecker, typeCheckerArray
+except ValueError:
+    from core.exceptions import typeChecker, typeCheckerArray
 
 
 class Gradient:
