@@ -1,3 +1,7 @@
+# V1.4 - 5 May 2020
+## New Scripts
+- Added Layers folder with utility scripts for working with [ATT&CK Navigator](https://github.com/mitre-attack/attack-navigator) Layers. See the Layers [README](layers/README.md) for more details. See issues [#2](https://github.com/mitre-attack/attack-scripts/issues/2) and [#3](https://github.com/mitre-attack/attack-scripts/issues/3).
+
 # V1.3 - 8 January 2019
 ## New Scripts
 - Added [diff_stix.py](scripts/diff_stix.py).
