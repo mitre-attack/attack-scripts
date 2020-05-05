@@ -23,10 +23,10 @@ The Layer class provides format validation and read/write capabilities to aid in
 
 | method [x = Layer()]| description |
 |:-------|:------------|
-| x.from_str(_input_) | Loads an ATT&CK layer from either a string representation of a dictionary. |
-| x.from_dict(_input_) | Loads an ATT&CK layer from either a dictionary. |
-| x.from_file(_input_) | Loads an ATT&CK layer from a file location specified by the _input_. |
-| x.to_file(_input_) | Saves the current state of the loaded ATT&CK layer to a json file denoted by the _input_. |
+| x.from_str(_input_) | Loads an ATT&CK layer from a string representation of a json layer. |
+| x.from_dict(_input_) | Loads an ATT&CK layer from a dictionary. |
+| x.from_file(_filepath_) | Loads an ATT&CK layer from a file location specified by the _filepath_. |
+| x.to_file(_filepath_) | Saves the current state of the loaded ATT&CK layer to a json file denoted by the _filepath_. |
 | x.to_dict() | Returns a representation of the current ATT&CK layer object as a dictionary. |
 | x.to_str() | Returns a representation of the current ATT&CK layer object as a string representation of a dictionary. | 
 

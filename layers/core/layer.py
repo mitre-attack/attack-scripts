@@ -13,7 +13,7 @@ class Layer:
     def __init__(self, init_data={}, strict=True):
         """
              Initialization - create a new Layer object
-             :param init_dict: Optionally provide base Layer json or string
+             :param init_data: Optionally provide base Layer json or string
                 data on initialization
          """
         self.__layer = None
