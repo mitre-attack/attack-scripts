@@ -211,11 +211,13 @@ class LayerOps:
             for key in temp:
                 for elm in temp[key]:
                     if not any(elm['techniqueID'] == x['techniqueID']
+                               and elm['tactic'] == x['tactic']
                                for x in t2):
                         t2.append(elm)
                     else:
                         [x.update(elm)
                          if x['techniqueID'] == elm['techniqueID']
+                            and elm['tactic'] == x['tactic']
                          else x for x in t2]
             return t2
 
@@ -231,8 +233,13 @@ class LayerOps:
             temp.append([{"techniqueID": x.techniqueID, "tactic": x.tactic}
                          if x.tactic else {"techniqueID": x.techniqueID}
                          for x in entry])
-        return list({v['techniqueID']: v
-                     for v in [elm for list in temp for elm in list]}.values())
+        complete = []
+        for entry in temp:
+            for val in entry:
+                if val in complete:
+                    continue
+                complete.append(val)
+        return complete
 
     def _grabList(self, search, collection):
         """
@@ -303,7 +310,10 @@ class LayerOps:
                 listing = [getattr(x.layer, glob) for x in corpus]
                 listing = [{name: x} for x in listing]
             else:
-                listing = self._grabList(element, corpus)
+                te = dict(techniqueID=element['techniqueID'])
+                if 'tactic' in element:
+                    te['tactic'] = element['tactic']
+                listing = self._grabList(te, corpus)
                 listing = [x.get_dict() if not isinstance(x, dict)
                            else dict() for x in listing]
             values = []
@@ -323,7 +333,10 @@ class LayerOps:
                 for k in corpus.keys():
                     listing[k] = {glob: getattr(corpus[k].layer, glob)}
             else:
-                temp = self._grabDict(element, corpus)
+                te = dict(techniqueID=element['techniqueID'])
+                if 'tactic' in element:
+                    te['tactic'] = element['tactic']
+                temp = self._grabDict(te, corpus)
                 listing = {}
                 for k in temp.keys():
                     if temp[k] != {}:
