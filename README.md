@@ -13,6 +13,9 @@ Note: this repository is a work in progress. In the coming months we will be add
 2. Activate the environment: `source env/bin/activate`
 3. Install requirements into the virtual environment: `pip3 install -r requirements.txt`
 
+## Layers
+This section of the repository contains a collection of modules and scripts for working with ATT&CK Navigator layers. More information about the contents of this section can be found [here](https://github.com/mitre-attack/attack-scripts/blob/master/layers/README.md).
+
 ## Training
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/mitre-attack/attack-scripts/master)
