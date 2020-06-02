@@ -52,11 +52,11 @@ class ExcelTemplates:
             c = sheet.cell(row=entry[0], column=entry[1])
             write_val = ''
             if showName and showID:
-                write_val = self._get_ID(template[entry]) + ': ' + template[entry]
+                write_val = MatrixGen._get_ID(self.codex, template[entry]) + ': ' + template[entry]
             elif showName:
                 write_val = template[entry]
             elif showID:
-                write_val = self._get_ID(template[entry])
+                write_val = MatrixGen._get_ID(self.codex, template[entry])
             c.value = write_val
             if entry[0] == 1:
                 c.font = header_template_f
@@ -83,41 +83,6 @@ class ExcelTemplates:
 
         return wb
 
-    def _get_ID(self, name):
-        """
-            INTERNAL - Do lookups to retrieve the ID of a technique given it's name
-
-            :param name: The name of the technique to retrieve the ID of
-            :return: The ID of the technique referenced by name
-        """
-        t_lookup = {'Initial Access': 'TA0001',
-                    'Execution': 'TA0002',
-                    'Persistence': 'TA0003',
-                    'Privilege Escalation': 'TA0004',
-                    'Defense Evasion': 'TA0005',
-                    'Credential Access': 'TA0006',
-                    'Discovery': 'TA0007',
-                    'Lateral Movement': 'TA0008',
-                    'Collection': 'TA0009',
-                    'Command and Control': 'TA0011',
-                    'Exfiltration': 'TA0010',
-                    'Impact': 'TA0040'}
-        for col in self.codex:
-            for elm in col:
-                for key in elm:
-                    if key == 'tactic':
-                        if elm[key] == name:
-                            return t_lookup[elm[key]]
-                    elif key == 'subtechs':
-                        for en in elm[key]:
-                            for ent in elm[key][en]:
-                                for sub in ent:
-                                    if name == sub:
-                                        return str(ent[sub])
-                    else:
-                        if name == key:
-                            return str(elm[key])
-
     def export(self, showName, showID, subtechs=[], exclude=[]):
         """
             Export a raw customized excel template
@@ -140,18 +105,7 @@ class ExcelTemplates:
             :return: A tuple representing the (row, column) of the target element in the workbook
         """
         listing = []
-        match = ''
-        for col in self.codex:
-            for elm in col:
-                for name in elm:
-                    if name == "subtechs":
-                        for sp in elm[name]:
-                            for t in elm[name][sp]:
-                                for na in t:
-                                    if t[na] == techniqueID:
-                                        match = na
-                    if elm[name] == techniqueID:
-                        match = name
+        match = MatrixGen._get_name(self.codex, techniqueID)
         for entry in self.template:
             if self.template[entry] == match:
                 if tactic is not None:
