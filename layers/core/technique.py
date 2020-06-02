@@ -50,7 +50,7 @@ class Technique:
 
     @property
     def comment(self):
-        if self.__tactic != UNSETVALUE:
+        if self.__comment != UNSETVALUE:
             return self.__comment
 
     @comment.setter

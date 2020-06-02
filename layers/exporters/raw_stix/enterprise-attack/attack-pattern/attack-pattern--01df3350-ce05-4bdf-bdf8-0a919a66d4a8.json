@@ -1,0 +1,27 @@
+{
+    "type": "bundle",
+    "id": "bundle--82bd876a-745e-4783-abe7-f9e55fb2f420",
+    "spec_version": "2.0",
+    "objects": [
+        {
+            "id": "attack-pattern--01df3350-ce05-4bdf-bdf8-0a919a66d4a8",
+            "name": ".bash_profile and .bashrc",
+            "external_references": [
+                {
+                    "source_name": "mitre-attack",
+                    "external_id": "T1156",
+                    "url": "https://attack.mitre.org/techniques/T1156"
+                },
+                {
+                    "url": "https://researchcenter.paloaltonetworks.com/2017/04/unit42-new-iotlinux-malware-targets-dvrs-forms-botnet/",
+                    "description": "Claud Xiao, Cong Zheng, Yanhui Jia. (2017, April 6). New IoT/Linux Malware Targets DVRs, Forms Botnet. Retrieved February 19, 2018.",
+                    "source_name": "amnesia malware"
+                }
+            ],
+            "revoked": true,
+            "type": "attack-pattern",
+            "modified": "2020-01-24T14:14:05.452Z",
+            "created": "2017-12-14T16:46:06.044Z"
+        }
+    ]
+}

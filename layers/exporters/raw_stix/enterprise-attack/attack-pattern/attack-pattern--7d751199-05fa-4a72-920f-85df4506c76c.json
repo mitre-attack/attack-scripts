@@ -1,0 +1,22 @@
+{
+    "type": "bundle",
+    "id": "bundle--80cca49e-1269-4fc9-bd0a-9ed29b8793b8",
+    "spec_version": "2.0",
+    "objects": [
+        {
+            "id": "attack-pattern--7d751199-05fa-4a72-920f-85df4506c76c",
+            "name": "Multi-hop Proxy",
+            "external_references": [
+                {
+                    "source_name": "mitre-attack",
+                    "url": "https://attack.mitre.org/techniques/T1188",
+                    "external_id": "T1188"
+                }
+            ],
+            "revoked": true,
+            "type": "attack-pattern",
+            "modified": "2020-03-14T23:25:20.928Z",
+            "created": "2018-01-16T16:13:52.465Z"
+        }
+    ]
+}

@@ -1,0 +1,28 @@
+{
+    "type": "bundle",
+    "id": "bundle--419f17b4-86cb-4c97-9027-716b2df6dc16",
+    "spec_version": "2.0",
+    "objects": [
+        {
+            "id": "relationship--83bfee39-b6c9-48e6-8114-54b0c623a91f",
+            "created_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+            "description": "[Lazarus Group](https://attack.mitre.org/groups/G0032) has attempted to get users to launch a malicious Microsoft Word attachment delivered via a spearphishing email.(Citation: McAfee Bankshot)",
+            "object_marking_refs": [
+                "marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168"
+            ],
+            "external_references": [
+                {
+                    "url": "https://securingtomorrow.mcafee.com/mcafee-labs/hidden-cobra-targets-turkish-financial-sector-new-bankshot-implant/",
+                    "description": "Sherstobitoff, R. (2018, March 08). Hidden Cobra Targets Turkish Financial Sector With New Bankshot Implant. Retrieved May 18, 2018.",
+                    "source_name": "McAfee Bankshot"
+                }
+            ],
+            "source_ref": "intrusion-set--c93fccb1-e8e8-42cf-ae33-2ad1d183913a",
+            "relationship_type": "uses",
+            "target_ref": "attack-pattern--232b7f21-adf9-4b42-b936-b9d6f7df856e",
+            "type": "relationship",
+            "modified": "2020-03-17T14:42:24.965Z",
+            "created": "2018-10-17T00:14:20.652Z"
+        }
+    ]
+}

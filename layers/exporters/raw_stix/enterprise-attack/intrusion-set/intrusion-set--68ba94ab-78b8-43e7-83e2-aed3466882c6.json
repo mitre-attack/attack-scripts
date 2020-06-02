@@ -1,0 +1,22 @@
+{
+    "type": "bundle",
+    "id": "bundle--b9847cc5-7abd-421c-bf8d-730dabe56376",
+    "spec_version": "2.0",
+    "objects": [
+        {
+            "type": "intrusion-set",
+            "id": "intrusion-set--68ba94ab-78b8-43e7-83e2-aed3466882c6",
+            "name": "APT34",
+            "revoked": true,
+            "external_references": [
+                {
+                    "source_name": "mitre-attack",
+                    "url": "https://attack.mitre.org/groups/G0057",
+                    "external_id": "G0057"
+                }
+            ],
+            "modified": "2018-10-17T00:17:13.469Z",
+            "created": "2018-01-16T16:13:52.465Z"
+        }
+    ]
+}

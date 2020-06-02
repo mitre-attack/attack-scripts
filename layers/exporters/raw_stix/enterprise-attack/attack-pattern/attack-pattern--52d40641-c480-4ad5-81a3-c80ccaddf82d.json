@@ -1,0 +1,37 @@
+{
+    "type": "bundle",
+    "id": "bundle--762f55d4-f8e3-4b47-ae49-88e9cea4c452",
+    "spec_version": "2.0",
+    "objects": [
+        {
+            "id": "attack-pattern--52d40641-c480-4ad5-81a3-c80ccaddf82d",
+            "name": "Authentication Package",
+            "external_references": [
+                {
+                    "source_name": "mitre-attack",
+                    "external_id": "T1131",
+                    "url": "https://attack.mitre.org/techniques/T1131"
+                },
+                {
+                    "url": "https://msdn.microsoft.com/library/windows/desktop/aa374733.aspx",
+                    "description": "Microsoft. (n.d.). Authentication Packages. Retrieved March 1, 2017.",
+                    "source_name": "MSDN Authentication Packages"
+                },
+                {
+                    "url": "http://docplayer.net/20839173-Analysis-of-malicious-security-support-provider-dlls.html",
+                    "description": "Graeber, M. (2014, October). Analysis of Malicious Security Support Provider DLLs. Retrieved March 1, 2017.",
+                    "source_name": "Graeber 2014"
+                },
+                {
+                    "url": "https://technet.microsoft.com/en-us/library/dn408187.aspx",
+                    "description": "Microsoft. (2013, July 31). Configuring Additional LSA Protection. Retrieved June 24, 2015.",
+                    "source_name": "Microsoft Configure LSA"
+                }
+            ],
+            "revoked": true,
+            "type": "attack-pattern",
+            "modified": "2020-01-24T15:43:25.280Z",
+            "created": "2017-05-31T21:31:43.135Z"
+        }
+    ]
+}

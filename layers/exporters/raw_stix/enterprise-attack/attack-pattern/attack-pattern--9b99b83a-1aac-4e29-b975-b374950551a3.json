@@ -1,0 +1,42 @@
+{
+    "type": "bundle",
+    "id": "bundle--d132e4dc-3dfe-4cf7-916d-42b6dddbe598",
+    "spec_version": "2.0",
+    "objects": [
+        {
+            "external_references": [
+                {
+                    "source_name": "mitre-attack",
+                    "external_id": "T1015",
+                    "url": "https://attack.mitre.org/techniques/T1015"
+                },
+                {
+                    "external_id": "CAPEC-558",
+                    "source_name": "capec",
+                    "url": "https://capec.mitre.org/data/definitions/558.html"
+                },
+                {
+                    "url": "https://www.fireeye.com/blog/threat-research/2012/08/hikit-rootkit-advanced-persistent-attack-techniques-part-1.html",
+                    "description": "Glyer, C., Kazanciyan, R. (2012, August 20). THE \u201cHIKIT\u201d ROOTKIT: ADVANCED AND PERSISTENT ATTACK TECHNIQUES (PART 1). Retrieved June 6, 2016.",
+                    "source_name": "FireEye Hikit Rootkit"
+                },
+                {
+                    "url": "https://www.slideshare.net/DennisMaldonado5/sticky-keys-to-the-kingdom",
+                    "description": "Maldonado, D., McGuffin, T. (2016, August 6). Sticky Keys to the Kingdom. Retrieved July 5, 2017.",
+                    "source_name": "DEFCON2016 Sticky Keys"
+                },
+                {
+                    "url": "http://blog.crowdstrike.com/registry-analysis-with-crowdresponse/",
+                    "description": "Tilbury, C. (2014, August 28). Registry Analysis with CrowdResponse. Retrieved November 12, 2014.",
+                    "source_name": "Tilbury 2014"
+                }
+            ],
+            "name": "Accessibility Features",
+            "id": "attack-pattern--9b99b83a-1aac-4e29-b975-b374950551a3",
+            "revoked": true,
+            "type": "attack-pattern",
+            "modified": "2020-01-24T14:33:05.640Z",
+            "created": "2017-05-31T21:30:26.946Z"
+        }
+    ]
+}

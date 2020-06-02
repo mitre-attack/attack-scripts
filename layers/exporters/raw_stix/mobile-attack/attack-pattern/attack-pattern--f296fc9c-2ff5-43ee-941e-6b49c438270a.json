@@ -1,0 +1,23 @@
+{
+    "type": "bundle",
+    "id": "bundle--57b61294-19b2-4005-8d65-879fff098a43",
+    "spec_version": "2.0",
+    "objects": [
+        {
+            "id": "attack-pattern--f296fc9c-2ff5-43ee-941e-6b49c438270a",
+            "name": "Device Unlock Code Guessing or Brute Force",
+            "revoked": true,
+            "external_references": [
+                {
+                    "source_name": "mitre-mobile-attack",
+                    "url": "https://attack.mitre.org/techniques/T1459",
+                    "external_id": "T1459"
+                }
+            ],
+            "x_mitre_old_attack_id": "MOB-T1062",
+            "type": "attack-pattern",
+            "modified": "2018-10-17T01:05:10.703Z",
+            "created": "2017-10-25T14:48:23.652Z"
+        }
+    ]
+}

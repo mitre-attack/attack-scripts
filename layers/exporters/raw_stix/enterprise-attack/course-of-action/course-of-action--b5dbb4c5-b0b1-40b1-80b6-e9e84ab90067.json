@@ -1,0 +1,27 @@
+{
+    "type": "bundle",
+    "id": "bundle--01eb87b7-2191-43ee-a029-706105130631",
+    "spec_version": "2.0",
+    "objects": [
+        {
+            "created_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+            "object_marking_refs": [
+                "marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168"
+            ],
+            "external_references": [
+                {
+                    "source_name": "mitre-attack",
+                    "external_id": "M1054",
+                    "url": "https://attack.mitre.org/mitigations/M1054"
+                }
+            ],
+            "name": "Software Configuration",
+            "description": "Implement configuration changes to software (other than the operating system) to mitigate security risks associated to how the software operates.",
+            "id": "course-of-action--b5dbb4c5-b0b1-40b1-80b6-e9e84ab90067",
+            "type": "course-of-action",
+            "modified": "2020-03-31T13:11:09.471Z",
+            "created": "2019-07-19T14:40:23.529Z",
+            "x_mitre_version": "1.1"
+        }
+    ]
+}

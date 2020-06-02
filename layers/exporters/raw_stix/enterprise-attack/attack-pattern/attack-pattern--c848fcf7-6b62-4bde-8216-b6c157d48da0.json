@@ -1,0 +1,27 @@
+{
+    "type": "bundle",
+    "id": "bundle--f9c1f725-aef5-46d0-9eb5-7ad85c7e8f89",
+    "spec_version": "2.0",
+    "objects": [
+        {
+            "id": "attack-pattern--c848fcf7-6b62-4bde-8216-b6c157d48da0",
+            "name": "Uncommonly Used Port",
+            "external_references": [
+                {
+                    "source_name": "mitre-attack",
+                    "external_id": "T1065",
+                    "url": "https://attack.mitre.org/techniques/T1065"
+                },
+                {
+                    "url": "https://arxiv.org/ftp/arxiv/papers/1408/1408.1136.pdf",
+                    "description": "Gardiner, J.,  Cova, M., Nagaraja, S. (2014, February). Command & Control Understanding, Denying and Detecting. Retrieved April 20, 2016.",
+                    "source_name": "University of Birmingham C2"
+                }
+            ],
+            "revoked": true,
+            "type": "attack-pattern",
+            "modified": "2020-03-14T18:19:53.002Z",
+            "created": "2017-05-31T21:30:53.408Z"
+        }
+    ]
+}

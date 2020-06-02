@@ -1,0 +1,28 @@
+{
+    "type": "bundle",
+    "id": "bundle--a72f5c40-4ec4-4e5c-b1af-661403d0d304",
+    "spec_version": "2.0",
+    "objects": [
+        {
+            "id": "relationship--41f04732-8fdc-4b2f-9e22-7b78ff650e5d",
+            "created_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+            "description": "The [Mimikatz](https://attack.mitre.org/software/S0002) credential dumper contains an implementation of an SSP.(Citation: Deply Mimikatz)",
+            "object_marking_refs": [
+                "marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168"
+            ],
+            "external_references": [
+                {
+                    "source_name": "Deply Mimikatz",
+                    "description": "Deply, B. (n.d.). Mimikatz. Retrieved September 29, 2015.",
+                    "url": "https://github.com/gentilkiwi/mimikatz"
+                }
+            ],
+            "source_ref": "tool--afc079f3-c0ea-4096-b75d-3f05338b7f60",
+            "relationship_type": "uses",
+            "target_ref": "attack-pattern--5095a853-299c-4876-abd7-ac0050fb5462",
+            "type": "relationship",
+            "modified": "2019-04-24T23:36:42.264Z",
+            "created": "2017-12-14T16:46:06.044Z"
+        }
+    ]
+}

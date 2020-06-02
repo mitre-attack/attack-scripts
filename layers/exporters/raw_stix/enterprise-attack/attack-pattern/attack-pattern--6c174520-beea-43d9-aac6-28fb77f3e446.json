@@ -1,0 +1,32 @@
+{
+    "type": "bundle",
+    "id": "bundle--04c3c990-ab4c-45d5-849f-a75bfcea82ce",
+    "spec_version": "2.0",
+    "objects": [
+        {
+            "id": "attack-pattern--6c174520-beea-43d9-aac6-28fb77f3e446",
+            "name": "Security Support Provider",
+            "external_references": [
+                {
+                    "source_name": "mitre-attack",
+                    "external_id": "T1101",
+                    "url": "https://attack.mitre.org/techniques/T1101"
+                },
+                {
+                    "url": "http://docplayer.net/20839173-Analysis-of-malicious-security-support-provider-dlls.html",
+                    "description": "Graeber, M. (2014, October). Analysis of Malicious Security Support Provider DLLs. Retrieved March 1, 2017.",
+                    "source_name": "Graeber 2014"
+                },
+                {
+                    "url": "https://technet.microsoft.com/en-us/library/dn408187.aspx",
+                    "description": "Microsoft. (2013, July 31). Configuring Additional LSA Protection. Retrieved June 24, 2015.",
+                    "source_name": "Microsoft Configure LSA"
+                }
+            ],
+            "revoked": true,
+            "type": "attack-pattern",
+            "modified": "2020-01-24T17:35:47.598Z",
+            "created": "2017-05-31T21:31:13.447Z"
+        }
+    ]
+}

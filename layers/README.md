@@ -18,6 +18,13 @@ This folder contains modules and scripts for working with ATT&CK Navigator layer
 |:-------|:------------|
 | [layerops](manipulators/layerops.py) | Provides a means by which to combine multiple ATT&CK layer objects in customized ways. A further breakdown can be found in the corresponding section below. |
 
+#### Exporter Scripts
+| script | description |
+|:-------|:------------|
+| [matrix_gen](exporters/matrix_gen.py) | Provides a means by which to generate a matrix from raw data, either cached or from the ATT&CK TAXII server. |
+| [excel_templates](exporters/excel_templates.py) | Provides a means by which to convert a matrix into a base excel template. |
+| [to_excel](exporters/to_excel.py) | Provides a means by which to export an ATT&CK Layer to an excel file. A further breakdown can be found in the corresponding section below. |
+
 ## Layer
 The Layer class provides format validation and read/write capabilities to aid in working with ATT&CK Navigator Layers in python. It is the primary interface through which other Layer-related classes defined in the core module should be used. The Layer class API and a usage example are below.
 
@@ -118,4 +125,20 @@ lo4 = LayerOps(score=lambda x: '; '.join(x),
                desc= lambda x: "This is a defaults example")  # Build LayerOps object to combine descriptions, defaults
 out_layer6 = lo4.process([demo2, demo3])                      # Trigger processing on a list of demo2 and demo0
 out_layer6.to_file("C:\demo_layer6.json")                     # Save combined comment layer to file
+```
+
+## to_excel.py
+to_excel.py provides the ToExcel class, which is a way to export an existing layer file as an Excel spreadsheet. The ToExcel class has an optional parameter for the export function, `to_file()`, that tells the exporter to build the output matrix based on live data from cti-taxii.mitre.org. Otherwise, it will use the cached subtechniques data. If matrix template lacks elements included in a layer's technique listing, those elements will not be visible in the output file.
+#### Example Usage
+```python
+from layers import Layer
+from layers import ToExcel
+
+lay = Layer()
+lay.from_file("path/to/layer/file.json")
+t = ToExcel(lay)
+# Using cached data for template
+t.to_file("demo.xlsx")
+# Using live data for templates
+t.to_file("demo2.xlsx", fresh=True)
 ```

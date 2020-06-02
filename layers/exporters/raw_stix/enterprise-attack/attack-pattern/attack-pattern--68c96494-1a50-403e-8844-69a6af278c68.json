@@ -1,0 +1,47 @@
+{
+    "type": "bundle",
+    "id": "bundle--5aa79dbb-1e1c-402a-89a0-9d2a5cf7f125",
+    "spec_version": "2.0",
+    "objects": [
+        {
+            "id": "attack-pattern--68c96494-1a50-403e-8844-69a6af278c68",
+            "name": "Change Default File Association",
+            "external_references": [
+                {
+                    "source_name": "mitre-attack",
+                    "external_id": "T1042",
+                    "url": "https://attack.mitre.org/techniques/T1042"
+                },
+                {
+                    "external_id": "CAPEC-556",
+                    "source_name": "capec",
+                    "url": "https://capec.mitre.org/data/definitions/556.html"
+                },
+                {
+                    "url": "https://support.microsoft.com/en-us/help/18539/windows-7-change-default-programs",
+                    "description": "Microsoft. (n.d.). Change which programs Windows 7 uses by default. Retrieved July 26, 2016.",
+                    "source_name": "Microsoft Change Default Programs"
+                },
+                {
+                    "url": "http://msdn.microsoft.com/en-us/library/bb166549.aspx",
+                    "description": "Microsoft. (n.d.). Specifying File Handlers for File Name Extensions. Retrieved November 13, 2014.",
+                    "source_name": "Microsoft File Handlers"
+                },
+                {
+                    "url": "https://docs.microsoft.com/windows-server/administration/windows-commands/assoc",
+                    "description": "Plett, C. et al.. (2017, October 15). assoc. Retrieved August 7, 2018.",
+                    "source_name": "Microsoft Assoc Oct 2017"
+                },
+                {
+                    "url": "https://www.trendmicro.com/vinfo/us/threat-encyclopedia/malware/troj_fakeav.gzd",
+                    "description": "Sioting, S. (2012, October 8). TROJ_FAKEAV.GZD. Retrieved August 8, 2018.",
+                    "source_name": "TrendMicro TROJ-FAKEAV OCT 2012"
+                }
+            ],
+            "revoked": true,
+            "type": "attack-pattern",
+            "modified": "2020-01-24T13:41:32.520Z",
+            "created": "2017-05-31T21:30:42.222Z"
+        }
+    ]
+}

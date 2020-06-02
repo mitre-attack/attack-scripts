@@ -1,0 +1,42 @@
+{
+    "type": "bundle",
+    "id": "bundle--d4b8b154-ceb8-494a-849d-05bfbca0749e",
+    "spec_version": "2.0",
+    "objects": [
+        {
+            "revoked": true,
+            "external_references": [
+                {
+                    "source_name": "mitre-attack",
+                    "external_id": "T1009",
+                    "url": "https://attack.mitre.org/techniques/T1009"
+                },
+                {
+                    "external_id": "CAPEC-572",
+                    "source_name": "capec",
+                    "url": "https://capec.mitre.org/data/definitions/572.html"
+                },
+                {
+                    "source_name": "ESET OceanLotus",
+                    "description": "Folt\u00fdn, T. (2018, March 13). OceanLotus ships new backdoor using old tricks. Retrieved May 22, 2018.",
+                    "url": "https://www.welivesecurity.com/2018/03/13/oceanlotus-ships-new-backdoor/"
+                },
+                {
+                    "source_name": "Securelist Malware Tricks April 2017",
+                    "url": "https://securelist.com/old-malware-tricks-to-bypass-detection-in-the-age-of-big-data/78010/",
+                    "description": "Ishimaru, S.. (2017, April 13). Old Malware Tricks To Bypass Detection in the Age of Big Data. Retrieved May 30, 2019."
+                },
+                {
+                    "source_name": "VirusTotal FAQ",
+                    "url": "https://www.virustotal.com/en/faq/ ",
+                    "description": "VirusTotal. (n.d.). VirusTotal FAQ. Retrieved May 23, 2019."
+                }
+            ],
+            "name": "Binary Padding",
+            "id": "attack-pattern--519630c5-f03f-4882-825c-3af924935817",
+            "type": "attack-pattern",
+            "modified": "2020-02-05T15:08:05.575Z",
+            "created": "2017-05-31T21:30:22.096Z"
+        }
+    ]
+}

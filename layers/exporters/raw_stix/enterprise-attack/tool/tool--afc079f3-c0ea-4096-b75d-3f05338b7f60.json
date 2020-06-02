@@ -1,0 +1,49 @@
+{
+    "type": "bundle",
+    "id": "bundle--e9f5bbc0-5d10-453f-944c-56ccd1395dc6",
+    "spec_version": "2.0",
+    "objects": [
+        {
+            "external_references": [
+                {
+                    "source_name": "mitre-attack",
+                    "url": "https://attack.mitre.org/software/S0002",
+                    "external_id": "S0002"
+                },
+                {
+                    "url": "https://github.com/gentilkiwi/mimikatz",
+                    "description": "Deply, B. (n.d.). Mimikatz. Retrieved September 29, 2015.",
+                    "source_name": "Deply Mimikatz"
+                },
+                {
+                    "source_name": "Adsecurity Mimikatz Guide",
+                    "description": "Metcalf, S. (2015, November 13). Unofficial Guide to Mimikatz & Command Reference. Retrieved December 23, 2015.",
+                    "url": "https://adsecurity.org/?page_id=1821"
+                }
+            ],
+            "object_marking_refs": [
+                "marking-definition--fa42a846-8d90-4e51-bc29-71d5b4802168"
+            ],
+            "description": "[Mimikatz](https://attack.mitre.org/software/S0002) is a credential dumper capable of obtaining plaintext Windows account logins and passwords, along with many other features that make it useful for testing the security of networks. (Citation: Deply Mimikatz) (Citation: Adsecurity Mimikatz Guide)",
+            "name": "Mimikatz",
+            "created_by_ref": "identity--c78cb6e5-0c4b-4611-8297-d1b8b55e40b5",
+            "id": "tool--afc079f3-c0ea-4096-b75d-3f05338b7f60",
+            "type": "tool",
+            "labels": [
+                "tool"
+            ],
+            "modified": "2020-03-30T17:04:12.674Z",
+            "created": "2017-05-31T21:32:11.544Z",
+            "x_mitre_platforms": [
+                "Windows"
+            ],
+            "x_mitre_aliases": [
+                "Mimikatz"
+            ],
+            "x_mitre_contributors": [
+                "Vincent Le Toux"
+            ],
+            "x_mitre_version": "1.2"
+        }
+    ]
+}

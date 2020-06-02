@@ -1,0 +1,27 @@
+{
+    "type": "bundle",
+    "id": "bundle--d95a64bd-2b6f-4292-9d7a-32f30d87cc21",
+    "spec_version": "2.0",
+    "objects": [
+        {
+            "external_references": [
+                {
+                    "source_name": "mitre-attack",
+                    "external_id": "T1214",
+                    "url": "https://attack.mitre.org/techniques/T1214"
+                },
+                {
+                    "url": "https://pentestlab.blog/2017/04/19/stored-credentials/",
+                    "description": "netbiosX. (2017, April 19). Stored Credentials. Retrieved April 6, 2018.",
+                    "source_name": "Pentestlab Stored Credentials"
+                }
+            ],
+            "name": "Credentials in Registry",
+            "id": "attack-pattern--2edd9d6a-5674-4326-a600-ba56de467286",
+            "revoked": true,
+            "type": "attack-pattern",
+            "modified": "2020-02-04T12:59:37.464Z",
+            "created": "2018-04-18T17:59:24.739Z"
+        }
+    ]
+}
