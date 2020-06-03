@@ -129,6 +129,22 @@ out_layer6.to_file("C:\demo_layer6.json")                     # Save combined co
 
 ## to_excel.py
 to_excel.py provides the ToExcel class, which is a way to export an existing layer file as an Excel spreadsheet. The ToExcel class has an optional parameter for the export function, `to_file()`, that tells the exporter to build the output matrix based on live data from cti-taxii.mitre.org. Otherwise, it will use the cached subtechniques data. If matrix template lacks elements included in a layer's technique listing, those elements will not be visible in the output file.
+
+##### ToExcel()
+```python
+x = ToExcel(layer=None)
+```
+The ToExcel constructor takes an options layer argument during instantiation. If no layer is loaded at this time, it must be loaded later before exporting `x.layer = Layer()`.
+
+##### .to_file() Method
+```python
+x.to_file(filepath="layer.xlsx", fresh=False)
+```
+The to_file method exports the layer file loaded in the ToExcel class (`x`), as an excel file to the 
+filepath specified. The fresh parameter is an optional parameter that bases the export on a matrix built 
+from the live data on the taxii server (`True`), or based on cached data (`False`).
+
+
 #### Example Usage
 ```python
 from layers import Layer
@@ -136,9 +152,11 @@ from layers import ToExcel
 
 lay = Layer()
 lay.from_file("path/to/layer/file.json")
-t = ToExcel(lay)
 # Using cached data for template
+t = ToExcel(lay)
 t.to_file("demo.xlsx")
 # Using live data for templates
+t2 = ToExcel()
+t2.layer = lay
 t.to_file("demo2.xlsx", fresh=True)
 ```
