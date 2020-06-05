@@ -1,5 +1,6 @@
 import os
-from stix2 import TAXIICollectionSource, Filter, FileSystemSource
+import requests
+from stix2 import TAXIICollectionSource, Filter, MemoryStore
 from taxii2client import Server, Collection
 
 class MatrixEntry:
@@ -72,9 +73,12 @@ class MatrixGen:
                     self.collections[collection.title.split(' ')[0].lower()] = TAXIICollectionSource(tc)
         else:
             self.collections = dict()
-            path = os.path.sep.join(__file__.split(os.path.sep)[:-1])
-            self.collections['enterprise'] = FileSystemSource(os.path.sep.join([path, 'raw_stix', 'enterprise-attack']))
-            self.collections['mobile'] = FileSystemSource(os.path.sep.join([path, 'raw_stix', 'mobile-attack']))
+            stix_e = requests.get("https://raw.githubusercontent.com/mitre/cti/subtechniques/enterprise-attack"
+                                  "/enterprise-attack.json", verify=True).json()
+            stix_m = requests.get("https://raw.githubusercontent.com/mitre/cti/subtechniques/mobile-attack/mobile"
+                                  "-attack.json", verify=True).json()
+            self.collections['enterprise'] = MemoryStore(stix_data=stix_e["objects"])
+            self.collections['mobile'] = MemoryStore(stix_data=stix_m["objects"])
 
     def _get_tactic_listing(self, mode='enterprise'):
         """
