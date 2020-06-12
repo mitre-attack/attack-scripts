@@ -58,17 +58,20 @@ class Gradient:
             Computes the gradient color curve
         """
         if self.maxValue is not None and self.minValue is not None and self.colors is not None:
-            if len(self.colors) == 2:
-                s_c = colour.Color(self.colors[0])
-                e_c = colour.Color(self.colors[1])
-                self.curve = list(s_c.range_to(e_c, self.maxValue - self.minValue))
-            else:
-                s_c = colour.Color(self.colors[0])
-                m_c = colour.Color(self.colors[1])
-                e_c = colour.Color(self.colors[2])
-                self.curve = list(s_c.range_to(m_c, int(math.floor(self.maxValue - self.minValue)/2)))
-                curve_2 = list(m_c.range_to(e_c, int(math.ceil(self.maxValue - self.minValue)/2)))
+            chunksize = int(math.floor((self.maxValue - self.minValue)/(len(self.colors) - 1)))
+            fchunksize = int(math.ceil((self.maxValue - self.minValue)/(len(self.colors) - 1)))
+            self.curve = []
+            index = 1
+            while index < len(self.colors):
+                s_c = colour.Color(self.colors[index-1])
+                e_c = colour.Color(self.colors[index])
+                if index == len(self.colors):
+                    curve_2 = list(s_c.range_to(e_c, fchunksize))
+                else:
+                    curve_2 = list(s_c.range_to(e_c, chunksize))
+                index += 1
                 self.curve.extend(curve_2)
+            self.curve.append(colour.Color(self.colors[-1]))
 
     def compute_color(self, score):
         """
@@ -77,9 +80,9 @@ class Gradient:
                 the gradient
         """
         if score <= self.minValue:
-            return self.colors[0]
+            return self.curve[0].hex_l
         if score >= self.maxValue:
-            return self.colors[-1]
+            return self.curve[-1].hex_l
 
         target = self.curve[score - self.minValue]
         return target.hex_l

@@ -21,9 +21,12 @@ This folder contains modules and scripts for working with ATT&CK Navigator layer
 #### Exporter Scripts
 | script | description |
 |:-------|:------------|
-| [matrix_gen](exporters/matrix_gen.py) | Provides a means by which to generate a matrix from raw data, either cached or from the ATT&CK TAXII server. |
-| [excel_templates](exporters/excel_templates.py) | Provides a means by which to convert a matrix into a base excel template. |
 | [to_excel](exporters/to_excel.py) | Provides a means by which to export an ATT&CK Layer to an excel file. A further breakdown can be found in the corresponding section below. |
+##### Utility Modules
+| script | description |
+|:-------|:------------|
+| [excel_templates](exporters/excel_templates.py) | Provides a means by which to convert a matrix into a base excel template. |
+| [matrix_gen](exporters/matrix_gen.py) | Provides a means by which to generate a matrix from raw data, either cached or from the ATT&CK TAXII server. |
 
 ## Layer
 The Layer class provides format validation and read/write capabilities to aid in working with ATT&CK Navigator Layers in python. It is the primary interface through which other Layer-related classes defined in the core module should be used. The Layer class API and a usage example are below.
@@ -128,35 +131,50 @@ out_layer6.to_file("C:\demo_layer6.json")                     # Save combined co
 ```
 
 ## to_excel.py
-to_excel.py provides the ToExcel class, which is a way to export an existing layer file as an Excel spreadsheet. The ToExcel class has an optional parameter for the export function, `to_file()`, that tells the exporter to build the output matrix based on live data from cti-taxii.mitre.org. Otherwise, it will use the cached subtechniques data. If matrix template lacks elements included in a layer's technique listing, those elements will not be visible in the output file.
+to_excel.py provides the ToExcel class, which is a way to export an existing layer file as an Excel 
+spreadsheet. The ToExcel class has an optional parameter for the initialization function, that 
+tells the exporter to build the output matrix based on live data from cti-taxii.mitre.org. It 
+can also use cached subtechniques data. If neither of these is used, it will default to pulling from the 
+ATT&CK cti repo. If matrix template lacks elements included in a layer's technique listing, those 
+elements will not be visible in the output file.
 
 ##### ToExcel()
 ```python
-x = ToExcel(layer=None)
+x = ToExcel(domain='enterprise', server=False, local=None)
 ```
-The ToExcel constructor takes an options layer argument during instantiation. If no layer is loaded at this time, it must be loaded later before exporting `x.layer = Layer()`.
+The ToExcel constructor takes domain, server, and local arguments during instantiation. The domain can 
+be either 'enterprise' or 'mobile', and can be pulled from a layer file as `layer.domain`. The server 
+argument tells the matrix generation tool to use the `cti-taxii` server when building the matrix. The 
+local argument tells the matrix generation tool the path to a local stix repository to use when 
+constructing the matrix. 
 
 ##### .to_file() Method
 ```python
-x.to_file(filepath="layer.xlsx", fresh=False)
+x.to_xlsx(layer=layer, filepath="layer.xlsx")
 ```
-The to_file method exports the layer file loaded in the ToExcel class (`x`), as an excel file to the 
-filepath specified. The fresh parameter is an optional parameter that bases the export on a matrix built 
-from the live data on the taxii server (`True`), or based on cached data (`False`).
-
+The to_xlsx method exports the layer file referenced as `layer`, as an excel file to the 
+`filepath` specified. 
 
 #### Example Usage
 ```python
 from layers import Layer
 from layers import ToExcel
 
+
+lay3 = Layer()
+lay3.from_file('layers/heatmap_example.json')
+exporter = ToExcel(domain=lay3.layer.domain, server=False, local=None)
+exporter.to_xlsx(layer=lay3, filepath="layer.xlsx")
+
 lay = Layer()
 lay.from_file("path/to/layer/file.json")
 # Using cached data for template
-t = ToExcel(lay)
-t.to_file("demo.xlsx")
+t = ToExcel(domain=lay.layer.domain, server=False, local=None)
+t.to_xlsx(layer=lay, filepath="demo.xlsx")
 # Using live data for templates
-t2 = ToExcel()
-t2.layer = lay
-t.to_file("demo2.xlsx", fresh=True)
+t2 = ToExcel(domain='enterprise', server=True, local=None)
+t.to_xlsx(layer=lay, filepath="demo2.xlsx")
+#Using cached local data for templates
+t3 = ToExcel(domain='mobile', server=False, local='path/to/local/stix')
+t3.to_xlsx(layer=lay, filepath="demo3.xlsx")
 ```

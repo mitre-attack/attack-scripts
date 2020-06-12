@@ -11,33 +11,37 @@ class BadTemplateException(Exception):
 
 class ExcelTemplates:
 
-    def __init__(self, fresh=False, mode='enterprise'):
+    def __init__(self, server=False, local=None, domain='enterprise'):
         """
             Initialization - Creates a ExcelTemplate object
 
-            :param mode: The domain to utilize
+            :param server: Whether or not to use the taxii server to build the matrix
+            :param local: Optional path to local taxii data
+            :param domain: The domain to utilize
         """
-        muse = mode
+        muse = domain
         if muse.startswith('mitre-'):
-            muse = mode[6:]
+            muse = domain[6:]
         if muse in ['enterprise', 'mobile']:
             self.mode = muse
-            h = MatrixGen(fresh=fresh)
-            self.codex = h.build_matrix(muse)
+            self.h = MatrixGen(server=server, local=local)
+            self.codex = self.h.get_matrix(muse)
         else:
             raise BadTemplateException
 
-    def _build_raw(self, showName=True, showID=False, subtechs=[], exclude=[]):
+    def _build_raw(self, showName=True, showID=False, sort=0, scores=[], subtechs=[], exclude=[]):
         """
             INTERNAL - builds a raw, not-yet-marked-up excel document based on the specifications
 
             :param showName: Whether or not to display names for each entry
             :param showID: Whether or not to display Technique IDs for each entry
+            :param sort: The sort mode to use
             :param subtechs: List of all visible subtechniques
             :param exclude: List of of techniques to exclude from the matrix
             :return: a openpyxl workbook object containing the raw matrix
         """
-        template, joins = MatrixGen._construct_panop(self.codex, subtechs, exclude)
+        self.codex = self.h._adjust_ordering(self.codex, sort, scores)
+        template, joins = self.h._construct_panop(self.codex, subtechs, exclude)
         self.template = template
         wb = openpyxl.Workbook()
 
@@ -52,11 +56,11 @@ class ExcelTemplates:
             c = sheet.cell(row=entry[0], column=entry[1])
             write_val = ''
             if showName and showID:
-                write_val = MatrixGen._get_ID(self.codex, template[entry]) + ': ' + template[entry]
+                write_val = self.h._get_ID(self.codex, template[entry]) + ': ' + template[entry]
             elif showName:
                 write_val = template[entry]
             elif showID:
-                write_val = MatrixGen._get_ID(self.codex, template[entry])
+                write_val = self.h._get_ID(self.codex, template[entry])
             c.value = write_val
             if entry[0] == 1:
                 c.font = header_template_f
@@ -83,18 +87,19 @@ class ExcelTemplates:
 
         return wb
 
-    def export(self, showName, showID, subtechs=[], exclude=[]):
+    def export(self, showName, showID, sort=0, scores=[], subtechs=[], exclude=[]):
         """
             Export a raw customized excel template
 
 
             :param showName: Whether or not to display names for each entry
             :param showID: Whether or not to display Technique IDs for each entry
+            :param sort: The sort mode to utilize
             :param subtechs: List of all visible subtechniques
             :param exclude: List of of techniques to exclude from the matrix
             return: a openpyxl workbook object containing the raw matrix
         """
-        return self._build_raw(showName, showID, subtechs, exclude)
+        return self._build_raw(showName, showID, sort, scores, subtechs, exclude)
 
     def retrieve_coords(self, techniqueID, tactic=None):
         """
@@ -105,16 +110,21 @@ class ExcelTemplates:
             :return: A tuple representing the (row, column) of the target element in the workbook
         """
         listing = []
-        match = MatrixGen._get_name(self.codex, techniqueID)
+        match = self.h._get_name(self.codex, techniqueID)
         for entry in self.template:
             if self.template[entry] == match:
                 if tactic is not None:
                     try:
-                        if self.template[(1, entry[1])] != MatrixGen.convert[tactic]:
+                        if self.template[(1, entry[1])] != self.h.convert(tactic):
                             continue
                     except KeyError:
                         # account for subtechniques when scanning
-                        if self.template[(1, entry[1] - 1)] != MatrixGen.convert[tactic]:
+                        if self.template[(1, entry[1] - 1)] != self.h.convert(tactic):
                             continue
                 listing.append(entry)
+        if listing == []:
+            if '.' in techniqueID:
+                parent = self.retrieve_coords(techniqueID.split('.')[0], tactic)
+                if parent != []:
+                    return 'HIDDEN'
         return listing
