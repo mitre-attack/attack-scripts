@@ -11,16 +11,20 @@ except ModuleNotFoundError:
 class NoLayer(Exception):
     pass
 
+class MisMatchDomain(Exception):
+    pass
+
 class ToExcel:
-    def __init__(self, domain='enterprise', server=False, local=None):
+    def __init__(self, domain='enterprise', source='taxii', local=None):
         """
             Sets up exporting system, builds underlying matrix
 
-            :param server: Whether or not to use live cti-taxii data to construct the matrix
-            :param local: Optional path to local stix data
+            :param source: Source to generate the matrix from, one of (taxii, repo, or local)
+            :param local: Optional path to local stix data, required in source is local
 
         """
-        self.raw_handle = ExcelTemplates(domain=domain, server=server, local=local)
+        self.domain = domain
+        self.raw_handle = ExcelTemplates(domain=domain, source=source, local=local)
 
     def to_xlsx(self, layer, filepath="layer.xlsx"):
         """
@@ -35,6 +39,9 @@ class ToExcel:
             
         if layer is None:
             raise NoLayer
+
+        if self.domain not in layer.layer.domain:
+            raise MisMatchDomain
 
         included_subs = []
         if layer.layer.techniques:

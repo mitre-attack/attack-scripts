@@ -11,12 +11,12 @@ class BadTemplateException(Exception):
 
 class ExcelTemplates:
 
-    def __init__(self, server=False, local=None, domain='enterprise'):
+    def __init__(self, source='taxii', local=None, domain='enterprise'):
         """
             Initialization - Creates a ExcelTemplate object
 
-            :param server: Whether or not to use the taxii server to build the matrix
-            :param local: Optional path to local taxii data
+            :param source: Source to use when compiling the matrix
+            :param local: Optional path to local stix data
             :param domain: The domain to utilize
         """
         muse = domain
@@ -24,7 +24,7 @@ class ExcelTemplates:
             muse = domain[6:]
         if muse in ['enterprise', 'mobile']:
             self.mode = muse
-            self.h = MatrixGen(server=server, local=local)
+            self.h = MatrixGen(source=source, local=local)
             self.codex = self.h.get_matrix(muse)
         else:
             raise BadTemplateException

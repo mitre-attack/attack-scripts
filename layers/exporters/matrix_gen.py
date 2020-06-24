@@ -37,7 +37,7 @@ class MatrixEntry:
     def score(self, score):
         self.__score = score
 
-class MatrixColumn:
+class Tactic:
     def __init__(self, tactic=None, techniques=None, subtechniques=None):
         if tactic is not None:
             self.tactic = tactic
@@ -73,8 +73,14 @@ class MatrixColumn:
     def subtechniques(self, subtechniques):
         self.__subtechniques = subtechniques
 
+class BadSource(Exception):
+    pass
+
+class BadLocation(Exception):
+    pass
+
 class MatrixGen:
-    def __init__(self, server=True, local=None):
+    def __init__(self, source='taxii', local=None):
         """
             Initialization - Creates a matrix generator object
 
@@ -83,27 +89,38 @@ class MatrixGen:
             :param local: string path to local cache of stix data
         """
         self.convert_data = {}
-        if server:
+        if source.lower() not in ['taxii', 'local', 'repo']:
+            print('[MatrixGen] - Unable to generate matrix, source {} is not one of "taxii", "local", '
+                  'or "repo"'.format(source))
+            raise BadSource
+
+        if source.lower() == 'taxii':
             self.server = Server('https://cti-taxii.mitre.org/taxii')
             self.api_root = self.server.api_roots[0]
             self.collections = dict()
-
             for collection in self.api_root.collections:
                 if collection.title != "PRE-ATT&CK":
                     tc = Collection('https://cti-taxii.mitre.org/stix/collections/' + collection.id)
                     self.collections[collection.title.split(' ')[0].lower()] = TAXIICollectionSource(tc)
-        else:
-            if local is None:
-                self.collections = dict()
-                stix_e = requests.get("https://raw.githubusercontent.com/mitre/cti/subtechniques/enterprise-attack"
-                                      "/enterprise-attack.json", verify=False).json()
-                stix_m = requests.get("https://raw.githubusercontent.com/mitre/cti/subtechniques/mobile-attack/mobile"
-                                      "-attack.json", verify=False).json()
-                self.collections['enterprise'] = MemoryStore(stix_data=stix_e["objects"])
-                self.collections['mobile'] = MemoryStore(stix_data=stix_m["objects"])
+        elif source.lower() == 'local':
+            if local is not None:
+                try:
+                    self.collections['enterprise'] = FileSystemSource(local)
+                    self.collections['mobile'] = FileSystemSource(local)
+                except:
+                    raise BadLocation
             else:
-                self.collections['enterprise'] = FileSystemSource(local)
-                self.collections['mobile'] = FileSystemSource(local)
+                print('[MatrixGen] - "local" source specified, but path to local source not provided')
+                raise BadSource
+        else:
+            self.collections = dict()
+            stix_e = requests.get("https://raw.githubusercontent.com/mitre/cti/subtechniques/enterprise-attack"
+                                  "/enterprise-attack.json", verify=True).json()
+            stix_m = requests.get("https://raw.githubusercontent.com/mitre/cti/subtechniques/mobile-attack/mobile"
+                                  "-attack.json", verify=True).json()
+            self.collections['enterprise'] = MemoryStore(stix_data=stix_e["objects"])
+            self.collections['mobile'] = MemoryStore(stix_data=stix_m["objects"])
+
         self.matrix = {}
         self._build_matrix()
 
@@ -318,7 +335,7 @@ class MatrixGen:
                 stemp[par] = subtechs[par]
             # sort techniques alphabetically, append to column
             techs.sort(key=lambda x: x.name)
-            colm = MatrixColumn(tactic=tac, techniques=techs, subtechniques=stemp)
+            colm = Tactic(tactic=tac, techniques=techs, subtechniques=stemp)
             self.matrix[domain].append(colm)
 
     def get_matrix(self, domain='enterprise'):
