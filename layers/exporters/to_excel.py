@@ -19,7 +19,7 @@ class ToExcel:
         """
             Sets up exporting system, builds underlying matrix
 
-            :param source: Source to generate the matrix from, one of (taxii, repo, or local)
+            :param source: Source to generate the matrix from, one of (taxii or local)
             :param local: Optional path to local stix data, required in source is local
 
         """

@@ -84,14 +84,12 @@ class MatrixGen:
         """
             Initialization - Creates a matrix generator object
 
-            :param server: Bool for whether or not to read from the cti-taxii server (server currently has no
-                            subtechniques)
+            :param server: Source to utilize (taxii or local)
             :param local: string path to local cache of stix data
         """
         self.convert_data = {}
-        if source.lower() not in ['taxii', 'local', 'repo']:
-            print('[MatrixGen] - Unable to generate matrix, source {} is not one of "taxii", "local", '
-                  'or "repo"'.format(source))
+        if source.lower() not in ['taxii', 'local']:
+            print('[MatrixGen] - Unable to generate matrix, source {} is not one of "taxii" or "local"'.format(source))
             raise BadSource
 
         if source.lower() == 'taxii':
@@ -112,15 +110,6 @@ class MatrixGen:
             else:
                 print('[MatrixGen] - "local" source specified, but path to local source not provided')
                 raise BadSource
-        else:
-            self.collections = dict()
-            stix_e = requests.get("https://raw.githubusercontent.com/mitre/cti/subtechniques/enterprise-attack"
-                                  "/enterprise-attack.json", verify=True).json()
-            stix_m = requests.get("https://raw.githubusercontent.com/mitre/cti/subtechniques/mobile-attack/mobile"
-                                  "-attack.json", verify=True).json()
-            self.collections['enterprise'] = MemoryStore(stix_data=stix_e["objects"])
-            self.collections['mobile'] = MemoryStore(stix_data=stix_m["objects"])
-
         self.matrix = {}
         self._build_matrix()
 

@@ -133,14 +133,14 @@ out_layer6.to_file("C:\demo_layer6.json")                     # Save combined co
 ## to_excel.py
 to_excel.py provides the ToExcel class, which is a way to export an existing layer file as an Excel 
 spreadsheet. The ToExcel class has an optional parameter for the initialization function, that 
-tells the exporter what data source to use when building the output matrix. Valid options include using live data from cti-taxii.mitre.org, using data from the Mitre cti repository, or using a local collection. 
+tells the exporter what data source to use when building the output matrix. Valid options include using live data from cti-taxii.mitre.org or using a local collection. 
 
 ##### ToExcel()
 ```python
 x = ToExcel(domain='enterprise', source='taxii', local=None)
 ```
 The ToExcel constructor takes domain, server, and local arguments during instantiation. The domain can 
-be either `enterprise` or `mobile`, and can be pulled directly from a layer file as `layer.domain`. The source argument tells the matrix generation tool which data source to use when building the matrix. `taxii` indicates that the tool should utilize the `cti-taxii` server when building the matrix, while the `repo` and `local` options indicate that it should use the repository and a local collection respectively. The local argument is only required if the source is set to `local`, in which case it should be a path to a local stix collection.
+be either `enterprise` or `mobile`, and can be pulled directly from a layer file as `layer.domain`. The source argument tells the matrix generation tool which data source to use when building the matrix. `taxii` indicates that the tool should utilize the `cti-taxii` server when building the matrix, while the `local` option indicates that it should use a local collection respectively. The local argument is only required if the source is set to `local`, in which case it should be a path to a local stix collection.
 
 ##### .to_file() Method
 ```python
@@ -159,10 +159,7 @@ lay.from_file("path/to/layer/file.json")
 # Using taxii server for template
 t = ToExcel(domain=lay.layer.domain, source='taxii')
 t.to_xlsx(layer=lay, filepath="demo.xlsx")
-# Using repo data for template
-t2 = ToExcel(domain='enterprise', source='repo')
-t.to_xlsx(layer=lay, filepath="demo2.xlsx")
 #Using local stix data for template
-t3 = ToExcel(domain='mobile', source='local', local='path/to/local/stix')
-t3.to_xlsx(layer=lay, filepath="demo3.xlsx")
+t2 = ToExcel(domain='mobile', source='local', local='path/to/local/stix')
+t2.to_xlsx(layer=lay, filepath="demo2.xlsx")
 ```
