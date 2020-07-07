@@ -5,43 +5,11 @@ with warnings.catch_warnings():
 
 try:
     from exporters.matrix_gen import MatrixGen
+    from exporters.svg_objects import G, SVG_HeaderBlock
 except ModuleNotFoundError:
     from ..exporters.matrix_gen import MatrixGen
+    from ..exporters.svg_objects import G, SVG_HeaderBlock
 
-
-class Cell(draw.DrawingParentElement):
-    TAG_NAME = 'a'
-    def __init__(self):
-        # Other init logic...
-        # Keyword arguments to super().__init__() correspond to SVG node
-        # arguments: stroke_width=5 -> stroke-width="5"
-        super().__init__()
-
-class HeaderRect(draw.DrawingParentElement):
-    TAG_NAME = 'rect'
-    def __init__(self, width, height):
-        super().__init__(width=width, height=height,stroke_width='1', stroke='black', fill='white')
-
-class G(draw.DrawingParentElement):
-    TAG_NAME = 'g'
-    def __init__(self):
-        super().__init__()
-
-class TitleGroup(draw.DrawingParentElement):
-    TAG_NAME = 'g'
-    def __init__(self, x, y):
-        super().__init__(transform='translate(' + str(x) + ',' + str(y) + ')')
-
-class HeaderText(draw.DrawingParentElement):
-    TAG_NAME = 'text'
-    def __init__(self, text, pad, fontsize, font_units):
-        tform = 'translate(' + str(pad) + ',' + str(fontsize + pad) + ')'
-        super().__init__(text=text, transform=tform, dx=0, dy=0, font_size=font_units + fontsize, font_weight="bold")
-
-class Root(draw.DrawingParentElement):
-    TAG_NAME = 'g'
-    def __init__(self):
-        super().__init__(transform='translate(5,5)', style='font-family: sans-serif;')
 
 class BadTemplateException(Exception):
     pass
@@ -87,20 +55,22 @@ class SvgTemplates:
         max_y = increment_y * max([x[1] for x in self.template.keys()])
         d = draw.Drawing(max_x, max_y, origin=(0,-max_y), displayInline=False)
 
-        width = 250
-        height = 250
-        master = Root()
-        g = G()
-        master.append(g)
-        heads = TitleGroup(0,0)
-        g.append(heads)
-        h2 = TitleGroup(0,5)
-        heads.append(h2)
-        rect = HeaderRect(width, height)
-        h2.append(rect)
-        tex = HeaderText('this was a test', 5, 80, 80)
-        h2.append(tex)
-        d.append(master)
+        root = G(tx=5, ty=5, style='font-family: sans-serif')
+        header = G()
+        root.append(header)
+        b1 = G()
+        g = SVG_HeaderBlock().build(height=86, width=336.8, label='about', t1text='heatmap example', t1size=28, t2text='An example layer where all\ntechniques have a randomized score', t2size='13.6')
+        b2 = G(tx=354.6)
+        g2 = SVG_HeaderBlock().build(height=86, width=336.6, label='filters', t1text='Windows, Linux, macOS', t1size=28, t2text='act', t2size=28)
+        b3 = G(tx=709)
+        g3 = SVG_HeaderBlock().build(height=86, width=336.6, label='legend', type='graphic')
+        header.append(b1)
+        header.append(b2)
+        header.append(b3)
+        b1.append(g)
+        b2.append(g2)
+        b3.append(g3)
+        d.append(root)
 
 
         #header_coords = sorted([x for x in self.template.keys() if x[0] == 1])
