@@ -139,13 +139,14 @@ class DiffStix(object):
             print(*args, **kwargs)
 
 
-    def getUrlFromStix(self, datum):
+    def getUrlFromStix(self, datum, is_subtechnique=False):
         """
         Parse the website url from a stix object.
         """
         url = datum['external_references'][0]['url']
         split_url = url.split('/')
-        link = '/'.join(split_url[-2:])
+        splitfrom = -3 if is_subtechnique else -2
+        link = '/'.join(split_url[splitfrom:])
         return link
 
 
@@ -400,13 +401,14 @@ class DiffStix(object):
                         # get revoking technique's parent for display
                         parentID = list(filter(lambda rel: rel["source_ref"] == revoker["id"], subtechnique_of_rels))[0]["target_ref"]
                         parentName = id_to_technique[parentID]["name"] if parentID in id_to_technique else "ERROR NO PARENT"
-                        return f"{item['name']} (revoked by { parentName}: [{revoker['name']}]({self.site_prefix}/{self.getUrlFromStix(revoker)}))"
+                        return f"{item['name']} (revoked by { parentName}: [{revoker['name']}]({self.site_prefix}/{self.getUrlFromStix(revoker, True)}))"
                     else:
                         return f"{item['name']} (revoked by [{revoker['name']}]({self.site_prefix}/{self.getUrlFromStix(revoker)}))"
                 if section == "deletions":
                     return f"{item['name']}"
                 else:
-                    return f"[{item['name']}]({self.site_prefix}/{self.getUrlFromStix(item)})"
+                    is_subtechnique = item["type"] == "attack-pattern" and "x_mitre_is_subtechnique" in item and item["x_mitre_is_subtechnique"]
+                    return f"[{item['name']}]({self.site_prefix}/{self.getUrlFromStix(item, is_subtechnique)})"
 
 
             # build sectionList string
