@@ -1,6 +1,4 @@
-import os
-import requests
-from stix2 import TAXIICollectionSource, Filter, MemoryStore, FileSystemSource
+from stix2 import TAXIICollectionSource, Filter, FileSystemSource
 from taxii2client import Server, Collection
 
 class MatrixEntry:
