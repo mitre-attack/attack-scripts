@@ -6,6 +6,18 @@ Added scripts used to generate the [sample layers in the ATT&CK Navigator reposi
 - [apt3_apt29_software.py](scripts/layers/samples/apt3_apt29_software.py)
 - [software_execution.py](scripts/layers/samples/software_execution.py)
 
+# V1.4.1 - 18 May 2020
+## New Scripts
+- New script [technique_mappings_to_csv.py](technique_mappings_to_csv.py) added to support mapping Techniques with Mitigations, Groups or Software. The output is a CSV file. Added in PR [#23](https://github.com/mitre-attack/attack-scripts/pull/23)
+## Improvements
+- Updated [diff_stix.py](scripts/diff_stix.py) with sub-techniques support. See issue [#12](https://github.com/mitre-attack/attack-scripts/issues/12).
+## Fixes
+- Fixed bug in LayerOps causing issues with cross-tactic techniques, as well as a bug where a score lambda could affect the outcome of other lambdas.
+
+# V1.4 - 5 May 2020
+## New Scripts
+- Added Layers folder with utility scripts for working with [ATT&CK Navigator](https://github.com/mitre-attack/attack-navigator) Layers. See the Layers [README](layers/README.md) for more details. See issues [#2](https://github.com/mitre-attack/attack-scripts/issues/2) and [#3](https://github.com/mitre-attack/attack-scripts/issues/3).
+
 # V1.3 - 8 January 2019
 ## New Scripts
 - Added [diff_stix.py](scripts/diff_stix.py).
