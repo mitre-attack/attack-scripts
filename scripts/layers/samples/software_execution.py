@@ -9,7 +9,7 @@ def generate(softwaretype="software"):
         If softwaretype is specified as "malware" or "tool", only shows software of that type. If softwaretype is specified as "software" output layer shows both malware and tools
     """
     # import the STIX data from MITRE/CTI
-    stix = requests.get("https://raw.githubusercontent.com/mitre/cti/subtechniques/enterprise-attack/enterprise-attack.json", verify=False).json()
+    stix = requests.get("https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json").json()
     ms = stix2.MemoryStore(stix_data=stix["objects"])
     # software includes malware and tool types so perform two queries and merge the results
     software_filters = []

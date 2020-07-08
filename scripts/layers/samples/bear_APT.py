@@ -7,7 +7,7 @@ import re
 def generate():
     """parse the STIX on MITRE/CTI and return a layer dict showing all techniques used by an APT group with phrase 'bear' in the group aliases."""
     # import the STIX data from MITRE/CTI
-    stix = requests.get("https://raw.githubusercontent.com/mitre/cti/subtechniques/enterprise-attack/enterprise-attack.json", verify=False).json()
+    stix = requests.get("https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json").json()
     ms = stix2.MemoryStore(stix_data=stix["objects"])
 
     groups = ms.query([ stix2.Filter("type", "=", "intrusion-set") ])

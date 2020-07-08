@@ -8,7 +8,7 @@ def generate(show_nodetect=False):
         generate and return a layer dict showing techniques used by APT3 and APT29 as well as software used by those groups
         param show_nodetect, if true, causes techniques that have no data-sources to be highlighted as well
     """
-    stix = requests.get("https://raw.githubusercontent.com/mitre/cti/subtechniques/enterprise-attack/enterprise-attack.json", verify=False).json()
+    stix = requests.get("https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json").json()
     ms = stix2.MemoryStore(stix_data=stix["objects"])
     apt3 = ms.get("intrusion-set--0bbdf25b-30ff-4894-a1cd-49260d0dd2d9")
     apt29 = ms.get("intrusion-set--899ce53f-13a0-479b-a0e4-67d46e241542")
