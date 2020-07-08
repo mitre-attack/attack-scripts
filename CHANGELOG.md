@@ -8,7 +8,7 @@ Added scripts used to generate the [sample layers in the ATT&CK Navigator reposi
 ## Fixes
 - Fixed a bug in diff_stix where sub-techniques had the wrong URL in hyperlinks.
 
-# V1.4.1 - 18 May 2020
+# v1.4.1 - 18 May 2020
 ## New Scripts
 - New script [technique_mappings_to_csv.py](technique_mappings_to_csv.py) added to support mapping Techniques with Mitigations, Groups or Software. The output is a CSV file. Added in PR [#23](https://github.com/mitre-attack/attack-scripts/pull/23)
 ## Improvements
