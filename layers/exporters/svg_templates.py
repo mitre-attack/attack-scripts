@@ -5,10 +5,10 @@ with warnings.catch_warnings():
 
 try:
     from exporters.matrix_gen import MatrixGen
-    from exporters.svg_objects import G, SVG_HeaderBlock
+    from exporters.svg_objects import G, SVG_HeaderBlock, SVG_Technique, Text
 except ModuleNotFoundError:
     from ..exporters.matrix_gen import MatrixGen
-    from ..exporters.svg_objects import G, SVG_HeaderBlock
+    from ..exporters.svg_objects import G, SVG_HeaderBlock, SVG_Technique, Text
 
 
 class BadTemplateException(Exception):
@@ -17,7 +17,7 @@ class BadTemplateException(Exception):
 
 class SvgTemplates:
 
-    def __init__(self, server=False, local=None, domain='enterprise'):
+    def __init__(self, source='taxii', domain='enterprise'):
         """
             Initialization - Creates a ExcelTemplate object
 
@@ -30,7 +30,7 @@ class SvgTemplates:
             muse = domain[6:]
         if muse in ['enterprise', 'mobile']:
             self.mode = muse
-            self.h = MatrixGen(server=server, local=local)
+            self.h = MatrixGen(source=source)
             self.codex = self.h.get_matrix(muse)
         else:
             raise BadTemplateException
@@ -46,31 +46,6 @@ class SvgTemplates:
             :param exclude: List of of techniques to exclude from the matrix
             :return: a openpyxl workbook object containing the raw matrix
         """
-        self.codex = self.h._adjust_ordering(self.codex, sort, scores)
-        template, joins = self.h._construct_panop(self.codex, subtechs, exclude)
-        self.template = template
-        increment_x = 50
-        increment_y = 80
-        max_x = increment_x * max([x[0] for x in self.template.keys()])
-        max_y = increment_y * max([x[1] for x in self.template.keys()])
-        d = draw.Drawing(max_x, max_y, origin=(0,-max_y), displayInline=False)
-
-        root = G(tx=5, ty=5, style='font-family: sans-serif')
-        header = G()
-        root.append(header)
-        b1 = G()
-        g = SVG_HeaderBlock().build(height=86, width=336.8, label='about', t1text='heatmap example', t1size=28, t2text='An example layer where all\ntechniques have a randomized score', t2size='13.6')
-        b2 = G(tx=354.6)
-        g2 = SVG_HeaderBlock().build(height=86, width=336.6, label='filters', t1text='Windows, Linux, macOS', t1size=28, t2text='act', t2size=28)
-        b3 = G(tx=709)
-        g3 = SVG_HeaderBlock().build(height=86, width=336.6, label='legend', type='graphic')
-        header.append(b1)
-        header.append(b2)
-        header.append(b3)
-        b1.append(g)
-        b2.append(g2)
-        b3.append(g3)
-        d.append(root)
 
 
         #header_coords = sorted([x for x in self.template.keys() if x[0] == 1])
@@ -93,9 +68,63 @@ class SvgTemplates:
             # d.setRenderSize()
             # current_index_x = current_index_x - increment_x
             # current_index_y = current_index_y + increment_y
+        #return d
+
+    def _build_headers(self, name, desc, filters, gradient):
+        increment_x = 50
+        increment_y = 80
+        #max_x = increment_x * max([x[0] for x in self.template.keys()])
+        #max_y = increment_y * max([x[1] for x in self.template.keys()])
+        max_x = 1056
+        max_y = 816
+        d = draw.Drawing(max_x, max_y, origin=(0, -max_y), displayInline=False)
+
+        root = G(tx=5, ty=5, style='font-family: sans-serif')
+        header = G()
+        root.append(header)
+        b1 = G()
+        header_width = max_x / 3 - 20
+        g = SVG_HeaderBlock().build(height=86, width=header_width, label='about', t1text=name, t1size=28,
+                                    t2text=desc, t2size=13.6)
+        b2 = G(tx=max_x / 3)
+        g2 = SVG_HeaderBlock().build(height=86, width=header_width, label='filters', t1text=', '.join(filters.platforms),
+                                     t1size=28, t2text=filters.stages[0], t2size=28)
+        b3 = G(tx=max_x / 3 * 2)
+        colors = [gradient.compute_color(gradient.minValue)]
+        for i in range(1, len(gradient.colors) * 2):
+            colors.append(gradient.compute_color(int(gradient.maxValue/(len(gradient.colors)*2)) * i))
+        g3 = SVG_HeaderBlock().build(height=86, width=header_width, label='legend', type='graphic',
+                                     colors=colors, values=(gradient.minValue, gradient.maxValue))
+        header.append(b1)
+        header.append(b2)
+        header.append(b3)
+        b1.append(g)
+        b2.append(g2)
+        b3.append(g3)
+        d.append(root)
         return d
 
-    def export(self, showName, showID, sort=0, scores=[], subtechs=[], exclude=[]):
+#    def get_tech_demo(self):
+#        a,_ = SVG_Technique().build(245, {'name': 'demo', 'color': [241, 227, 98]},
+#                                    subtechniques=[{'name': 'demo', 'color': [241, 227, 98]},
+#                                                   {'name': 'demo', 'color': [241, 227, 98]},
+#                                                   {'name': 'demo', 'color': [241, 227, 98]},
+#                                                   {'name': 'demo', 'color': [241, 227, 98]}])
+#        return a
+
+    def get_tactic(self, tactic, mode=(True, False)):
+        offset = 0
+        column = G(ty=2)
+        for x in tactic.techniques:
+            a, offset = self.get_tech(offset, mode, x, subtechniques=tactic.subtechniques.get(x.id, []))
+            column.append(a)
+        return column
+
+    def get_tech(self, offset, mode, technique, subtechniques=[]):
+        a, b = SVG_Technique(self.lhandle.gradient).build(offset, technique, subtechniques=subtechniques, mode=mode)
+        return a, b
+
+    def export(self, showName, showID, lhandle, sort=0, scores=[], subtechs=[], exclude=[]):
         """
             Export a raw svg template
 
@@ -107,4 +136,20 @@ class SvgTemplates:
             :param exclude: List of of techniques to exclude from the matrix
             return: a base template for the svg diagram
         """
-        return self._build_raw(showName, showID, sort, scores, subtechs, exclude)
+        self.codex = self.h._adjust_ordering(self.codex, sort, scores)
+        self.lhandle = lhandle
+        glob = G()
+        incre = 85
+        index = 0
+        for x in self.codex:
+            g = G(tx=index, ty=110)
+            gt = G(tx=42)
+            index += incre
+            tx = Text(ctype='TacticName', font_size=8, text=x.tactic.name, position='middle')
+            gt.append(tx)
+            a = self.get_tactic(x, mode=(showName,showID))
+            g.append(gt)
+            g.append(a)
+            glob.append(g)
+        #return self._build_raw(showName, showID, sort, scores, subtechs, exclude)
+        return glob

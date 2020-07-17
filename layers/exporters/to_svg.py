@@ -14,7 +14,7 @@ class NoLayer(Exception):
     pass
 
 class ToSvg:
-    def __init__(self, domain='enterprise', server=False, local=None):
+    def __init__(self, domain='enterprise', source='taxii'):
         """
             Sets up exporting system, builds underlying matrix
 
@@ -22,7 +22,7 @@ class ToSvg:
             :param local: Optional path to local stix data
 
         """
-        self.raw_handle = SvgTemplates(domain=domain, server=server, local=local)
+        self.raw_handle = SvgTemplates(domain=domain, source=source)
 
     def to_svg(self, layer):
         if layer is not None:
@@ -65,6 +65,12 @@ class ToSvg:
             sID = layer.layer.layout.showID
         if layer.layer.sorting:
             sort = layer.layer.sorting
-        d = self.raw_handle.export(showName=sName, showID=sID, sort=sort, scores=scores, subtechs=included_subs,
-                                   exclude=excluded)
+        g = self.raw_handle.export(showName=sName, showID=sID, sort=sort, scores=scores,
+                                   subtechs=included_subs,
+                                   exclude=excluded, lhandle=layer.layer)
+        d = self.raw_handle._build_headers(layer.layer.name, layer.layer.description, layer.layer.filters,
+                                           layer.layer.gradient)
+        #d.append(self.raw_handle.get_tech())
+        d.append(g)
+
         d.saveSvg('example.svg')
