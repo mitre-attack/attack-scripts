@@ -1,5 +1,9 @@
-from stix2 import TAXIICollectionSource, Filter, FileSystemSource
+from stix2 import TAXIICollectionSource, Filter, MemoryStore
 from taxii2client import Server, Collection
+
+
+class DomainNotLoadedError(Exception):
+    pass
 
 class MatrixEntry:
     def __init__(self, id=None, name=None):
@@ -94,8 +98,11 @@ class MatrixGen:
                     self.collections[collection.title.split(' ')[0].lower()] = TAXIICollectionSource(tc)
         elif source.lower() == 'local':
             if local is not None:
-                self.collections['enterprise'] = FileSystemSource(local)
-                self.collections['mobile'] = FileSystemSource(local)
+                hd = MemoryStore()
+                if 'mobile' in local.lower():
+                    self.collections['mobile'] = hd.load_from_file(local)
+                else:
+                    self.collections['enterprise'] = hd.load_from_file(local)
             else:
                 print('[MatrixGen] - "local" source specified, but path to local source not provided')
                 raise ValueError
@@ -302,6 +309,8 @@ class MatrixGen:
 
             :param domain: The domain to build a matrix for
         """
+        if domain not in self.collections:
+            raise DomainNotLoadedError
         self.matrix[domain] = []
         tacs = self._get_tactic_listing(domain)
         for tac in tacs:

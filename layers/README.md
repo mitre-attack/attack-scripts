@@ -160,6 +160,6 @@ lay.from_file("path/to/layer/file.json")
 t = ToExcel(domain=lay.layer.domain, source='taxii')
 t.to_xlsx(layer=lay, filepath="demo.xlsx")
 #Using local stix data for template
-t2 = ToExcel(domain='mobile', source='local', local='path/to/local/stix')
+t2 = ToExcel(domain='mobile', source='local', local='path/to/local/stix.json')
 t2.to_xlsx(layer=lay, filepath="demo2.xlsx")
 ```
