@@ -71,12 +71,6 @@ class Tactic:
     def subtechniques(self, subtechniques):
         self.__subtechniques = subtechniques
 
-class BadSource(Exception):
-    pass
-
-class BadLocation(Exception):
-    pass
-
 class MatrixGen:
     def __init__(self, source='taxii', local=None):
         """
@@ -88,7 +82,7 @@ class MatrixGen:
         self.convert_data = {}
         if source.lower() not in ['taxii', 'local']:
             print('[MatrixGen] - Unable to generate matrix, source {} is not one of "taxii" or "local"'.format(source))
-            raise BadSource
+            raise ValueError
 
         if source.lower() == 'taxii':
             self.server = Server('https://cti-taxii.mitre.org/taxii')
@@ -100,14 +94,11 @@ class MatrixGen:
                     self.collections[collection.title.split(' ')[0].lower()] = TAXIICollectionSource(tc)
         elif source.lower() == 'local':
             if local is not None:
-                try:
-                    self.collections['enterprise'] = FileSystemSource(local)
-                    self.collections['mobile'] = FileSystemSource(local)
-                except:
-                    raise BadLocation
+                self.collections['enterprise'] = FileSystemSource(local)
+                self.collections['mobile'] = FileSystemSource(local)
             else:
                 print('[MatrixGen] - "local" source specified, but path to local source not provided')
-                raise BadSource
+                raise ValueError
         self.matrix = {}
         self._build_matrix()
 

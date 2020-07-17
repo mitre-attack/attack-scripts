@@ -16,7 +16,7 @@ class ExcelTemplates:
             Initialization - Creates a ExcelTemplate object
 
             :param source: Source to use when compiling the matrix
-            :param local: Optional path to local stix data
+            :param local: Optional path to local stix data, required if source == "local"
             :param domain: The domain to utilize
         """
         muse = domain
