@@ -8,12 +8,6 @@ except ModuleNotFoundError:
     from ..core import Layer
     from ..exporters import ExcelTemplates
 
-class NoLayer(Exception):
-    pass
-
-class MisMatchDomain(Exception):
-    pass
-
 class ToExcel:
     def __init__(self, domain='enterprise', source='taxii', local=None):
         """
@@ -33,15 +27,12 @@ class ToExcel:
             :param layer: A layer to initialize the instance with
             :param filepath: The location to write the excel file to
         """
-        if layer is not None:
-            if not isinstance(layer, Layer):
-                raise TypeError
-            
-        if layer is None:
-            raise NoLayer
 
+        if not isinstance(layer, Layer):
+            raise TypeError
+            
         if self.domain not in layer.layer.domain:
-            raise MisMatchDomain
+            raise ValueError(f"layer domain ({layer.layer.domain}) does not match exporter domain ({self.domain})")
 
         included_subs = []
         if layer.layer.techniques:

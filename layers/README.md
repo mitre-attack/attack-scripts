@@ -26,7 +26,7 @@ This folder contains modules and scripts for working with ATT&CK Navigator layer
 | script | description |
 |:-------|:------------|
 | [excel_templates](exporters/excel_templates.py) | Provides a means by which to convert a matrix into a clean excel matrix template. |
-| [matrix_gen](exporters/matrix_gen.py) | Provides a means by which to generate a matrix from raw data, either from the ATT&CK TAXII server or from a local collection. |
+| [matrix_gen](exporters/matrix_gen.py) | Provides a means by which to generate a matrix from raw data, either from the ATT&CK TAXII server or from a local STIX Bundle. |
 
 ## Layer
 The Layer class provides format validation and read/write capabilities to aid in working with ATT&CK Navigator Layers in python. It is the primary interface through which other Layer-related classes defined in the core module should be used. The Layer class API and a usage example are below.
@@ -133,14 +133,14 @@ out_layer6.to_file("C:\demo_layer6.json")                     # Save combined co
 ## to_excel.py
 to_excel.py provides the ToExcel class, which is a way to export an existing layer file as an Excel 
 spreadsheet. The ToExcel class has an optional parameter for the initialization function, that 
-tells the exporter what data source to use when building the output matrix. Valid options include using live data from cti-taxii.mitre.org or using a local collection. 
+tells the exporter what data source to use when building the output matrix. Valid options include using live data from cti-taxii.mitre.org or using a local STIX bundle. 
 
 ##### ToExcel()
 ```python
 x = ToExcel(domain='enterprise', source='taxii', local=None)
 ```
 The ToExcel constructor takes domain, server, and local arguments during instantiation. The domain can 
-be either `enterprise` or `mobile`, and can be pulled directly from a layer file as `layer.domain`. The source argument tells the matrix generation tool which data source to use when building the matrix. `taxii` indicates that the tool should utilize the `cti-taxii` server when building the matrix, while the `local` option indicates that it should use a local collection respectively. The local argument is only required if the source is set to `local`, in which case it should be a path to a local stix collection.
+be either `enterprise` or `mobile`, and can be pulled directly from a layer file as `layer.domain`. The source argument tells the matrix generation tool which data source to use when building the matrix. `taxii` indicates that the tool should utilize the `cti-taxii` server when building the matrix, while the `local` option indicates that it should use a local bundle respectively. The local argument is only required if the source is set to `local`, in which case it should be a path to a local stix bundle.
 
 ##### .to_file() Method
 ```python
