@@ -78,9 +78,20 @@ class ExcelTemplates:
         for col, value in dims.items():
             sheet_handle.column_dimensions[col].width = value
 
+        merge_border_thickness = 'thin'
+        merge_template_l = Border(bottom=Side(border_style=merge_border_thickness),
+                                  left=Side(border_style=merge_border_thickness),
+                                  top=Side(border_style=merge_border_thickness))
+        merge_template_r = Border(bottom=Side(border_style=merge_border_thickness),
+                                  right=Side(border_style=merge_border_thickness),
+                                  top=Side(border_style=merge_border_thickness))
+
         for marker in joins:
             sheet_handle.merge_cells(start_row=marker[0], start_column=marker[1], end_row=marker[0] + marker[2] - 1,
                                      end_column=marker[1])
+            for block in range(marker[0], marker[0] + marker[2]):
+                sheet_handle[block][marker[1]].border = merge_template_r
+                sheet_handle[block][marker[0] + 1].border = merge_template_l
             sheet_handle.merge_cells(start_row=1, start_column=marker[1], end_row=1, end_column=marker[1] + 1)
             adjust = sheet_handle.cell(row=marker[0], column=marker[1])
             adjust.alignment = Alignment(vertical='top')
