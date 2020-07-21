@@ -92,7 +92,7 @@ class ToExcel:
                         print('NOTE! Technique/Tactic ' + tech.techniqueID + '/' + tac + ' does not appear '
                               'to be visible in the matrix. Its parent appears to be hiding it.')
                     else:
-                        print('WARNING! Technique/Tactic ' + tech.techniqueID + '/' + tac + 'seems malformed. '
+                        print('WARNING! Technique/Tactic ' + tech.techniqueID + '/' + tac + ' seems malformed. '
                               'Skipping...')
                     continue
             for location in coords:
