@@ -91,7 +91,7 @@ class ExcelTemplates:
                                      end_column=marker[1])
             for block in range(marker[0], marker[0] + marker[2]):
                 sheet_handle[block][marker[1]].border = merge_template_r
-                sheet_handle[block][marker[0] + 1].border = merge_template_l
+                sheet_handle[block][marker[1] - 1].border = merge_template_l
             sheet_handle.merge_cells(start_row=1, start_column=marker[1], end_row=1, end_column=marker[1] + 1)
             adjust = sheet_handle.cell(row=marker[0], column=marker[1])
             adjust.alignment = Alignment(vertical='top')
