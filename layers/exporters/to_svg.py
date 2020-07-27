@@ -50,6 +50,7 @@ class ToSvg:
                     else:
                         excluded.append((entry.techniqueID, False))
         scores = []
+        colors = []
         if layer.layer.techniques:
             for entry in layer.layer.techniques:
                 if entry.score:
@@ -57,6 +58,11 @@ class ToSvg:
                         scores.append((entry.techniqueID, entry.tactic, entry.score))
                     else:
                         scores.append((entry.techniqueID, False, entry.score))
+                elif entry.color:
+                    if entry.tactic:
+                        colors.append((entry.techniqueID, entry.tactic, entry.color))
+                    else:
+                        colors.append((entry.techniqueID, False, entry.color))
         sName = True
         sID = False
         sort = 0
@@ -66,11 +72,10 @@ class ToSvg:
         if layer.layer.sorting:
             sort = layer.layer.sorting
         g = self.raw_handle.export(showName=sName, showID=sID, sort=sort, scores=scores,
-                                   subtechs=included_subs,
+                                   subtechs=included_subs, colors=colors,
                                    exclude=excluded, lhandle=layer.layer)
         d = self.raw_handle._build_headers(layer.layer.name, layer.layer.description, layer.layer.filters,
                                            layer.layer.gradient)
-        #d.append(self.raw_handle.get_tech())
         d.append(g)
 
         d.saveSvg('example.svg')

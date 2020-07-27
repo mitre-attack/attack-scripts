@@ -63,9 +63,11 @@ def wrap(st, font_size, width):
 
 class Cell(draw.DrawingParentElement):
     TAG_NAME = 'rect'
-    def __init__(self, height, width, fill):
+    def __init__(self, height, width, fill, ctype=None):
         super().__init__(height=height, width=width, style='fill: rgb({}, {}, {})'.format(fill[0], fill[1], fill[2]),
                          stroke='#6B7279')
+        if ctype:
+            self.args['class'] = ctype
 
 class HeaderRect(draw.DrawingParentElement):
     TAG_NAME = 'rect'
@@ -146,11 +148,19 @@ class SVG_HeaderBlock():
                 upper.append(t1)
                 upper.append(Line(0, width-10, (height-5)/2, (height-5)/2, stroke='#dddddd'))
                 if t2text is not None:
-                    lower = G(tx=0, ty=(height - 8)/2)
-                    y = (height + 5) / 4
-                    if y < float(t2size):
-                        y = float(t2size) + (float(t2size) - y)
-                    t2 = Text(wrap(t2text,t2size, width), t2size, '', x=4, y=y)
+                    lower = G(tx=0, ty= (height/3 + t1size))
+                    y = 10
+                    lines = 4
+                    fs = t2size
+                    while lines > 2:
+                        adjusted = wrap(t2text, fs, width + 15)
+                        lines = adjusted.count('\n')
+                        if lines > 2:
+                            fs = fs / 2
+                    lines += 1
+                    if lines > 1:
+                        y = y / (4 ** lines)
+                    t2 = Text(adjusted, fs, '', x=4, y=y)
                     lower.append(t2)
                     internal.append(lower)
         else:
@@ -186,13 +196,14 @@ class SVG_Technique():
     def __init__(self, gradient):
         self.grade = gradient
 
-    def build(self, offset, technique, subtechniques=[], mode=(True, False)):
+    def build(self, offset, technique, subtechniques=[], mode=(True, False), tactic=None, colors=[]):
         height = 5.6
         width = 80
         indent = 11.2
         g = G(ty=offset)
-        c = self.grade.compute_color(technique.score)[1:]
-        t = dict(name=self.disp(technique.name, technique.id, mode), color=tuple(int(c[i:i+2], 16) for i in (0, 2, 4)))
+        c = self.com_color(technique, tactic, colors)
+        t = dict(name=self.disp(technique.name, technique.id, mode), id=technique.id,
+                 color=tuple(int(c[i:i+2], 16) for i in (0, 2, 4)))
         tech, text = self.block(t, height, width)
         g.append(tech)
         g.append(text)
@@ -200,8 +211,8 @@ class SVG_Technique():
         for entry in subtechniques:
             gp = G(tx=indent, ty=new_offset)
             g.append(gp)
-            c = self.grade.compute_color(entry.score)[1:]
-            st = dict(name=self.disp(entry.name, entry.id, mode),
+            c = self.com_color(entry, tactic, colors)
+            st = dict(name=self.disp(entry.name, entry.id, mode), id=entry.id,
                      color=tuple(int(c[i:i + 2], 16) for i in (0, 2, 4)))
             subtech, subtext = self.block(st, height, width - indent)
             gp.append(subtech)
@@ -219,7 +230,7 @@ class SVG_Technique():
         return g, offset + new_offset
 
     def block(self, technique, height, width):
-        tech = Cell(height, width, technique['color'])
+        tech = Cell(height, width, technique['color'], ctype=technique['id'])
         fs = 4.5
         adjusted = wrap(technique['name'], fs/3, width - 13)
         lines = adjusted.count('\n')
@@ -229,6 +240,19 @@ class SVG_Technique():
             y = y / (2**lines) + .15 * (2**lines)
         text = Text(adjusted.encode('utf-8').decode('ascii', 'backslashreplace'), fs, '', x=4, y=y)
         return tech, text
+
+    def com_color(self, technique, tactic, colors=[]):
+        c = 'FFFFFF'
+        if technique.score:
+            c = self.grade.compute_color(technique.score)[1:]
+        else:
+            for x in colors:
+                if x[0] == technique.id and (x[1] == tactic or not x[1]):
+                    c = x[2][1:]
+        if c == 'FFFFFF':
+            if 0 >= self.grade.minValue:
+                c = self.grade.compute_color(0)[1:]
+        return c
 
     def disp(self, name, id, mode):
         p1 = name

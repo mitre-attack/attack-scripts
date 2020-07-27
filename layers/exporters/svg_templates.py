@@ -16,7 +16,6 @@ class BadTemplateException(Exception):
 
 
 class SvgTemplates:
-
     def __init__(self, source='taxii', domain='enterprise'):
         """
             Initialization - Creates a ExcelTemplate object
@@ -35,99 +34,85 @@ class SvgTemplates:
         else:
             raise BadTemplateException
 
-    def _build_raw(self, showName=True, showID=False, sort=0, scores=[], subtechs=[], exclude=[]):
-        """
-            INTERNAL - builds a raw, not-yet-marked-up excel document based on the specifications
+    # Configurable Constants
+    incre_x = 80
+    incre_y = 20
+    tactic_spacing = 10
+    header_height = 86
+    tactic_font = 8
+    header_text_size = 28
 
-            :param showName: Whether or not to display names for each entry
-            :param showID: Whether or not to display Technique IDs for each entry
-            :param sort: The sort mode to use
-            :param subtechs: List of all visible subtechniques
-            :param exclude: List of of techniques to exclude from the matrix
-            :return: a openpyxl workbook object containing the raw matrix
-        """
-
-
-        #header_coords = sorted([x for x in self.template.keys() if x[0] == 1])
-        #current_index_x = max_x
-        #current_index_y = 0
-        #for entry in header_coords:
-            # write_val = ''
-            # if showName and showID:
-            #     write_val = self.h._get_ID(self.codex, template[entry]) + ': ' + template[entry]
-            # elif showName:
-            #     write_val = template[entry]
-            # elif showID:
-            #     write_val = self.h._get_ID(self.codex, template[entry])
-            # if any(entry[0] == y[0] and entry[1] == y[1] for y in joins):
-            #     width = current_index_y + (increment_y * 2)
-            # rect = Cell()
-            # rect.append(draw.Rectangle(current_index_x, current_index_y, increment_y, increment_x, fill='gray'))
-            # rect.append(draw.Text(write_val, 0.2, 0, 0, center=0, fill='black'))
-            # d.append(rect)
-            # d.setRenderSize()
-            # current_index_x = current_index_x - increment_x
-            # current_index_y = current_index_y + increment_y
-        #return d
-
-    def _build_headers(self, name, desc, filters, gradient):
-        increment_x = 50
-        increment_y = 80
-        #max_x = increment_x * max([x[0] for x in self.template.keys()])
-        #max_y = increment_y * max([x[1] for x in self.template.keys()])
-        max_x = 1056
-        max_y = 816
+    def _build_headers(self, name, desc=None, filters=None, gradient=None):
+        max_y = self.incre_y * max(len(x.techniques) for x in self.codex) + self.header_height
+        max_x = self.incre_x * (len(self.codex)) + (self.tactic_spacing * len(self.codex)) + 50
         d = draw.Drawing(max_x, max_y, origin=(0, -max_y), displayInline=False)
+
+        operation_x = max_x - 30
 
         root = G(tx=5, ty=5, style='font-family: sans-serif')
         header = G()
         root.append(header)
         b1 = G()
-        header_width = max_x / 3 - 20
-        g = SVG_HeaderBlock().build(height=86, width=header_width, label='about', t1text=name, t1size=28,
-                                    t2text=desc, t2size=13.6)
-        b2 = G(tx=max_x / 3)
-        g2 = SVG_HeaderBlock().build(height=86, width=header_width, label='filters', t1text=', '.join(filters.platforms),
-                                     t1size=28, t2text=filters.stages[0], t2size=28)
-        b3 = G(tx=max_x / 3 * 2)
-        colors = [gradient.compute_color(gradient.minValue)]
-        for i in range(1, len(gradient.colors) * 2):
-            colors.append(gradient.compute_color(int(gradient.maxValue/(len(gradient.colors)*2)) * i))
-        g3 = SVG_HeaderBlock().build(height=86, width=header_width, label='legend', type='graphic',
-                                     colors=colors, values=(gradient.minValue, gradient.maxValue))
         header.append(b1)
-        header.append(b2)
-        header.append(b3)
+
+        header_count = 1
+        psych = 1
+        if filters is not None:
+            header_count += 1
+        if gradient is not None:
+            header_count += 1
+
+        header_width = operation_x / header_count - 30
+        if desc is not None:
+            g = SVG_HeaderBlock().build(height=self.header_height, width=header_width, label='about', t1text=name,
+                                    t1size=self.header_text_size, t2text=desc, t2size=self.header_text_size)
+        else:
+            g = SVG_HeaderBlock().build(height=self.header_height, width=header_width, label='about', t1text=name,
+                                        t1size=self.header_text_size)
         b1.append(g)
-        b2.append(g2)
-        b3.append(g3)
+        if filters is not None:
+            g2 = SVG_HeaderBlock().build(height=self.header_height, width=header_width, label='filters',
+                                     t1text=', '.join(filters.platforms), t1size=self.header_text_size,
+                                     t2text=filters.stages[0], t2size=self.header_text_size)
+            b2 = G(tx=operation_x / header_count)
+            header.append(b2)
+            b2.append(g2)
+            psych += 1
+        if gradient is not None:
+            b3 = G(tx=operation_x / header_count * psych)
+            colors = [gradient.compute_color(gradient.minValue)]
+            for i in range(1, len(gradient.colors) * 2):
+                colors.append(gradient.compute_color(int(gradient.maxValue/(len(gradient.colors)*2)) * i))
+            g3 = SVG_HeaderBlock().build(height=self.header_height, width=header_width, label='legend', type='graphic',
+                                         colors=colors, values=(gradient.minValue, gradient.maxValue))
+            header.append(b3)
+            b3.append(g3)
         d.append(root)
         return d
 
-#    def get_tech_demo(self):
-#        a,_ = SVG_Technique().build(245, {'name': 'demo', 'color': [241, 227, 98]},
-#                                    subtechniques=[{'name': 'demo', 'color': [241, 227, 98]},
-#                                                   {'name': 'demo', 'color': [241, 227, 98]},
-#                                                   {'name': 'demo', 'color': [241, 227, 98]},
-#                                                   {'name': 'demo', 'color': [241, 227, 98]}])
-#        return a
-
-    def get_tactic(self, tactic, mode=(True, False)):
+    def get_tactic(self, tactic, colors=[], subtechs=[], exclude=[], mode=(True, False)):
         offset = 0
         column = G(ty=2)
         for x in tactic.techniques:
-            a, offset = self.get_tech(offset, mode, x, subtechniques=tactic.subtechniques.get(x.id, []))
+            if any(x.id == y[0] and (y[1] == self.h.convert(tactic.tactic.name) or not y[1]) for y in exclude):
+                continue
+            if any(x.id == y[0] and (y[1] == self.h.convert(tactic.tactic.name) or not y[1]) for y in subtechs):
+                a, offset = self.get_tech(offset, mode, x, tactic=self.h.convert(tactic.tactic.name),
+                                          subtechniques=tactic.subtechniques.get(x.id, []), colors=colors)
+            else:
+                a, offset = self.get_tech(offset, mode, x, tactic=self.h.convert(tactic.tactic.name),
+                                          subtechniques=[], colors=colors)
             column.append(a)
         return column
 
-    def get_tech(self, offset, mode, technique, subtechniques=[]):
-        a, b = SVG_Technique(self.lhandle.gradient).build(offset, technique, subtechniques=subtechniques, mode=mode)
+    def get_tech(self, offset, mode, technique, tactic, subtechniques=[], colors=[]):
+        a, b = SVG_Technique(self.lhandle.gradient).build(offset, technique, subtechniques=subtechniques, mode=mode,
+                                                          tactic=tactic, colors=colors)
         return a, b
 
-    def export(self, showName, showID, lhandle, sort=0, scores=[], subtechs=[], exclude=[]):
+    def export(self, showName, showID, lhandle, sort=0, scores=[], colors=[], subtechs=[], exclude=[]):
         """
             Export a raw svg template
-
 
             :param showName: Whether or not to display names for each entry
             :param showID: Whether or not to display Technique IDs for each entry
@@ -139,17 +124,16 @@ class SvgTemplates:
         self.codex = self.h._adjust_ordering(self.codex, sort, scores)
         self.lhandle = lhandle
         glob = G()
-        incre = 85
-        index = 0
+        incre = self.incre_x + self.tactic_spacing
+        index = 5
         for x in self.codex:
-            g = G(tx=index, ty=110)
-            gt = G(tx=42)
+            g = G(tx=index, ty=self.header_height + 30)
+            gt = G(tx=(self.incre_x / 2) + 2)
             index += incre
-            tx = Text(ctype='TacticName', font_size=8, text=x.tactic.name, position='middle')
+            tx = Text(ctype='TacticName', font_size=self.tactic_font, text=x.tactic.name, position='middle')
             gt.append(tx)
-            a = self.get_tactic(x, mode=(showName,showID))
+            a = self.get_tactic(x, colors=colors, subtechs=subtechs, exclude=exclude, mode=(showName,showID))
             g.append(gt)
             g.append(a)
             glob.append(g)
-        #return self._build_raw(showName, showID, sort, scores, subtechs, exclude)
         return glob
