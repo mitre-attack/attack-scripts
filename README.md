@@ -1,9 +1,9 @@
 # attack-scripts
 
-This repository is intended to provide a library of functions to improve users' interactions with ATT&CK content. In addition, it will provide one-off scripts
-for processing and visualizing ATT&CK content — See [the scripts folder](scripts) for more details. 
-
-Note: this repository is a work in progress. In the coming months we will be adding additional functionalities as well as soliciting scripts from ATT&CK users — see [contributing to attack-scripts](CONTRIBUTING.md).
+This repository contains various tools and utilities for working with ATT&CK content.
+- the [scripts](scripts) folder contains one-off scripts for processing and visualizing ATT&CK content.
+- the [scripts/layers/samples](scripts/layers/samples) folder contains one-off scripts demonstrating the generation of ATT&CK Navigator layers from ATT&CK data. The outputs of these scripts can also be found on the [ATT&CK Navigator repository](https://github.com/mitre-attack/attack-navigator/tree/master/layers/data/samples).
+- the [layers](layers) folder contains a collection of modules and scripts for working with [ATT&CK Navigator](https://github.com/mitre-attack/attack-navigator) layers.
 
 ## Requirements
 - [python3](https://www.python.org/)
@@ -12,15 +12,6 @@ Note: this repository is a work in progress. In the coming months we will be add
 1. Create a new virtual environment: `python3 -m venv env`
 2. Activate the environment: `source env/bin/activate`
 3. Install requirements into the virtual environment: `pip3 install -r requirements.txt`
-
-## Layers
-This section of the repository contains a collection of modules and scripts for working with ATT&CK Navigator layers. More information about the contents of this section can be found [here](https://github.com/mitre-attack/attack-scripts/blob/master/layers/README.md).
-
-## Training
-
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/mitre-attack/attack-scripts/master)
-
-This repository also contains Jupyter notebooks and other material for ATT&CK training. The `trainings` directory has that content, which can be launched via Binder. The `binder` directory has requirements for that notebook, per the Binder documentation.
 
 ## Related MITRE Work
 #### CTI
