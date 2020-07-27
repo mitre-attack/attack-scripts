@@ -1,3 +1,7 @@
+# v1.5.1 - 27 July 2020
+## New Scripts
+- Added [layer to excel](https://github.com/mitre-attack/attack-scripts/tree/master/layers#to_excelpy) converter. See issue [#25](https://github.com/mitre-attack/attack-scripts/issues/25).
+
 # v1.5 - 8 July 2020
 ## New Scripts
 Added scripts used to generate the [sample layers in the ATT&CK Navigator repository](https://github.com/mitre-attack/attack-navigator/tree/develop/layers/data/samples). See issue [#21](https://github.com/mitre-attack/attack-scripts/issues/21) and [the sample layer README](scripts/layers/samples/README.md) for more details. The following scripts were added:
@@ -16,7 +20,7 @@ Added scripts used to generate the [sample layers in the ATT&CK Navigator reposi
 ## Fixes
 - Fixed bug in LayerOps causing issues with cross-tactic techniques, as well as a bug where a score lambda could affect the outcome of other lambdas.
 
-# v1.4 - 5 May 2020
+# V1.4 - 5 May 2020
 ## New Scripts
 - Added Layers folder with utility scripts for working with [ATT&CK Navigator](https://github.com/mitre-attack/attack-navigator) Layers. See the Layers [README](layers/README.md) for more details. See issues [#2](https://github.com/mitre-attack/attack-scripts/issues/2) and [#3](https://github.com/mitre-attack/attack-scripts/issues/3).
 

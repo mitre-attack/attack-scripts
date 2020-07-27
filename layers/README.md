@@ -7,7 +7,7 @@ This folder contains modules and scripts for working with ATT&CK Navigator layer
 |:-------|:------------|
 | [filter](core/filter.py) | Implements a basic [filter object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md#filter-object-properties). |
 | [gradient](core/gradient.py) | Implements a basic [gradient object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md#gradient-object-properties). |
-| [layer](core/layer.py) | Provides an interface for interacting with core module's layer representation. A further breakdown can be found in the corresponding section below. |
+| [layer](core/layer.py) | Provides an interface for interacting with core module's layer representation. A further breakdown can be found in the corresponding [section](#Layer) below. |
 | [layout](core/layout.py) | Implements a basic [layout object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md#layout-object-properties). |
 | [legenditem](core/legenditem.py) | Implements a basic [legenditem object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md#legenditem-object-properties). |
 | [metadata](core/metadata.py) | Implements a basic [metadata object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md#metadata-object-properties). |
@@ -16,7 +16,17 @@ This folder contains modules and scripts for working with ATT&CK Navigator layer
 #### Manipulator Scripts
 | script | description |
 |:-------|:------------|
-| [layerops](manipulators/layerops.py) | Provides a means by which to combine multiple ATT&CK layer objects in customized ways. A further breakdown can be found in the corresponding section below. |
+| [layerops](manipulators/layerops.py) | Provides a means by which to combine multiple ATT&CK layer objects in customized ways. A further breakdown can be found in the corresponding [section](#layerops.py) below. |
+
+#### Exporter Scripts
+| script | description |
+|:-------|:------------|
+| [to_excel](exporters/to_excel.py) | Provides a means by which to export an ATT&CK Layer to an excel file. A further breakdown can be found in the corresponding [section](#to_excel.py) below. |
+##### Utility Modules
+| script | description |
+|:-------|:------------|
+| [excel_templates](exporters/excel_templates.py) | Provides a means by which to convert a matrix into a clean excel matrix template. |
+| [matrix_gen](exporters/matrix_gen.py) | Provides a means by which to generate a matrix from raw data, either from the ATT&CK TAXII server or from a local STIX Bundle. |
 
 ## Layer
 The Layer class provides format validation and read/write capabilities to aid in working with ATT&CK Navigator Layers in python. It is the primary interface through which other Layer-related classes defined in the core module should be used. The Layer class API and a usage example are below.
@@ -118,4 +128,38 @@ lo4 = LayerOps(score=lambda x: '; '.join(x),
                desc= lambda x: "This is a defaults example")  # Build LayerOps object to combine descriptions, defaults
 out_layer6 = lo4.process([demo2, demo3])                      # Trigger processing on a list of demo2 and demo0
 out_layer6.to_file("C:\demo_layer6.json")                     # Save combined comment layer to file
+```
+
+## to_excel.py
+to_excel.py provides the ToExcel class, which is a way to export an existing layer file as an Excel 
+spreadsheet. The ToExcel class has an optional parameter for the initialization function, that 
+tells the exporter what data source to use when building the output matrix. Valid options include using live data from cti-taxii.mitre.org or using a local STIX bundle. 
+
+##### ToExcel()
+```python
+x = ToExcel(domain='enterprise', source='taxii', local=None)
+```
+The ToExcel constructor takes domain, server, and local arguments during instantiation. The domain can 
+be either `enterprise` or `mobile`, and can be pulled directly from a layer file as `layer.domain`. The source argument tells the matrix generation tool which data source to use when building the matrix. `taxii` indicates that the tool should utilize the `cti-taxii` server when building the matrix, while the `local` option indicates that it should use a local bundle respectively. The local argument is only required if the source is set to `local`, in which case it should be a path to a local stix bundle.
+
+##### .to_file() Method
+```python
+x.to_xlsx(layer=layer, filepath="layer.xlsx")
+```
+The to_xlsx method exports the layer file referenced as `layer`, as an excel file to the 
+`filepath` specified. 
+
+#### Example Usage
+```python
+from layers import Layer
+from layers import ToExcel
+
+lay = Layer()
+lay.from_file("path/to/layer/file.json")
+# Using taxii server for template
+t = ToExcel(domain=lay.layer.domain, source='taxii')
+t.to_xlsx(layer=lay, filepath="demo.xlsx")
+#Using local stix data for template
+t2 = ToExcel(domain='mobile', source='local', local='path/to/local/stix.json')
+t2.to_xlsx(layer=lay, filepath="demo2.xlsx")
 ```
