@@ -1,6 +1,9 @@
 # v1.5.1 - 27 July 2020
 ## New Scripts
 - Added [layer to excel](https://github.com/mitre-attack/attack-scripts/tree/master/layers#to_excelpy) converter. See issue [#25](https://github.com/mitre-attack/attack-scripts/issues/25).
+## Improvements
+- Updated README to better describe repo contents.
+- Removed outdated detection training. See issue [#37](https://github.com/mitre-attack/attack-scripts/issues/37).
 
 # v1.5 - 8 July 2020
 ## New Scripts
