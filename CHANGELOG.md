@@ -1,3 +1,7 @@
+# v1.5.1 - 27 July 2020
+## New Scripts
+- Added [layer to excel](https://github.com/mitre-attack/attack-scripts/tree/master/layers#to_excelpy) converter. See issue [#25](https://github.com/mitre-attack/attack-scripts/issues/25).
+
 # V1.4 - 5 May 2020
 ## New Scripts
 - Added Layers folder with utility scripts for working with [ATT&CK Navigator](https://github.com/mitre-attack/attack-navigator) Layers. See the Layers [README](layers/README.md) for more details. See issues [#2](https://github.com/mitre-attack/attack-scripts/issues/2) and [#3](https://github.com/mitre-attack/attack-scripts/issues/3).
