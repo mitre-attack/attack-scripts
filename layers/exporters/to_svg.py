@@ -14,7 +14,7 @@ class NoLayer(Exception):
     pass
 
 class ToSvg:
-    def __init__(self, domain='enterprise', source='taxii'):
+    def __init__(self, domain='enterprise', source='taxii', local=None):
         """
             Sets up exporting system, builds underlying matrix
 
@@ -22,9 +22,9 @@ class ToSvg:
             :param local: Optional path to local stix data
 
         """
-        self.raw_handle = SvgTemplates(domain=domain, source=source)
+        self.raw_handle = SvgTemplates(domain=domain, source=source, local=local)
 
-    def to_svg(self, layer):
+    def to_svg(self, layer, output='example.svg'):
         if layer is not None:
             if not isinstance(layer, Layer):
                 raise TypeError
@@ -78,4 +78,4 @@ class ToSvg:
                                            layer.layer.gradient)
         d.append(g)
 
-        d.saveSvg('example.svg')
+        d.saveSvg(output)

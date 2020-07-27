@@ -16,7 +16,7 @@ class BadTemplateException(Exception):
 
 
 class SvgTemplates:
-    def __init__(self, source='taxii', domain='enterprise'):
+    def __init__(self, source='taxii', domain='enterprise', local=None):
         """
             Initialization - Creates a ExcelTemplate object
 
@@ -29,7 +29,7 @@ class SvgTemplates:
             muse = domain[6:]
         if muse in ['enterprise', 'mobile']:
             self.mode = muse
-            self.h = MatrixGen(source=source)
+            self.h = MatrixGen(source=source, local=local)
             self.codex = self.h.get_matrix(muse)
         else:
             raise BadTemplateException
