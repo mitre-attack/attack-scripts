@@ -2,7 +2,7 @@
 
 This repository contains various tools and utilities for working with ATT&CK content.
 - the [scripts](scripts) folder contains one-off scripts for processing and visualizing ATT&CK content.
-- the [scripts/layers/samples](scripts/layers) folder contains one-off scripts demonstrating the generation of ATT&CK Navigator layers from ATT&CK data. The outputs of these scripts can also be found on the [ATT&CK Navigator repository](https://github.com/mitre-attack/attack-navigator/tree/master/layers/data/samples).
+- the [scripts/layers/samples](scripts/layers/samples) folder contains one-off scripts demonstrating the generation of ATT&CK Navigator layers from ATT&CK data. The outputs of these scripts can also be found on the [ATT&CK Navigator repository](https://github.com/mitre-attack/attack-navigator/tree/master/layers/data/samples).
 - the [layers](layers) folder contains a collection of modules and scripts for working with [ATT&CK Navigator](https://github.com/mitre-attack/attack-navigator) layers.
 
 ## Requirements
