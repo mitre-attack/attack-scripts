@@ -1,8 +1,3 @@
-import warnings
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    import drawSvg as draw
-
 try:
     from core import Layer
     from exporters.svg_templates import SvgTemplates
@@ -18,13 +13,20 @@ class ToSvg:
         """
             Sets up exporting system, builds underlying matrix
 
-            :param server: Whether or not to use live cti-taxii data to construct the matrix
+            :param domain: Which domain to utilize for the underlying matrix layout
+            :param source: Use the taxii server or local data
             :param local: Optional path to local stix data
-
         """
         self.raw_handle = SvgTemplates(domain=domain, source=source, local=local)
 
     def to_svg(self, layer, output='example.svg'):
+        """
+            Generate a svg file based on the input layer
+
+            :param layer: Input attack layer object to transform
+            :param output: Desired output svg location
+            :return: (meta) svg file at the targeted output location
+        """
         if layer is not None:
             if not isinstance(layer, Layer):
                 raise TypeError
@@ -44,7 +46,7 @@ class ToSvg:
         excluded = []
         if layer.layer.hideDisabled:
             for entry in layer.layer.techniques:
-                if entry.enabled == False:
+                if not entry.enabled:
                     if entry.tactic:
                         excluded.append((entry.techniqueID, entry.tactic))
                     else:
@@ -71,11 +73,7 @@ class ToSvg:
             sID = layer.layer.layout.showID
         if layer.layer.sorting:
             sort = layer.layer.sorting
-        g = self.raw_handle.export(showName=sName, showID=sID, sort=sort, scores=scores,
+        d = self.raw_handle.export(showName=sName, showID=sID, sort=sort, scores=scores,
                                    subtechs=included_subs, colors=colors,
                                    exclude=excluded, lhandle=layer.layer)
-        d = self.raw_handle._build_headers(layer.layer.name, layer.layer.description, layer.layer.filters,
-                                           layer.layer.gradient)
-        d.append(g)
-
         d.saveSvg(output)

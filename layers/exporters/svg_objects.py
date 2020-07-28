@@ -1,7 +1,14 @@
 import drawSvg as draw
 import string
+import colorsys
 
-def getApproximateStringWidth(st):
+def _getapproximatestringwidth(st):
+    """
+        Internal - estimate the width of a string... somewhat poorly
+
+        :param st: The string to evaluate
+        :return: A number that roughly describes the length of the string
+    """
     size = 0
     for s in st:
         if s in 'lij|\' ':
@@ -22,13 +29,29 @@ def getApproximateStringWidth(st):
             size += 50
     return size * 6 / 75
 
-def calculateViableStringSize(st, target, width):
+def _calculateviablestringsize(st, target, width):
+    """
+        Internal - Calculate the font size needed to make a string fit, roughly
+
+        :param st: The string to evaluate
+        :param target: The initial font size
+        :param width: The width to fit into
+        :return: An adjusted font size
+    """
     current_font_size = target
-    while (getApproximateStringWidth(st) * current_font_size) > (width * 10):
+    while (_getapproximatestringwidth(st) * current_font_size) > (width * 10):
         current_font_size -= 1
     return current_font_size
 
-def wrap(st, font_size, width):
+def _wrap(st, font_size, width):
+    """
+        Internal - Wrap a string in the event it can't fit on one line
+
+        :param st: String to wrap
+        :param font_size: Target font size for the string
+        :param width: The width of the block the line fits in
+        :return: A string with line breaks to make it fit in the space provided
+    """
     p1 = 0
     p2 = 1
     block = (width - 30) * 10
@@ -36,9 +59,9 @@ def wrap(st, font_size, width):
     if len(construct) == 1:
         return st
     build = ''
-    while(p2 < len(construct)):
+    while p2 < len(construct):
         loop = True
-        strwidth = getApproximateStringWidth(' '.join(construct[p1:p2])) * font_size
+        strwidth = _getapproximatestringwidth(' '.join(construct[p1:p2])) * font_size
 
         if strwidth < block:
             p2 += 1
@@ -55,7 +78,7 @@ def wrap(st, font_size, width):
             build += ' '.join(construct[p1:p2]) + '\n'
             p1 += 1
             p2 += 1
-    if getApproximateStringWidth(' '.join(construct[p1:])) * font_size > block:
+    if _getapproximatestringwidth(' '.join(construct[p1:])) * font_size > block:
         build += ' '.join(construct[p1:-1]) + '\n' + construct[-1]
     else:
         build += ' '.join(construct[p1:])
@@ -85,9 +108,9 @@ class G(draw.DrawingParentElement):
     TAG_NAME = 'g'
     def __init__(self, tx=None, ty=None, style=None, ctype=None):
         super().__init__()
-        if tx == None:
+        if tx is None:
             tx = 0
-        if ty == None:
+        if ty is None:
             ty = 0
         self.args['transform']='translate(' + str(tx) +',' + str(ty) +')'
         if style:
@@ -101,21 +124,23 @@ class Line(draw.DrawingParentElement):
         super().__init__(x1=x1, x2=x2, y1=y1, y2=y2, stroke=stroke)
 
 class Text(draw.Text):
-    def __init__(self, text, font_size, ctype, position=None, tx=None, ty=None, x=None, y=None):
-        if x == None:
+    def __init__(self, text, font_size, ctype, position=None, tx=None, ty=None, x=None, y=None, fill=None):
+        if x is None:
             x = 0
-        if y == None:
+        if y is None:
             y = 0
         super().__init__(text=text, fontSize=font_size, x=x, y=-y)
         self.args['class'] = ctype
-        if tx == None:
+        if tx is None:
             tx = 0
-        if ty == None:
+        if ty is None:
             ty = 0
         if tx != 0 or ty != 0:
             self.args['transform']='translate(' + str(tx) +',' + str(ty) +')'
-        if position != None:
+        if position:
             self.args['style'] = 'text-anchor: {}'.format(position)
+        if fill:
+            self.args['fill'] = fill
 
 class Root(draw.DrawingParentElement):
     TAG_NAME = 'g'
@@ -128,23 +153,39 @@ class Swatch(draw.DrawingParentElement):
         super().__init__(height=height, width=width, style='fill: rgb({}, {}, {})'.format(fill[0], fill[1], fill[2]))
 
 
-class SVG_HeaderBlock():
-    def build(self, height, width, label, type='text', t1text=None, t1size=None, t2text=None, t2size=None, colors=[],
+class SVG_HeaderBlock:
+    @staticmethod
+    def build(height, width, label, variant='text', t1text=None, t1size=None, t2text=None, t2size=None, colors=[],
               values=(0,100)):
+        """
+            Build a single SVG Header Block object
+
+            :param height: Height of the block
+            :param width: Width of the block
+            :param label: Label for the block
+            :param variant: text or graphic - the type of header block to build
+            :param t1text: upper text
+            :param t1size: upper text size
+            :param t2text: lower text
+            :param t2size: lower text size
+            :param colors: colors for the graphic variant
+            :param values: values for the graphic variant's gradient
+            :return:
+        """
         g = G(ty=5)
         rect = HeaderRect(width, height, 'header-box')
         g.append(rect)
-        rect2 = HeaderRect(getApproximateStringWidth(label), height/5, 'label-cover', x=8, y=-9.67, outline=False)
+        rect2 = HeaderRect(_getapproximatestringwidth(label), height/5, 'label-cover', x=8, y=-9.67, outline=False)
         g.append(rect2)
         text = Text(label, 12, 'header-box-label', x=10, y=3)
         g.append(text)
         internal = G(tx=5, ctype='header-box-content')
         g.append(internal)
-        if type == 'text':
+        if variant == 'text':
             upper = G(tx=0, ty=2.1)
             internal.append(upper)
             if t1text is not None:
-                t1 = Text(t1text, calculateViableStringSize(t1text, t1size, width), '', x=4, y= height/3)
+                t1 = Text(t1text, _calculateviablestringsize(t1text, t1size, width), '', x=4, y= height/3)
                 upper.append(t1)
                 upper.append(Line(0, width-10, (height-5)/2, (height-5)/2, stroke='#dddddd'))
                 if t2text is not None:
@@ -153,7 +194,7 @@ class SVG_HeaderBlock():
                     lines = 4
                     fs = t2size
                     while lines > 2:
-                        adjusted = wrap(t2text, fs, width + 15)
+                        adjusted = _wrap(t2text, fs, width + 15)
                         lines = adjusted.count('\n')
                         if lines > 2:
                             fs = fs / 2
@@ -192,29 +233,40 @@ class SVG_HeaderBlock():
                     cell.append(label)
         return g
 
-class SVG_Technique():
+class SVG_Technique:
     def __init__(self, gradient):
         self.grade = gradient
 
     def build(self, offset, technique, subtechniques=[], mode=(True, False), tactic=None, colors=[]):
+        """
+            Build a SVG Technique block
+
+            :param offset: Current offset to build the block at (so it fits in the column)
+            :param technique: The technique to build a block for
+            :param subtechniques: List of any visible subtechniques for this technique
+            :param mode: Display mode (Show Name, Show ID)
+            :param tactic: The corresponding tactic
+            :param colors: List of all default color values if no score can be found
+            :return: The newly created SVG technique block
+        """
         height = 5.6
         width = 80
         indent = 11.2
         g = G(ty=offset)
-        c = self.com_color(technique, tactic, colors)
-        t = dict(name=self.disp(technique.name, technique.id, mode), id=technique.id,
+        c = self._com_color(technique, tactic, colors)
+        t = dict(name=self._disp(technique.name, technique.id, mode), id=technique.id,
                  color=tuple(int(c[i:i+2], 16) for i in (0, 2, 4)))
-        tech, text = self.block(t, height, width)
+        tech, text = self._block(t, height, width)
         g.append(tech)
         g.append(text)
         new_offset = height
         for entry in subtechniques:
             gp = G(tx=indent, ty=new_offset)
             g.append(gp)
-            c = self.com_color(entry, tactic, colors)
-            st = dict(name=self.disp(entry.name, entry.id, mode), id=entry.id,
+            c = self._com_color(entry, tactic, colors)
+            st = dict(name=self._disp(entry.name, entry.id, mode), id=entry.id,
                      color=tuple(int(c[i:i + 2], 16) for i in (0, 2, 4)))
-            subtech, subtext = self.block(st, height, width - indent)
+            subtech, subtext = self._block(st, height, width - indent)
             gp.append(subtech)
             gp.append(subtext)
             new_offset = new_offset + height
@@ -229,19 +281,24 @@ class SVG_Technique():
                        stroke='#6B7279'))
         return g, offset + new_offset
 
-    def block(self, technique, height, width):
+    @staticmethod
+    def _block(technique, height, width):
         tech = Cell(height, width, technique['color'], ctype=technique['id'])
         fs = 4.5
-        adjusted = wrap(technique['name'], fs/3, width - 13)
+        adjusted = _wrap(technique['name'], fs/3, width - 13)
         lines = adjusted.count('\n')
         y = 4.31
         if lines > 0:
-            fs = fs / (2**(lines))
+            fs = fs / (2**lines)
             y = y / (2**lines) + .15 * (2**lines)
-        text = Text(adjusted.encode('utf-8').decode('ascii', 'backslashreplace'), fs, '', x=4, y=y)
+        hls = colorsys.rgb_to_hls(technique['color'][0], technique['color'][1], technique['color'][2])
+        fill = None
+        if hls[1] < 127.5:
+            fill = 'white'
+        text = Text(adjusted.encode('utf-8').decode('ascii', 'backslashreplace'), fs, '', x=4, y=y, fill=fill)
         return tech, text
 
-    def com_color(self, technique, tactic, colors=[]):
+    def _com_color(self, technique, tactic, colors=[]):
         c = 'FFFFFF'
         if technique.score:
             c = self.grade.compute_color(technique.score)[1:]
@@ -254,7 +311,8 @@ class SVG_Technique():
                 c = self.grade.compute_color(0)[1:]
         return c
 
-    def disp(self, name, id, mode):
+    @staticmethod
+    def _disp(name, id, mode):
         p1 = name
         p2 = id
         if not mode[0]:
