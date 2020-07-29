@@ -19,12 +19,12 @@ class ToSvg:
         """
         self.raw_handle = SvgTemplates(domain=domain, source=source, local=local)
 
-    def to_svg(self, layer, output='example.svg'):
+    def to_svg(self, layer, filepath='example.svg'):
         """
             Generate a svg file based on the input layer
 
             :param layer: Input attack layer object to transform
-            :param output: Desired output svg location
+            :param filepath: Desired output svg location
             :return: (meta) svg file at the targeted output location
         """
         if layer is not None:
@@ -76,4 +76,4 @@ class ToSvg:
         d = self.raw_handle.export(showName=sName, showID=sID, sort=sort, scores=scores,
                                    subtechs=included_subs, colors=colors,
                                    exclude=excluded, lhandle=layer.layer)
-        d.saveSvg(output)
+        d.saveSvg(filepath)
