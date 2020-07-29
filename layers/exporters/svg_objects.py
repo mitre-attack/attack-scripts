@@ -155,8 +155,7 @@ class Swatch(draw.DrawingParentElement):
 
 class SVG_HeaderBlock:
     @staticmethod
-    def build(height, width, label, variant='text', t1text=None, t1size=None, t2text=None, t2size=None, colors=[],
-              values=(0,100)):
+    def build(height, width, label, variant='text', t1text=None, t1size=None, t2text=None, t2size=None, colors=[]):
         """
             Build a single SVG Header Block object
 
@@ -168,8 +167,7 @@ class SVG_HeaderBlock:
             :param t1size: upper text size
             :param t2text: lower text
             :param t2size: lower text size
-            :param colors: colors for the graphic variant
-            :param values: values for the graphic variant's gradient
+            :param colors: array of tuple (color, score value) for the graphic variant
             :return:
         """
         g = G(ty=5)
@@ -215,19 +213,16 @@ class SVG_HeaderBlock:
                 cells = G(ctype="legendCells")
                 sub2.append(cells)
                 offset = 0
-                span = [values[0]]
-                for blah in colors[:-1]:
-                    span.append(int(values[1]/(len(colors)-1) * (colors.index(blah) + 1)))
                 for entry in colors:
                     cell = G(ctype="cell", tx=offset)
-                    conv = entry
+                    conv = entry[0]
                     if conv.startswith('#'):
                         conv = conv[1:]
                     block = Swatch(15, block_width, tuple(int(conv[i:i+2], 16) for i in (0, 2, 4)))
                     offset += block_width
                     cell.append(block)
                     cells.append(cell)
-                    tblob = str(span[colors.index(entry)])
+                    tblob = str(entry[1])
                     off = (block_width-(5 * (1+ len(tblob))))/2
                     label = Text(tblob, 12, ctype='label', ty=25, tx=off)
                     cell.append(label)

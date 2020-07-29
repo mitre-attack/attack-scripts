@@ -90,12 +90,13 @@ class SvgTemplates:
             psych += 1
         if gradient is not None:
             b3 = G(tx=operation_x / header_count * psych)
-            colors = [gradient.compute_color(gradient.minValue)]
-            for i in range(1, len(gradient.colors) * 2):
-                colors.append(gradient.compute_color(int(gradient.maxValue/(len(gradient.colors)*2)) * i))
+            colors = []
+            div = round((gradient.maxValue - gradient.minValue)/(len(gradient.colors) * 2 - 1))
+            for i in range(0, len(gradient.colors) * 2 - 1):
+                colors.append((gradient.compute_color(int(gradient.minValue + div * i)), gradient.minValue + div * i))
+            colors.append((gradient.compute_color(gradient.maxValue), gradient.maxValue))
             g3 = SVG_HeaderBlock().build(height=self.header_height, width=header_width, label='legend',
-                                         variant='graphic', colors=colors,
-                                         values=(gradient.minValue, gradient.maxValue))
+                                         variant='graphic', colors=colors)
             header.append(b3)
             b3.append(g3)
         d.append(root)
