@@ -30,10 +30,10 @@ This folder contains modules and scripts for working with ATT&CK Navigator layer
 | [matrix_gen](exporters/matrix_gen.py) | Provides a means by which to generate a matrix from raw data, either from the ATT&CK TAXII server or from a local STIX Bundle. |
 | [svg_templates](exporters/svg_templates.py) | Provides a means by which to convert a layer file into a marked up svg file. |
 | [svg_objects](exporters/svg_objects.py) | Provides raw templates and supporting functionality for generating svg objects. | 
-##### Command LIne Tools
+##### Command Line Tools
 | script | description |
 |:-------|:------------|
-| [cmdline.py](cmdline.py) | A commandline utility to export Layer files to excel or svg formats using the exporter tools. Run with `-h` for usage. |
+| [layerExporter_cli.py](layerExporter_cli.py) | A commandline utility to export Layer files to excel or svg formats using the exporter tools. Run with `-h` for usage. |
 
 ## Layer
 The Layer class provides format validation and read/write capabilities to aid in working with ATT&CK Navigator Layers in python. It is the primary interface through which other Layer-related classes defined in the core module should be used. The Layer class API and a usage example are below.
@@ -177,7 +177,7 @@ tells the exporter what data source to use when building the output matrix. Vali
 
 ##### ToSVG()
 ```python
-x = ToSVG(domain='enterprise', source='taxii', local=None)
+x = ToSvg(domain='enterprise', source='taxii', local=None)
 ```
 The ToSVG constructor, just like the ToExcel constructor, takes domain, server, and local arguments during instantiation. The domain can be either `enterprise` or `mobile`, and can be pulled directly from a layer file as `layer.domain`. The source argument tells the matrix generation tool which data source to use when building the matrix. `taxii` indicates that the tool should utilize the `cti-taxii` server when building the matrix, while the `local` option indicates that it should use a local bundle respectively. The local argument is only required if the source is set to `local`, in which case it should be a path to a local stix bundle.
 
@@ -191,14 +191,14 @@ The to_svg method exports the layer file referenced as `layer`, as an excel file
 #### Example Usage
 ```python
 from layers import Layer
-from layers import ToSVG
+from layers import ToSvg
 
 lay = Layer()
 lay.from_file("path/to/layer/file.json")
 # Using taxii server for template
-t = ToSVG(domain=lay.layer.domain, source='taxii')
+t = ToSvg(domain=lay.layer.domain, source='taxii')
 t.to_svg(layer=lay, filepath="demo.svg")
 #Using local stix data for template
-t2 = ToSVG(domain='mobile', source='local', local='path/to/local/stix.json')
+t2 = ToSvg(domain='mobile', source='local', local='path/to/local/stix.json')
 t2.to_svg(layer=lay, filepath="demo2.svg")
 ```
