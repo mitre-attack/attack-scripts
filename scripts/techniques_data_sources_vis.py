@@ -1,6 +1,6 @@
 import json, os, shutil, sys
 from stix2 import TAXIICollectionSource, Filter
-import taxii2client as t2c
+from taxii2client.v20 import Collection
 from pprint import pprint
 import argparse
 from tqdm import tqdm
@@ -94,19 +94,11 @@ def establish_connection(collection: str):
         connection to the taxii collection
     """
 
-    try:
-        with open('proxy.json', "r") as json_data:
-            proxies = json.load(json_data)
-        link = t2c._HTTPConnection()
-        link.session.proxies.update(proxies)
-        collection = t2c.Collection(collection, conn=link)
-        tc_src = TAXIICollectionSource(collection)
-    except:
-        if verbose: print("unable to find proxy file, falling back to standard callout... ", end="", flush=True)
-        # Establish TAXII2 Collection instance for Enterprise ATT&CK collection
-        collection = t2c.Collection(collection)
-        # Supply the collection to TAXIICollection
-        tc_src = TAXIICollectionSource(collection)
+    
+    # Establish TAXII2 Collection instance for Enterprise ATT&CK collection
+    collection = Collection(collection)
+    # Supply the collection to TAXIICollection
+    tc_src = TAXIICollectionSource(collection)
     return tc_src
 
 
