@@ -22,7 +22,7 @@ This folder contains modules and scripts for working with ATT&CK Navigator layer
 | script | description |
 |:-------|:------------|
 | [to_excel](exporters/to_excel.py) | Provides a means by which to export an ATT&CK Layer to an excel file. A further breakdown can be found in the corresponding [section](#to_excel.py) below. |
-| [to_svg](exporters/to_svg.py) | Provides a means by which to export an ATT&CK layer to an svg image file. A further breakdown can be found in the corresponding [section](#to_svg.py) below. | 
+| [to_svg](exporters/to_svg.py) | Provides a means by which to export an ATT&CK layer to an svg image file. A further breakdown can be found in the corresponding [section](#to_svg.py) below. This file also contains the `SVGConfig` object that can be used to configure the SVG export.| 
 ##### Utility Modules
 | script | description |
 |:-------|:------------|
@@ -177,9 +177,38 @@ tells the exporter what data source to use when building the output matrix. Vali
 
 ##### ToSVG()
 ```python
-x = ToSvg(domain='enterprise', source='taxii', local=None)
+x = ToSvg(domain='enterprise', source='taxii', local=None, config=None)
 ```
-The ToSVG constructor, just like the ToExcel constructor, takes domain, server, and local arguments during instantiation. The domain can be either `enterprise` or `mobile`, and can be pulled directly from a layer file as `layer.domain`. The source argument tells the matrix generation tool which data source to use when building the matrix. `taxii` indicates that the tool should utilize the `cti-taxii` server when building the matrix, while the `local` option indicates that it should use a local bundle respectively. The local argument is only required if the source is set to `local`, in which case it should be a path to a local stix bundle.
+The ToSVG constructor, just like the ToExcel constructor, takes domain, server, and local arguments during instantiation. The domain can be either `enterprise` or `mobile`, and can be pulled directly from a layer file as `layer.domain`. The source argument tells the matrix generation tool which data source to use when building the matrix. `taxii` indicates that the tool should utilize the `cti-taxii` server when building the matrix, while the `local` option indicates that it should use a local bundle respectively. The local argument is only required if the source is set to `local`, in which case it should be a path to a local stix bundle. The `config` parameter is an optional SVGConfig object that can be used to configure the export as desired. If not provided, the configuration for the export will be set to default values.
+
+##### SVGConfig()
+```python
+y = SVGConfig(width=8.5, height=11, headerHeight=1, unit="in", showSubtechniques="expanded",
+                 font="sans-serif", tableBorderColor="#6B7279", showHeader=True, legendDocked=True,
+                 legendX=0, legendY=0, legendWidth=2, legendHeight=1, showLegend=True, showFilters=True,
+                 showAbout=True, border=0.104)
+```
+The SVGConfig object is used to configure how an SVG export behaves. The defaults for each of the available values can be found in the declaration above, and a brief explanation for each field is included in the table below. The config object should be provided to the ToSvg object during instantiation, but if values need to be updated on the fly, the currently loaded configuration can be interacted with at `ToSvg().config`. The configuration can also be populated from a json file using the `.load_from_file(filename="path/to/file.json")` method, or stored to one using the `.save_to_file(filename="path/to/file.json)` method.
+
+| attribute| description |
+|:-------|:------------|
+| width | Desired SVG width |
+| height | Desired SVG height |
+| headerHeight | Desired Header Block height |
+| unit | SVG measurement units (qualifies width, height, etc.) |
+| showSubtechniques | Display form for subtechniques - "all", "expanded" (decided by layer), or "none" |
+| font | What font style to use - "sans", "sans-serif", or "monospace" |
+| tableBorderColor | Hex color to use for the technique borders |
+| showHeader | Whether or not to show Header Blocks |
+| legendDocked | Whether or not the legend should be docked |
+| legendX | Where to place the legend on the x axis if not docked |
+| legendY | Where to place the legend on the y axis if not docked |
+| legendWidth | Width of the legend if not docked |
+| legendHeight | Height of the legend if not docked |
+| showLegend | Whether or not to show the legend |
+| showFilters | Whether or not to show the Filter Header Block |
+| showAbout | Whether or not to show the About Header Block | 
+| border | What default border width to use |
 
 ##### .to_svg() Method
 ```python
@@ -191,7 +220,7 @@ The to_svg method exports the layer file referenced as `layer`, as an excel file
 #### Example Usage
 ```python
 from layers import Layer
-from layers import ToSvg
+from layers import ToSvg, SVGConfig
 
 lay = Layer()
 lay.from_file("path/to/layer/file.json")
@@ -199,6 +228,10 @@ lay.from_file("path/to/layer/file.json")
 t = ToSvg(domain=lay.layer.domain, source='taxii')
 t.to_svg(layer=lay, filepath="demo.svg")
 #Using local stix data for template
-t2 = ToSvg(domain='mobile', source='local', local='path/to/local/stix.json')
+
+conf = SVGConfig()
+conf.load_from_file(filename="path/to/poster/config.json")
+
+t2 = ToSvg(domain='mobile', source='local', local='path/to/local/stix.json', config=conf)
 t2.to_svg(layer=lay, filepath="demo2.svg")
 ```

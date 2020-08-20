@@ -1,94 +1,108 @@
 import drawSvg as draw
-import string
 import colorsys
+import os
+from PIL import ImageFont
 
-def _getapproximatestringwidth(st):
+def convertToPx(quantity, unit):
     """
-        Internal - estimate the width of a string... somewhat poorly
+        INTERNAL: Convert values to pixels
 
-        :param st: The string to evaluate
-        :return: A number that roughly describes the length of the string
+        :param quantity: value
+        :param unit: unit for that value
+        :return: quantity in pixels
     """
-    size = 0
-    for s in st:
-        if s in 'lij|\' ':
-            size += 37
-        elif s in '![]fI.,:;/\\t':
-            size += 50
-        elif s in '`-(){}r"':
-            size += 60
-        elif s in '*^zcsJkvxy':
-            size += 85
-        elif s in 'aebdhnopqug#$L+<>=?_~FZT' + string.digits:
-            size += 95
-        elif s in 'BSPEAKVXY&UwNRCHD':
-            size += 112
-        elif s in 'QGOMm%W@':
-            size += 135
-        else:
-            size += 50
-    return size * 6 / 75
+    if unit == "in":
+        return quantity * 96
+    if unit == "cm":
+        return quantity * 37.79375
+    if unit == "px":
+        return quantity
+    if unit == "em":
+        return quantity * 16
+    if unit == "pt":
+        return quantity * 1.33
+    return -1
 
-def _calculateviablestringsize(st, target, width):
+def _getstringwidth(string, font, size):
     """
-        Internal - Calculate the font size needed to make a string fit, roughly
+        INTERNAL: Calculate the width of a string (in pixels)
 
-        :param st: The string to evaluate
-        :param target: The initial font size
-        :param width: The width to fit into
-        :return: An adjusted font size
+        :param string: string to evaluate
+        :param font: font to use
+        :param size: font size
+        :return: pixel length of string
     """
-    current_font_size = target
-    while (_getapproximatestringwidth(st) * current_font_size) > (width * 10):
-        current_font_size -= 1
-    return current_font_size
+    font = ImageFont.truetype('{}/fonts/{}.ttf'.format(os.path.sep.join(__file__.split(os.path.sep)[:-1]), font),
+                              int(size))
+    length, _ = font.getsize(string)
+    return length
 
-def _wrap(st, font_size, width):
+def _findSpace(words, width, height, maxFontSize):
     """
-        Internal - Wrap a string in the event it can't fit on one line
+        INTERNAL: Find space locations for a string to keep it within width x height
 
-        :param st: String to wrap
-        :param font_size: Target font size for the string
-        :param width: The width of the block the line fits in
-        :return: A string with line breaks to make it fit in the space provided
+        :param words: string to evaluate
+        :param width: width of the box
+        :param height: height of the box
+        :param maxFontSize: maximum font size
+        :return:
     """
-    p1 = 0
-    p2 = 1
-    block = (width - 30) * 10
-    construct = st.split(' ')
-    if len(construct) == 1:
-        return st
-    build = ''
-    while p2 < len(construct):
-        loop = True
-        strwidth = _getapproximatestringwidth(' '.join(construct[p1:p2])) * font_size
+    padding = 4
+    breakDistance = min(height, (maxFontSize + 3) * len(words))
 
-        if strwidth < block:
-            p2 += 1
-            loop = False
-        else:
-            if p1 == p2 - 1:
-                pass
+    breakTextHeight = breakDistance / len(words)
+    fitTextHeight = min(breakTextHeight, height) * 0.8
+
+    longestWordLength = -9999
+    for w in range(0, len(words)):
+        word = words[w]
+        longestWordLength = max(longestWordLength, len(word))
+
+    fitTextWidth = ((width - (2 * padding)) / longestWordLength * 1.45)
+    size = min(maxFontSize, fitTextHeight, fitTextWidth)
+    return size
+
+def _optimalFontSize(st, width, height, maxFontSize=12):
+    """
+        INTERNAL: Calculate the optimal fontsize and word layout for a box of width x height
+
+        :param st: string to fit
+        :param width: box width
+        :param height: box height
+        :param maxFontSize: maximum allowable font size
+        :return: size in pixels for font, array of strings split by where new lines should go
+    """
+    words = st.split(" ")
+    bestSize = -9999
+    bestWordArrangement = []
+    for j in range(0, 2**(len(words) - 1)):
+        wordSet = []
+        construct = "{0:0" + str(len(words)) + 'b}'
+        binaryString = construct.format(j)
+
+        for k in range(0, len(binaryString)):
+            if binaryString[k] == "0":
+                if len(wordSet) == 0:
+                    wordSet.append(words[k])
+                else:
+                    wordSet[len(wordSet) - 1] = wordSet[len(wordSet) - 1] + " " + words[k]
             else:
-                build += ' '.join(construct[p1:p2-1]) + '\n'
-                loop = False
-                p1 = p2 - 1
-        if loop:
-            # force an oversized chunk
-            build += ' '.join(construct[p1:p2]) + '\n'
-            p1 += 1
-            p2 += 1
-    if _getapproximatestringwidth(' '.join(construct[p1:])) * font_size > block:
-        build += ' '.join(construct[p1:-1]) + '\n' + construct[-1]
-    else:
-        build += ' '.join(construct[p1:])
-    return build
+                wordSet.append(words[k])
+
+        size = _findSpace(wordSet, width, height, maxFontSize)
+        if size > bestSize:
+            bestSize = size
+            bestWordArrangement = wordSet
+        if size == maxFontSize:
+            break
+
+    return bestSize, bestWordArrangement
 
 class Cell(draw.DrawingParentElement):
     TAG_NAME = 'rect'
-    def __init__(self, height, width, fill, ctype=None):
+    def __init__(self, height, width, fill, tBC, ctype=None):
         super().__init__(height=height, width=width, style='fill: rgb({}, {}, {})'.format(fill[0], fill[1], fill[2]),
-                         stroke='#6B7279')
+                         stroke=tBC)
         if ctype:
             self.args['class'] = ctype
 
@@ -142,11 +156,6 @@ class Text(draw.Text):
         if fill:
             self.args['fill'] = fill
 
-class Root(draw.DrawingParentElement):
-    TAG_NAME = 'g'
-    def __init__(self):
-        super().__init__(transform='translate(5,5)', style='font-family: sans-serif;')
-
 class Swatch(draw.DrawingParentElement):
     TAG_NAME = 'rect'
     def __init__(self, height, width, fill):
@@ -155,25 +164,25 @@ class Swatch(draw.DrawingParentElement):
 
 class SVG_HeaderBlock:
     @staticmethod
-    def build(height, width, label, variant='text', t1text=None, t1size=None, t2text=None, t2size=None, colors=[]):
+    def build(height, width, label, config, variant='text', t1text=None, t2text=None, colors=[]):
         """
             Build a single SVG Header Block object
 
             :param height: Height of the block
             :param width: Width of the block
             :param label: Label for the block
+            :param config: SVG configuration object
             :param variant: text or graphic - the type of header block to build
             :param t1text: upper text
-            :param t1size: upper text size
             :param t2text: lower text
-            :param t2size: lower text size
             :param colors: array of tuple (color, score value) for the graphic variant
             :return:
         """
         g = G(ty=5)
         rect = HeaderRect(width, height, 'header-box')
         g.append(rect)
-        rect2 = HeaderRect(_getapproximatestringwidth(label), height/5, 'label-cover', x=8, y=-9.67, outline=False)
+        rect2 = HeaderRect(_getstringwidth(label, config.font, 12), height/5, 'label-cover', x=8, y=-9.67,
+                           outline=False)
         g.append(rect2)
         text = Text(label, 12, 'header-box-label', x=10, y=3)
         g.append(text)
@@ -183,23 +192,20 @@ class SVG_HeaderBlock:
             upper = G(tx=0, ty=2.1)
             internal.append(upper)
             if t1text is not None:
-                t1 = Text(t1text, _calculateviablestringsize(t1text, t1size, width), '', x=4, y= height/3)
+                fs, patch_text = _optimalFontSize(t1text, width, (height-80/2), maxFontSize=28)
+                t1 = Text("\n".join(patch_text), fs, '', x=4, y=20)
                 upper.append(t1)
                 upper.append(Line(0, width-10, (height-5)/2, (height-5)/2, stroke='#dddddd'))
                 if t2text is not None:
-                    lower = G(tx=0, ty= (height/3 + t1size))
+                    upper_fs = fs
+                    lower = G(tx=0, ty= ((height-5)/2 + 20))
+                    fs, patch_text = _optimalFontSize(t2text, width, (height - (height/3 + upper_fs)), maxFontSize=28)
                     y = 10
-                    lines = 4
-                    fs = t2size
-                    while lines > 2:
-                        adjusted = _wrap(t2text, fs, width + 15)
-                        lines = adjusted.count('\n')
-                        if lines > 2:
-                            fs = fs / 2
-                    lines += 1
+                    lines = len(patch_text)
+                    adju = "\n".join(patch_text)
                     if lines > 1:
                         y = y / (4 ** lines)
-                    t2 = Text(adjusted, fs, '', x=4, y=y)
+                    t2 = Text(adju, fs, '', x=4, y=y)
                     lower.append(t2)
                     internal.append(lower)
         else:
@@ -232,26 +238,28 @@ class SVG_Technique:
     def __init__(self, gradient):
         self.grade = gradient
 
-    def build(self, offset, technique, subtechniques=[], mode=(True, False), tactic=None, colors=[]):
+    def build(self, offset, technique, height, width, tBC, subtechniques=[], mode=(True, False), tactic=None,
+              colors=[]):
         """
             Build a SVG Technique block
 
             :param offset: Current offset to build the block at (so it fits in the column)
             :param technique: The technique to build a block for
+            :param height: The height of the technique block
+            :param width: The width of the technique block
+            :param tBC: The hex code of the technique block's border
             :param subtechniques: List of any visible subtechniques for this technique
             :param mode: Display mode (Show Name, Show ID)
             :param tactic: The corresponding tactic
             :param colors: List of all default color values if no score can be found
             :return: The newly created SVG technique block
         """
-        height = 5.6
-        width = 80
         indent = 11.2
         g = G(ty=offset)
         c = self._com_color(technique, tactic, colors)
         t = dict(name=self._disp(technique.name, technique.id, mode), id=technique.id,
                  color=tuple(int(c[i:i+2], 16) for i in (0, 2, 4)))
-        tech, text = self._block(t, height, width)
+        tech, text = self._block(t, height, width, tBC=tBC)
         g.append(tech)
         g.append(text)
         new_offset = height
@@ -261,7 +269,7 @@ class SVG_Technique:
             c = self._com_color(entry, tactic, colors)
             st = dict(name=self._disp(entry.name, entry.id, mode), id=entry.id,
                      color=tuple(int(c[i:i + 2], 16) for i in (0, 2, 4)))
-            subtech, subtext = self._block(st, height, width - indent)
+            subtech, subtext = self._block(st, height, width - indent, tBC=tBC)
             gp.append(subtech)
             gp.append(subtext)
             new_offset = new_offset + height
@@ -272,28 +280,51 @@ class SVG_Technique:
                                 indent, -height * (len(subtechniques) + 1),
                                 indent, -height,
                        close=True,
-                       fill='#6B7279',
-                       stroke='#6B7279'))
+                       fill=tBC,
+                       stroke=tBC))
         return g, offset + new_offset
 
     @staticmethod
-    def _block(technique, height, width):
-        tech = Cell(height, width, technique['color'], ctype=technique['id'])
-        fs = 4.5
-        adjusted = _wrap(technique['name'], fs/3, width - 13)
+    def _block(technique, height, width, tBC):
+        """
+            INTERNAL: Build a technique block element
+
+            :param technique: Technique data dictionary
+            :param height: Block height
+            :param width: Block width
+            :param tBC: Block border color
+            :return: Block object, fit text object
+        """
+        tech = Cell(height, width, technique['color'], ctype=technique['id'], tBC=tBC)
+
+        fs, patch_text = _optimalFontSize(technique['name'], width, height)
+        adjusted = "\n".join(patch_text)
+
         lines = adjusted.count('\n')
-        y = 4.31
+
+        y = height / 2
         if lines > 0:
-            fs = fs / (2**lines)
-            y = y / (2**lines) + .15 * (2**lines)
+            y = y - y / (2**lines) + fs / (lines + 1)
+        else:
+            y = y + fs / 4
+
         hls = colorsys.rgb_to_hls(technique['color'][0], technique['color'][1], technique['color'][2])
         fill = None
         if hls[1] < 127.5:
             fill = 'white'
+
         text = Text(adjusted.encode('utf-8').decode('ascii', 'backslashreplace'), fs, '', x=4, y=y, fill=fill)
         return tech, text
 
     def _com_color(self, technique, tactic, colors=[]):
+        """
+            INTERNAL: Retrieve hex color for a block
+
+            :param technique: Technique object
+            :param tactic: What tactic the technique falls under
+            :param colors: Default technique color data
+            :return: Hex color code
+        """
         c = 'FFFFFF'
         if technique.score:
             c = self.grade.compute_color(technique.score)[1:]
@@ -308,6 +339,14 @@ class SVG_Technique:
 
     @staticmethod
     def _disp(name, id, mode):
+        """
+            INTERNAL: Generate technique display form
+
+            :param name: The name of the technique
+            :param id: The ID of the technique
+            :param mode: Which mode to use
+            :return: Target display string for the technique
+        """
         p1 = name
         p2 = id
         if not mode[0]:
