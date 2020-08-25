@@ -1,17 +1,17 @@
 import argparse
 import requests
 import json
-import stix2
+from stix2 import MemoryStore, Filter
 import random
 
 def generate():
     """parse the STIX on MITRE/CTI and return a layer dict with techniques with randomized scores"""
     # import the STIX data from MITRE/CTI
     stix = requests.get("https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json").json()
-    ms = stix2.MemoryStore(stix_data=stix["objects"])
+    ms = MemoryStore(stix_data=stix["objects"])
     # get all techniques in STIX
     techniques = ms.query([
-        stix2.Filter("type", "=", "attack-pattern")
+        Filter("type", "=", "attack-pattern")
     ])
     # parse techniques into layer format
     techniques_list = []

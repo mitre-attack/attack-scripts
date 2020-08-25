@@ -1,7 +1,7 @@
 import argparse
 import requests
 import json
-import stix2
+from stix2 import Filter, MemoryStore
 from itertools import chain
 
 def generate(softwaretype="software"):
@@ -10,13 +10,13 @@ def generate(softwaretype="software"):
     """
     # import the STIX data from MITRE/CTI
     stix = requests.get("https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json").json()
-    ms = stix2.MemoryStore(stix_data=stix["objects"])
+    ms = MemoryStore(stix_data=stix["objects"])
     # software includes malware and tool types so perform two queries and merge the results
     software_filters = []
     if softwaretype == "malware" or softwaretype == "software":
-        software_filters.append( [ stix2.Filter('type', '=', 'malware') ] )
+        software_filters.append( [ Filter('type', '=', 'malware') ] )
     if softwaretype == "tool" or softwaretype == "software":
-        software_filters.append( [ stix2.Filter('type', '=', 'tool') ] )
+        software_filters.append( [ Filter('type', '=', 'tool') ] )
         
     software = list(chain.from_iterable(
         ms.query(f) for f in software_filters

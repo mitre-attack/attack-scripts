@@ -9,13 +9,20 @@ This repository contains various tools and utilities for working with ATT&CK con
 - [python3](https://www.python.org/)
 
 ## Installation
-1. Create a new virtual environment: `python3 -m venv env`
-2. Activate the environment: `source env/bin/activate`
+1. Create virtual environment:
+    - macOS and Linux: `python3 -m venv env`
+    - Windows: `py -m venv env`
+2. Activate the virtual environment:
+    - macOS and Linux: `source env/bin/activate`
+    - Windows: `env/Scripts/activate.bat`
 3. Install requirements into the virtual environment: `pip3 install -r requirements.txt`
+
+### taxii2client compatibility
+A recent update to the `taxii2client` python library changed the API for TAXII 2.0 requests. This repository has been updated to work with the latest version of taxii2client, however if your installed version is < 2.0.0 you may need to patch the scripts for them to run properly. Please see our [USAGE document on MITRE/CTI](https://github.com/mitre/cti/blob/master/USAGE.md#taxii2client) for more information.
 
 ## Related MITRE Work
 #### CTI
-[Cyber Threat Intelligence repository](https://github.com/mitre/cti) of the ATT&CK catalog expressed in STIX 2.0 JSON.
+[Cyber Threat Intelligence repository](https://github.com/mitre/cti) of the ATT&CK catalog expressed in STIX 2.0 JSON. This repository also contains [our USAGE document](https://github.com/mitre/cti/blob/master/USAGE.md) which includes additional examples of accessing and parsing our dataset in Python.
 
 #### ATT&CK
 ATT&CK® is a curated knowledge base and model for cyber adversary behavior, reflecting the various phases of an adversary’s lifecycle and the platforms they are known to target. ATT&CK is useful for understanding security risk against known adversary behavior, for planning security improvements, and verifying defenses work as expected.

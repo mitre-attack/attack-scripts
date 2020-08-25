@@ -2,8 +2,9 @@ import argparse
 import csv
 import io
 
-import stix2
-import taxii2client
+from stix2 import TAXIICollectionSource, MemorySource, Filter
+from taxii2client.v20 import Collection
+
 import tqdm
 
 
@@ -15,18 +16,18 @@ def build_taxii_source(collection_name):
         "mobile_attack": "2f669986-b40b-4423-b720-4396ca6a462b"
     }
     collection_url = "https://cti-taxii.mitre.org/stix/collections/" + collection_map[collection_name] + "/"
-    collection = taxii2client.Collection(collection_url)
-    taxii_ds = stix2.TAXIICollectionSource(collection)
+    collection = Collection(collection_url)
+    taxii_ds = TAXIICollectionSource(collection)
 
     # Create an in-memory source (to prevent multiple web requests)
-    return stix2.MemorySource(stix_data=taxii_ds.query())
+    return MemorySource(stix_data=taxii_ds.query())
 
 
 def get_all_techniques(src, source_name):
     """Filters data source by attack-pattern which extracts all ATT&CK Techniques"""
     filters = [
-        stix2.Filter("type", "=", "attack-pattern"),
-        stix2.Filter("external_references.source_name", "=", source_name),
+        Filter("type", "=", "attack-pattern"),
+        Filter("external_references.source_name", "=", source_name),
     ]
     results = src.query(filters)
     return remove_deprecated(results)
@@ -35,13 +36,13 @@ def get_all_techniques(src, source_name):
 def filter_for_term_relationships(src, relationship_type, object_id, target=True):
     """Filters data source by type, relationship_type and source or target"""
     filters = [
-        stix2.Filter("type", "=", "relationship"),
-        stix2.Filter("relationship_type", "=", relationship_type),
+        Filter("type", "=", "relationship"),
+        Filter("relationship_type", "=", relationship_type),
     ]
     if target:
-        filters.append(stix2.Filter("target_ref", "=", object_id))
+        filters.append(Filter("target_ref", "=", object_id))
     else:
-        filters.append(stix2.Filter("source_ref", "=", object_id))
+        filters.append(Filter("source_ref", "=", object_id))
 
     results = src.query(filters)
     return remove_deprecated(results)
@@ -50,9 +51,9 @@ def filter_for_term_relationships(src, relationship_type, object_id, target=True
 def filter_by_type_and_id(src, object_type, object_id, source_name):
     """Filters data source by id and type"""
     filters = [
-        stix2.Filter("type", "=", object_type),
-        stix2.Filter("id", "=", object_id),
-        stix2.Filter("external_references.source_name", "=", source_name),
+        Filter("type", "=", object_type),
+        Filter("id", "=", object_id),
+        Filter("external_references.source_name", "=", source_name),
     ]
     results = src.query(filters)
     return remove_deprecated(results)
