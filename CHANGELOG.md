@@ -1,4 +1,4 @@
-# Changes staged on develop
+# v1.5.2 - 2 September 2020
 ## Improvements
 - Clarified documentation on creation of virtual environments for Windows compatibility.
 - Added section to install docs about taxii2client compatibility. See issue [#19](https://github.com/mitre-attack/attack-scripts/issues/19).
