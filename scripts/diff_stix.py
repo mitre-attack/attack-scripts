@@ -1,6 +1,6 @@
 import argparse
 from stix2 import MemoryStore, Filter, TAXIICollectionSource
-from taxii2client import Collection
+from taxii2client.v20 import Collection
 import os
 import json
 from tqdm import tqdm

@@ -1,5 +1,5 @@
 from stix2 import TAXIICollectionSource, Filter, MemoryStore
-from taxii2client import Server, Collection
+from taxii2client.v20 import Server, Collection
 
 
 class DomainNotLoadedError(Exception):

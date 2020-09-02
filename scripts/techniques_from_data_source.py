@@ -1,5 +1,5 @@
 from stix2 import TAXIICollectionSource, Filter
-from taxii2client import Collection
+from taxii2client.v20 import Collection
 import argparse
 
 # Establish TAXII2 Collection instance for Enterprise ATT&CK collection

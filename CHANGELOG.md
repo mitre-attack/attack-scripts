@@ -1,3 +1,9 @@
+# v1.5.2 - 2 September 2020
+## Improvements
+- Clarified documentation on creation of virtual environments for Windows compatibility.
+- Added section to install docs about taxii2client compatibility. See issue [#19](https://github.com/mitre-attack/attack-scripts/issues/19).
+- Standardized import style to better follow the standard set in [MITRE/CTI#103](https://github.com/mitre/cti/pull/103).
+
 # v1.5.1 - 27 July 2020
 ## New Scripts
 - Added [layer to excel](https://github.com/mitre-attack/attack-scripts/tree/master/layers#to_excelpy) converter. See issue [#25](https://github.com/mitre-attack/attack-scripts/issues/25).
