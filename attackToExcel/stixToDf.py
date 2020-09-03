@@ -25,12 +25,11 @@ def get_citations(objects):
     citations = []
     for sdo in objects:
         for ref in sdo["external_references"]:
-            if "external_id" not in ref:
+            if "external_id" not in ref and "description" in ref and not ref["description"].startswith("(Citation: "):
                 citation = {
-                    "reference": ref["source_name"]
+                    "reference": ref["source_name"],
+                    "citation": ref["description"]
                 }
-                if "description" in ref:
-                    citation["citation"] = ref["description"]
                 if "url" in ref:
                     citation["url"] = ref["url"]
 
@@ -116,7 +115,7 @@ def tacticsToDf(src, domain):
     """convert the stix tactics to pandas dataframes. 
     Return a lookup of labels (descriptors) to dataframes"""
     tactics = src.query([Filter("type", "=", "x-mitre-tactic")])
-    if not include_deprecated: tactics = remove_revoked_deprecated(tactics)
+    tactics = remove_revoked_deprecated(tactics)
 
     return {}
 
@@ -126,23 +125,45 @@ def softwareToDf(src, domain):
     software = list(chain.from_iterable( # software are the union of the tool and malware types
         src.query(f) for f in [Filter("type", "=", "tool"), Filter("type", "=", "malware")]
     ))
-    if not include_deprecated: software = remove_revoked_deprecated(software)
+    software = remove_revoked_deprecated(software)
+    software_rows = []
+    for soft in tqdm(software, desc="parsing software"):
+        # add common STIx fields
+        row = parseBaseStix(soft)
+        # add software-specific fields
+        if "x_mitre_platforms" in soft:
+            row["platforms"] = ", ".join(soft["x_mitre_platforms"])
+        if "x_mitre_aliases" in soft:
+            row["aliases"] = ", ".join(soft["x_mitre_aliases"])
+        row["type"] = soft["type"] # malware or tool
+        
+        software_rows.append(row)
 
+    return {
+        "software": pd.DataFrame(software_rows).sort_values("name"),
+        "citations": get_citations(software).sort_values("reference")
+    }
     return {}
 
 def groupsToDf(src, domain):
     """convert the stix groups to pandas dataframes. 
     Return a lookup of labels (descriptors) to dataframes"""
     groups = src.query([Filter("type", "=", "intrusion-set")])
-    if not include_deprecated: groups = remove_revoked_deprecated(groups)
+    groups = remove_revoked_deprecated(groups)
+    group_rows = []
+    for group in tqdm(groups, desc="parsing groups"):
+        group_rows.append(parseBaseStix(group))
 
-    return {}
+    return {
+        "groups": pd.DataFrame(group_rows).sort_values("name"),
+        "citations": get_citations(groups).sort_values("reference")
+    }
 
 def mitigationsToDf(src, domain):
     """convert the stix mitigations to pandas dataframes. 
     Return a lookup of labels (descriptors) to dataframes"""
     mitigations = src.query([Filter("type", "=", "course-of-action")])
-    if not include_deprecated: mitigations = remove_revoked_deprecated(mitigations)
+    mitigations = remove_revoked_deprecated(mitigations)
 
     return {}
 
@@ -150,7 +171,7 @@ def matricesToDf(src, domain):
     """convert the stix matrices to pandas dataframes. 
     Return a lookup of labels (descriptors) to dataframes"""
     matrices = src.query([Filter("type", "=", "x-mitre-matrix")])
-    if not include_deprecated: matrices = remove_revoked_deprecated(matrices)
+    matrices = remove_revoked_deprecated(matrices)
 
     return {}
 
@@ -158,7 +179,7 @@ def relationshipsToDf(src, domain):
     """convert the stix relationships to pandas dataframes. 
     Return a lookup of labels (descriptors) to dataframes"""
     relationships = src.query([Filter("type", "=", "relationship")])
-    if not include_deprecated: relationships = remove_revoked_deprecated(relationships)
+    relationships = remove_revoked_deprecated(relationships)
 
     return {}
 
