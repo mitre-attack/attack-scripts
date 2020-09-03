@@ -20,12 +20,30 @@ def format_date(date):
         date = datetime.datetime.strptime(date, "%Y-%m-%dT%H:%M:%S.%fZ")
     return ("{} {} {}").format(date.strftime("%d"), date.strftime("%B"), date.strftime("%Y"))
 
+def get_citations(objects):
+    """given a list of STIX objects, return a pandas dataframe for the citations on the objects"""
+    citations = []
+    for sdo in objects:
+        for ref in sdo["external_references"]:
+            if "external_id" not in ref:
+                citation = {
+                    "reference": ref["source_name"]
+                }
+                if "description" in ref:
+                    citation["citation"] = ref["description"]
+                if "url" in ref:
+                    citation["url"] = ref["url"]
+
+                citations.append(citation)
+    return pd.DataFrame(citations).drop_duplicates(subset="reference", ignore_index=True)
+
 def techniquesToDf(src, domain):
     """convert the stix techniques to pandas dataframes. 
     Return a lookup of labels (descriptors) to dataframes"""
     techniques = src.query([Filter("type", "=", "attack-pattern")])
     techniques = remove_revoked_deprecated(techniques)
-    rows = []
+    technique_rows = []
+
     for technique in tqdm(techniques, desc="parsing techniques"):
         # get parent technique if sub-technique
         subtechnique = "x_mitre_is_subtechnique" in technique and technique["x_mitre_is_subtechnique"]
@@ -42,6 +60,7 @@ def techniquesToDf(src, domain):
         row = {
             "ATT&CK ID": technique["external_references"][0]["external_id"],
             "name": technique["name"] if not subtechnique else f"{parent['name']}: {technique['name']}",
+            "url": technique["external_references"][0]["url"],
             "description": technique["description"],
             "tactics": ", ".join(tactics),
             "version": technique["x_mitre_version"],
@@ -52,7 +71,6 @@ def techniquesToDf(src, domain):
             row["detection"] = technique["x_mitre_detection"]
         if "x_mitre_platforms" in technique:
             row["platforms"] = ", ".join(technique["x_mitre_platforms"])
-
 
         # domain specific fields -- enterprise
         if domain == "enterprise-attack":
@@ -74,9 +92,10 @@ def techniquesToDf(src, domain):
             if mtc_refs:
                 row["MTC ID"] = mtc_refs[0]["external_id"]
         
-        rows.append(row)
+        technique_rows.append(row)
     return {
-        "techniques": pd.DataFrame(rows).sort_values("name")
+        "techniques": pd.DataFrame(technique_rows).sort_values("name"),
+        "citations": get_citations(techniques).sort_values("reference")
     }
 
 def tacticsToDf(src, domain):

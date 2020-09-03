@@ -35,15 +35,23 @@ def main(domain, version):
         os.mkdir(domainVersionString)
     # master dataset file
     master_writer = pd.ExcelWriter(os.path.join(domainVersionString, f"{domainVersionString}.xlsx"))
-    # write individual dataframes
+    citations = pd.DataFrame() # master list of citations
+    # write individual dataframes and add to master writer
     for objType in dataframes:
         # write the dataframes for the object type into named sheets
         obj_writer = pd.ExcelWriter(os.path.join(domainVersionString, f"{domainVersionString}-{objType}.xlsx"))
         for dfname in dataframes[objType]: 
             dataframes[objType][dfname].to_excel(obj_writer, sheet_name=dfname, index=False) 
         obj_writer.save()
+
+        # add citations to master citations list
+        citations = citations.append(dataframes[objType]["citations"])
+
          # add main df to master dataset
         dataframes[objType][objType].to_excel(master_writer, sheet_name=objType, index=False)
+    # remove duplicate citations and add to master file
+    citations.drop_duplicates(subset="reference", ignore_index=True).sort_values("reference").to_excel(master_writer, sheet_name="citations", index=False)
+    # write the master file
     master_writer.save()
 
 if __name__ == '__main__':
