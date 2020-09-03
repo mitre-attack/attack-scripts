@@ -37,6 +37,26 @@ def get_citations(objects):
                 citations.append(citation)
     return pd.DataFrame(citations).drop_duplicates(subset="reference", ignore_index=True)
 
+def parseBaseStix(sdo):
+    """given an SDO, return a row of fields that are common across the STIX types"""
+    row = {}
+    if "external_references" in sdo and sdo["external_references"][0]["source_name"] in ["mitre-attack", "mitre-mobile-attack"]:
+        row["ATT&CK ID"] = sdo["external_references"][0]["external_id"]
+        row["url"] = sdo["external_references"][0]["url"]
+    if "name" in sdo:
+        row["name"] = sdo["name"]
+    if "description" in sdo:
+        row["description"] = sdo["description"]
+    if "created" in sdo:
+        row["created"] = format_date(sdo["created"])
+    if "modified" in sdo:
+        row["last modified"] = format_date(sdo["modified"])
+    if "x_mitre_version" in sdo:
+        row["version"] = sdo["x_mitre_version"]
+    if "x_mitre_contributors" in sdo:
+        row["contributors"] = "; ".join(sdo["x_mitre_contributors"])
+    return row
+
 def techniquesToDf(src, domain):
     """convert the stix techniques to pandas dataframes. 
     Return a lookup of labels (descriptors) to dataframes"""
@@ -54,19 +74,13 @@ def techniquesToDf(src, domain):
                 Filter("source_ref", "=", technique["id"])
             ])[0]
             parent = src.get(subtechnique_of["target_ref"])
-        
+
+        # base STIX properties
+        row = parseBaseStix(technique)
+        if subtechnique: row["name"] = f"{parent['name']}: {technique['name']}"
         tactics = list(map(lambda kcp: kcp["phase_name"], technique["kill_chain_phases"]))
-        # general fields
-        row = {
-            "ATT&CK ID": technique["external_references"][0]["external_id"],
-            "name": technique["name"] if not subtechnique else f"{parent['name']}: {technique['name']}",
-            "url": technique["external_references"][0]["url"],
-            "description": technique["description"],
-            "tactics": ", ".join(tactics),
-            "version": technique["x_mitre_version"],
-            "created": format_date(technique["created"]),
-            "last modified": format_date(technique["modified"])
-        }
+        row["tactics"] = ", ".join(tactics),
+
         if "x_mitre_detection" in technique:
             row["detection"] = technique["x_mitre_detection"]
         if "x_mitre_platforms" in technique:
