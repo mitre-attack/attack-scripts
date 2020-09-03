@@ -139,7 +139,8 @@ class MatrixGen:
         subtechs = {}
         techs = self.collections[domain].query([Filter('type', '=', 'attack-pattern'), Filter('kill_chain_phases.phase_name', '=', tactic)])
         for entry in techs:
-            if entry['kill_chain_phases'][0]['kill_chain_name'] == 'mitre-attack':
+            if entry['kill_chain_phases'][0]['kill_chain_name'] == 'mitre-attack' or \
+                            entry['kill_chain_phases'][0]['kill_chain_name'] == 'mitre-mobile-attack':
                 tid = [t['external_id'] for t in entry['external_references'] if 'attack' in t['source_name']]
                 if '.' not in tid[0]:
                     techniques.append(MatrixEntry(id=tid[0], name=entry['name']))

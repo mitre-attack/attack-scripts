@@ -6,9 +6,13 @@ with warnings.catch_warnings():
 try:
     from exporters.matrix_gen import MatrixGen
     from exporters.svg_objects import G, SVG_HeaderBlock, SVG_Technique, Text, convertToPx,_optimalFontSize
+    from core.gradient import Gradient
+    from core.filter import Filter
 except ModuleNotFoundError:
     from ..exporters.matrix_gen import MatrixGen
     from ..exporters.svg_objects import G, SVG_HeaderBlock, SVG_Technique, Text, convertToPx, _optimalFontSize
+    from ..core.gradient import Gradient
+    from ..core.filter import Filter
 
 
 class BadTemplateException(Exception):
@@ -51,6 +55,8 @@ class SvgTemplates:
         header_height = convertToPx(config.headerHeight, config.unit)
         ff = config.font
         d = draw.Drawing(max_x, max_y, origin=(0, -max_y), displayInline=False)
+        psych = 0
+        overlay = None
         if config.showHeader:
             operation_x = max_x - 30
 
@@ -62,62 +68,73 @@ class SvgTemplates:
             header.append(b1)
 
             header_count = 0
-            psych = 0
             if config.showAbout:
                 header_count += 1
-            if filters is not None and config.showFilters:
+            if config.showFilters:
                 header_count += 1
-            if gradient is not None and config.showLegend:
+            if config.showLegend and config.legendDocked:
                 header_count += 1
 
-            header_width = max_x / header_count - (15 * (header_count-1))
-            if config.showHeader:
-                if desc is not None:
-                    g = SVG_HeaderBlock().build(height=header_height, width=header_width, label='about', t1text=name,
-                                                t2text=desc, config=config)
-                else:
-                    g = SVG_HeaderBlock().build(height=header_height, width=header_width, label='about', t1text=name,
-                                                config=config)
-                b1.append(g)
-                psych += 1
-            if filters is not None and config.showFilters:
-                g2 = SVG_HeaderBlock().build(height=header_height, width=header_width, label='filters',
-                                         t1text=', '.join(filters.platforms), t2text=filters.stages[0], config=config)
-                b2 = G(tx=operation_x / header_count * psych + 20 * psych)
-                header.append(b2)
-                b2.append(g2)
-                psych += 1
-            if gradient is not None and config.showLegend:
-                colors = []
-                div = round((gradient.maxValue - gradient.minValue) / (len(gradient.colors) * 2 - 1))
-                for i in range(0, len(gradient.colors) * 2 - 1):
-                    colors.append(
-                        (gradient.compute_color(int(gradient.minValue + div * i)), gradient.minValue + div * i))
-                colors.append((gradient.compute_color(gradient.maxValue), gradient.maxValue))
-                if config.legendDocked:
-                    b3 = G(tx=operation_x / header_count * psych + 20 * psych)
-                    g3 = SVG_HeaderBlock().build(height=header_height, width=header_width, label='legend',
-                                                 variant='graphic', colors=colors, config=config)
-                    header.append(b3)
-                    b3.append(g3)
-                else:
-                    adjusted_height = convertToPx(config.legendHeight, config.unit)
-                    adjusted_width = convertToPx(config.legendWidth, config.unit)
-                    g3 = SVG_HeaderBlock().build(height=adjusted_height, width=adjusted_width, label='legend',
-                                                 variant='graphic', colors=colors, config=config)
-                    lx = convertToPx(config.legendX, config.unit)
-                    if not lx:
-                        lx = max_x - adjusted_width - convertToPx(config.border, config.unit)
-                    ly = convertToPx(config.legendY, config.unit)
-                    if not ly:
-                        ly = max_y - adjusted_height - convertToPx(config.border, config.unit)
-                    b3 = G(tx=lx, ty=ly)
-                    b3.append(g3)
-                    d.append(b3)
+            if header_count > 0:
+                header_width = max_x / header_count - (15 * (header_count-1))
+                if config.showAbout:
+                    if desc is not None:
+                        g = SVG_HeaderBlock().build(height=header_height, width=header_width, label='about', t1text=name,
+                                                    t2text=desc, config=config)
+                    else:
+                        g = SVG_HeaderBlock().build(height=header_height, width=header_width, label='about', t1text=name,
+                                                    config=config)
+                    b1.append(g)
+                    psych += 1
+                if config.showFilters:
+                    fi = filters
+                    if fi is None:
+                        fi = Filter()
+                        fi.platforms = ["Windows", "Linux",	"macOS"]
+                        fi.stages = ["act"]
+                    g2 = SVG_HeaderBlock().build(height=header_height, width=header_width, label='filters',
+                                             t1text=', '.join(fi.platforms), t2text=fi.stages[0], config=config)
+                    b2 = G(tx=operation_x / header_count * psych + 20 * psych)
+                    header.append(b2)
+                    b2.append(g2)
+                    psych += 1
+                if config.showLegend:
+                    gr = gradient
+                    if gr is None:
+                        gr = Gradient(colors=["#ff6666","#ffe766","#8ec843"], minValue=1, maxValue=100)
+                    colors = []
+                    div = round((gr.maxValue - gr.minValue) / (len(gr.colors) * 2 - 1))
+                    for i in range(0, len(gr.colors) * 2 - 1):
+                        colors.append(
+                            (gr.compute_color(int(gr.minValue + div * i)), gr.minValue + div * i))
+                    colors.append((gr.compute_color(gr.maxValue), gr.maxValue))
+                    if config.legendDocked:
+                        b3 = G(tx=operation_x / header_count * psych + 20 * psych)
+                        g3 = SVG_HeaderBlock().build(height=header_height, width=header_width, label='legend',
+                                                     variant='graphic', colors=colors, config=config)
+                        header.append(b3)
+                        b3.append(g3)
+                        psych +=1
+                    else:
+                        adjusted_height = convertToPx(config.legendHeight, config.unit)
+                        adjusted_width = convertToPx(config.legendWidth, config.unit)
+                        g3 = SVG_HeaderBlock().build(height=adjusted_height, width=adjusted_width, label='legend',
+                                                     variant='graphic', colors=colors, config=config)
+                        lx = convertToPx(config.legendX, config.unit)
+                        if not lx:
+                            lx = max_x - adjusted_width - convertToPx(config.border, config.unit)
+                        ly = convertToPx(config.legendY, config.unit)
+                        if not ly:
+                            ly = max_y - adjusted_height - convertToPx(config.border, config.unit)
+                        overlay = G(tx=lx, ty=ly)
+                        if (ly + adjusted_height) > max_y or (lx + adjusted_width) > max_x:
+                            print("[WARNING] - Floating legend will render partly out of view...")
+                        overlay.append(g3)
             d.append(root)
-        return d
+        return d, psych, overlay
 
-    def get_tactic(self, tactic, height, width, config, colors=[], subtechs=[], exclude=[], mode=(True, False)):
+    def get_tactic(self, tactic, height, width, config, colors=[], scores=[], subtechs=[], exclude=[],
+                   mode=(True, False)):
         """
             Build a 'tactic column' svg object
 
@@ -126,6 +143,7 @@ class SvgTemplates:
             :param width: A technique blocks' allocated width
             :param config: A SVG Config object
             :param colors: Default color data in case of no score
+            :param scores: Score values for the dataset
             :param subtechs: List of visible subtechniques
             :param exclude: List of excluded techniques
             :param mode: Tuple describing text for techniques (Show Name, Show ID)
@@ -136,6 +154,14 @@ class SvgTemplates:
         for x in tactic.techniques:
             if any(x.id == y[0] and (y[1] == self.h.convert(tactic.tactic.name) or not y[1]) for y in exclude):
                 continue
+            found = False
+            for y in scores:
+                if x.id == y[0] and (y[1] == self.h.convert(tactic.tactic.name) or not y[1]):
+                    x.score = y[2]
+                    found = True
+                    continue
+            if not found:
+                x.score = None
             if any(x.id == y[0] and (y[1] == self.h.convert(tactic.tactic.name) or not y[1]) for y in subtechs):
                 a, offset = self.get_tech(offset, mode, x, tactic=self.h.convert(tactic.tactic.name),
                                           subtechniques=tactic.subtechniques.get(x.id, []), colors=colors,
@@ -181,7 +207,8 @@ class SvgTemplates:
             :param exclude: List of excluded techniques
             :return:
         """
-        d = self._build_headers(lhandle.name, config, lhandle.description, lhandle.filters, lhandle.gradient)
+        d, presence, overlay = self._build_headers(lhandle.name, config, lhandle.description, lhandle.filters,
+                                            lhandle.gradient)
         self.codex = self.h._adjust_ordering(self.codex, sort, scores)
         self.lhandle = lhandle
         glob = G()
@@ -189,11 +216,20 @@ class SvgTemplates:
         lengths = []
         for x in self.codex:
             sum = len(x.techniques)
+            for enum in exclude:
+                if enum[0] in [y.id for y in x.techniques]:
+                    if self.h.convert(enum[1]) == x.tactic.name or enum[1] == False:
+                        sum -= 1
             for y in x.subtechniques:
-                sum += len(x.subtechniques[y])
+                if y in [z[0] for z in subtechs]:
+                    sum += len(x.subtechniques[y])
             lengths.append(sum)
         tech_width = (convertToPx(config.width, config.unit) / len(self.codex)) - 10
-        tech_height = (convertToPx(config.height, config.unit) - convertToPx(config.headerHeight, config.unit) - 30 -
+        header_offset = convertToPx(config.headerHeight, config.unit)
+        if presence == 0:
+            header_offset = 0
+        header_offset += 30
+        tech_height = (convertToPx(config.height, config.unit) - header_offset -
                        convertToPx(config.border, config.unit)) / max(lengths)
         incre = tech_width + 10
         set = 0
@@ -206,7 +242,7 @@ class SvgTemplates:
             elif showID:
                 disp = x.tactic.id
 
-            g = G(tx=index, ty=convertToPx(config.headerHeight, config.unit) + 30)
+            g = G(tx=index, ty=header_offset)
             gt = G(tx=(tech_width / 2) + 2)
             index += incre
             fs, _ = _optimalFontSize(disp, tech_width, tech_height+10, maxFontSize=28)
@@ -215,9 +251,11 @@ class SvgTemplates:
             tx = Text(ctype='TacticName', font_size=set, text=disp, position='middle')
             gt.append(tx)
             a = self.get_tactic(x, tech_height, tech_width, colors=colors, subtechs=subtechs, exclude=exclude,
-                                mode=(showName, showID), config=config)
+                                mode=(showName, showID), scores=scores, config=config)
             g.append(gt)
             g.append(a)
             glob.append(g)
         d.append(glob)
+        if overlay:
+            d.append(overlay)
         return d

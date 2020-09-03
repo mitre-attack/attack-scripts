@@ -10,9 +10,11 @@ if __name__ == '__main__':
     parser.add_argument('-s','--source', choices=['taxii', 'local'], default='taxii', help='What source to utilize when building the matrix')
     parser.add_argument('--local', help='Path to the local resource if --source=local', default=None)
     parser.add_argument('-o','--output', nargs='+', help='Path(s) to the exported svg/xlsx file', required=True)
-    parser.add_argument('-l', '--load_settings', help='Path to a SVG configuration json to use when rendering', default=None)
-    parser.add_argument('-d', '--size', nargs=2, help='X and Y size values (in inches) for SVG export (use -l for '
-                                                        'other settings)', default=[8.5, 11])
+    parser.add_argument('-l', '--load_settings', help='[SVG Only] Path to a SVG configuration json to use when '
+                                                      'rendering', default=None)
+    parser.add_argument('-d', '--size', nargs=2, help='[SVG Only] X and Y size values (in inches) for SVG export (use '
+                                                      '-l for other settings)', default=[8.5, 11], metavar=("WIDTH",
+                                                                                                            "HEIGHT"))
     args = parser.parse_args()
     if len(args.output) != len(args.input):
         print('Mismatched number of output file paths to input file paths. Exiting...')

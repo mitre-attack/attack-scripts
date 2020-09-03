@@ -3,6 +3,12 @@ import colorsys
 import os
 from PIL import ImageFont
 
+try:
+    from core.gradient import Gradient
+except ModuleNotFoundError:
+    from ..core.gradient import Gradient
+
+
 def convertToPx(quantity, unit):
     """
         INTERNAL: Convert values to pixels
@@ -37,6 +43,20 @@ def _getstringwidth(string, font, size):
     length, _ = font.getsize(string)
     return length
 
+def _getstringheight(string, font, size):
+    """
+        INTERNAL: Calculate the width of a string (in pixels)
+
+        :param string: string to evaluate
+        :param font: font to use
+        :param size: font size
+        :return: pixel height of string
+    """
+    font = ImageFont.truetype('{}/fonts/{}.ttf'.format(os.path.sep.join(__file__.split(os.path.sep)[:-1]), font),
+                              int(size))
+    _, height = font.getsize(string)
+    return height
+
 def _findSpace(words, width, height, maxFontSize):
     """
         INTERNAL: Find space locations for a string to keep it within width x height
@@ -57,8 +77,10 @@ def _findSpace(words, width, height, maxFontSize):
     for w in range(0, len(words)):
         word = words[w]
         longestWordLength = max(longestWordLength, len(word))
-
-    fitTextWidth = ((width - (2 * padding)) / longestWordLength * 1.45)
+    try:
+        fitTextWidth = ((width - (2 * padding)) / longestWordLength * 1.45)
+    except:
+        pass
     size = min(maxFontSize, fitTextHeight, fitTextWidth)
     return size
 
@@ -101,6 +123,7 @@ def _optimalFontSize(st, width, height, maxFontSize=12):
 class Cell(draw.DrawingParentElement):
     TAG_NAME = 'rect'
     def __init__(self, height, width, fill, tBC, ctype=None):
+        # tBC = tableBorderColor, ctype='class' field on resulting svg object, fill=[R,G,B]
         super().__init__(height=height, width=width, style='fill: rgb({}, {}, {})'.format(fill[0], fill[1], fill[2]),
                          stroke=tBC)
         if ctype:
@@ -109,6 +132,7 @@ class Cell(draw.DrawingParentElement):
 class HeaderRect(draw.DrawingParentElement):
     TAG_NAME = 'rect'
     def __init__(self, width, height, ctype, x=None, y=None, outline=True):
+        # ctype='class' field on resulting svg object, x=x coord, y=y coord
         super().__init__(width=width, height=height, fill='white', rx='5')
         self.args['class'] = ctype
         if x:
@@ -121,6 +145,7 @@ class HeaderRect(draw.DrawingParentElement):
 class G(draw.DrawingParentElement):
     TAG_NAME = 'g'
     def __init__(self, tx=None, ty=None, style=None, ctype=None):
+        # tx=translate x, ty=translate y, ctype='class' field on resulting svg object
         super().__init__()
         if tx is None:
             tx = 0
@@ -135,10 +160,12 @@ class G(draw.DrawingParentElement):
 class Line(draw.DrawingParentElement):
     TAG_NAME = 'line'
     def __init__(self, x1, x2, y1, y2, stroke):
+        # x1=start x, x2=stop x, y1=start y, y2=stop y, stroke='stroke' field on resulting svg object
         super().__init__(x1=x1, x2=x2, y1=y1, y2=y2, stroke=stroke)
 
 class Text(draw.Text):
     def __init__(self, text, font_size, ctype, position=None, tx=None, ty=None, x=None, y=None, fill=None):
+        # ctype='class' object on resulting svg, position='text-anchor' field, tx/ty=translate x/y, x/y=x/y coord
         if x is None:
             x = 0
         if y is None:
@@ -159,6 +186,7 @@ class Text(draw.Text):
 class Swatch(draw.DrawingParentElement):
     TAG_NAME = 'rect'
     def __init__(self, height, width, fill):
+        # fill= [R,G,B]
         super().__init__(height=height, width=width, style='fill: rgb({}, {}, {})'.format(fill[0], fill[1], fill[2]))
 
 
@@ -181,10 +209,10 @@ class SVG_HeaderBlock:
         g = G(ty=5)
         rect = HeaderRect(width, height, 'header-box')
         g.append(rect)
-        rect2 = HeaderRect(_getstringwidth(label, config.font, 12), height/5, 'label-cover', x=8, y=-9.67,
-                           outline=False)
+        rect2 = HeaderRect(_getstringwidth(label, config.font, 12), _getstringheight(label, config.font, 12),
+                           'label-cover', x=7, y=-5, outline=False)
         g.append(rect2)
-        text = Text(label, 12, 'header-box-label', x=10, y=3)
+        text = Text(label, 12, 'header-box-label', x=8, y=3)
         g.append(text)
         internal = G(tx=5, ctype='header-box-content')
         g.append(internal)
@@ -193,18 +221,25 @@ class SVG_HeaderBlock:
             internal.append(upper)
             if t1text is not None:
                 fs, patch_text = _optimalFontSize(t1text, width, (height-80/2), maxFontSize=28)
-                t1 = Text("\n".join(patch_text), fs, '', x=4, y=20)
+                lines = len(patch_text)
+                y = (height-5)/4 + 2.1
+                if lines > 1:
+                    y = y - (((height-5)/16) * (lines-1))
+                t1 = Text("\n".join(patch_text), fs, '', x=4, y=y)
                 upper.append(t1)
                 upper.append(Line(0, width-10, (height-5)/2, (height-5)/2, stroke='#dddddd'))
-                if t2text is not None:
+                if t2text is not None and t2text is not "":
                     upper_fs = fs
-                    lower = G(tx=0, ty= ((height-5)/2 + 20))
+                    lower_offset = ((height-5)/2 + 2.1)
+                    lower = G(tx=0, ty= lower_offset)
                     fs, patch_text = _optimalFontSize(t2text, width, (height - (height/3 + upper_fs)), maxFontSize=28)
-                    y = 10
+                    y = (height-5)/4 + 2.1
                     lines = len(patch_text)
                     adju = "\n".join(patch_text)
                     if lines > 1:
-                        y = y / (4 ** lines)
+                        y = y - (((height - 5) / 16) * (lines - 1))
+                    if float(fs) > lower_offset:
+                        y = y + 2*(float(fs) - lower_offset)
                     t2 = Text(adju, fs, '', x=4, y=y)
                     lower.append(t2)
                     internal.append(lower)
@@ -237,6 +272,8 @@ class SVG_HeaderBlock:
 class SVG_Technique:
     def __init__(self, gradient):
         self.grade = gradient
+        if self.grade == None:
+            self.grade = Gradient(colors=["#ff6666", "#ffe766", "#8ec843"], minValue=1, maxValue=100)
 
     def build(self, offset, technique, height, width, tBC, subtechniques=[], mode=(True, False), tactic=None,
               colors=[]):
@@ -254,7 +291,6 @@ class SVG_Technique:
             :param colors: List of all default color values if no score can be found
             :return: The newly created SVG technique block
         """
-        indent = 11.2
         g = G(ty=offset)
         c = self._com_color(technique, tactic, colors)
         t = dict(name=self._disp(technique.name, technique.id, mode), id=technique.id,
@@ -264,21 +300,21 @@ class SVG_Technique:
         g.append(text)
         new_offset = height
         for entry in subtechniques:
-            gp = G(tx=indent, ty=new_offset)
+            gp = G(tx=width/5, ty=new_offset)
             g.append(gp)
             c = self._com_color(entry, tactic, colors)
             st = dict(name=self._disp(entry.name, entry.id, mode), id=entry.id,
                      color=tuple(int(c[i:i + 2], 16) for i in (0, 2, 4)))
-            subtech, subtext = self._block(st, height, width - indent, tBC=tBC)
+            subtech, subtext = self._block(st, height, width - width/5, tBC=tBC)
             gp.append(subtech)
             gp.append(subtext)
             new_offset = new_offset + height
         if len(subtechniques):
-            g.append(draw.Lines(2, -height,
-                                9, -height * 2,
-                                9, -height * (len(subtechniques) + 1),
-                                indent, -height * (len(subtechniques) + 1),
-                                indent, -height,
+            g.append(draw.Lines(width/16, -height,
+                                width/8, -height * 2,
+                                width/8, -height * (len(subtechniques) + 1),
+                                width/5, -height * (len(subtechniques) + 1),
+                                width/5, -height,
                        close=True,
                        fill=tBC,
                        stroke=tBC))
@@ -304,7 +340,7 @@ class SVG_Technique:
 
         y = height / 2
         if lines > 0:
-            y = y - y / (2**lines) + fs / (lines + 1)
+            y = (height - (lines * fs)) / 2 + height/10 #padding
         else:
             y = y + fs / 4
 
@@ -332,9 +368,6 @@ class SVG_Technique:
             for x in colors:
                 if x[0] == technique.id and (x[1] == tactic or not x[1]):
                     c = x[2][1:]
-        if c == 'FFFFFF':
-            if 0 >= self.grade.minValue:
-                c = self.grade.compute_color(0)[1:]
         return c
 
     @staticmethod

@@ -12,19 +12,38 @@ class NoLayer(Exception):
 
 
 class SVGConfig:
-    def __init__(self, width=8.5, height=11, headerHeight=1, unit="in", showSubtechniques="expanded",
-                 font="sans-serif", tableBorderColor="#6B7279", showHeader=True, legendDocked=True,
-                 legendX=0, legendY=0, legendWidth=2, legendHeight=1, showLegend=True, showFilters=True,
-                 showAbout=True, border=0.104):
+    d_width=8.5
+    d_height=11
+    d_headerHeight=1
+    d_unit="in"
+    d_showSubtechniques="expanded"
+    d_font="sans-serif"
+    d_tableBorderColor="#6B7279"
+    d_showHeader=True
+    d_legendDocked=True
+    d_legendX=0
+    d_legendY=0
+    d_legendWidth=2
+    d_legendHeight=1
+    d_showLegend=True
+    d_showFilters=True
+    d_showAbout=True
+    d_border=0.104
+
+    def __init__(self, width=d_width, height=d_height, headerHeight=d_headerHeight, unit=d_unit,
+                 showSubtechniques=d_showSubtechniques, font=d_font, tableBorderColor=d_tableBorderColor,
+                 showHeader=d_showHeader, legendDocked=d_legendDocked, legendX=d_legendX, legendY=d_legendY,
+                 legendWidth=d_legendWidth, legendHeight=d_legendHeight, showLegend=d_showLegend,
+                 showFilters=d_showFilters, showAbout=d_showAbout, border=d_border):
         """
             Define parameters to configure SVG export
 
             :param width: Desired SVG width
             :param height: Desired SVG height
             :param headerHeight: Desired Header Block height
-            :param unit: SVG measurement units (qualifies width, height, etc.)
+            :param unit: SVG measurement units (qualifies width, height, etc.) - "in", "cm", "px", "em", or "pt"
             :param showSubtechniques: Display form for subtechniques - "all", "expanded" (decided by layer), or "none"
-            :param font: What font style to use - "sans", "sans-serif", or "monospace"
+            :param font: What font style to use - "serif", "sans-serif", or "monospace"
             :param tableBorderColor: Hex color to use for the technique borders
             :param showHeader: Whether or not to show Header Blocks
             :param legendDocked: Whether or not the legend should be docked
@@ -37,6 +56,25 @@ class SVGConfig:
             :param showAbout: Whether or not to show the About Header Block
             :param border: What default border width to use
         """
+        # force defaults in case bad values are provided so we don't crash later
+        self.width = self.d_width
+        self.height = self.d_height
+        self.headerHeight = self.d_headerHeight
+        self.unit = self.d_unit
+        self.showSubtechniques = self.d_showSubtechniques
+        self.font = self.d_font
+        self.tableBorderColor = self.d_tableBorderColor
+        self.showHeader = self.d_showHeader
+        self.legendDocked = self.d_legendDocked
+        self.legendX = self.d_legendX
+        self.legendY = self.d_legendY
+        self.legendWidth = self.d_legendWidth
+        self.legendHeight = self.d_legendHeight
+        self.showLegend = self.d_showLegend
+        self.showFilters = self.d_showFilters
+        self.showAbout = self.d_showAbout
+        self.border = self.d_border
+
         self.width = width
         self.height = height
         self.headerHeight = headerHeight
@@ -65,12 +103,15 @@ class SVGConfig:
             raw = fio.read()
             self._data = json.loads(raw)
         for entry in self._data:
-            if entry in vars(self).keys():
+            patched = entry
+            if not patched.startswith('_SVGConfig__'):
+                patched = '_SVGConfig__' + patched
+            if patched in vars(self).keys():
                 setattr(self, entry, self._data[entry])
             else:
                 print('WARNING - Unidentified Config Field in {}: {}'.format(filename, entry))
 
-        self._display()
+        self.__str__()
 
     def save_to_file(self, filename=""):
         """
@@ -87,7 +128,7 @@ class SVGConfig:
         with open(filename, 'w') as file:
             json.dump(out, file)
 
-    def _display(self):
+    def __str__(self):
         """
             INTERNAL - display current configuration
         """
@@ -119,6 +160,8 @@ class SVGConfig:
     def width(self, width):
         if isinstance(width, int) or isinstance(width, float):
             self.__width = width
+        else:
+            print('[Warning] - Unable to set width to {}: not a float or int'.format(width))
 
     @property
     def height(self):
@@ -129,6 +172,8 @@ class SVGConfig:
     def height(self, height):
         if isinstance(height, int) or isinstance(height, float):
             self.__height = height
+        else:
+            print('[Warning] - Unable to set height to {}: not a float or int'.format(height))
 
     @property
     def headerHeight(self):
@@ -139,6 +184,8 @@ class SVGConfig:
     def headerHeight(self, headerHeight):
         if isinstance(headerHeight, int) or isinstance(headerHeight, float):
             self.__headerHeight = headerHeight
+        else:
+            print('[Warning] - Unable to set headerHeight to {}: not a float or int'.format(headerHeight))
 
     @property
     def unit(self):
@@ -149,6 +196,8 @@ class SVGConfig:
     def unit(self, unit):
         if unit in ['in', 'cm', 'px', 'em', 'pt']:
             self.__unit = unit
+        else:
+            print('[Warning] - Unable to set unit to {}: not one of ["in", "cm", "px", "em", "pt"]'.format(unit))
 
     @property
     def showSubtechniques(self):
@@ -159,6 +208,9 @@ class SVGConfig:
     def showSubtechniques(self, showSubtechniques):
         if showSubtechniques in ["expanded", "all", "none"]:
             self.__showSubtechniques = showSubtechniques
+        else:
+            print('[Warning] - Unable to set showSubtechniques to {}: not one of ["expanded", "all", "none"]'.format(
+                showSubtechniques))
 
     @property
     def font(self):
@@ -169,6 +221,8 @@ class SVGConfig:
     def font(self, font):
         if font in ["serif", "sans-serif", "monospace"]:
             self.__font = font
+        else:
+            print('[Warning] - Unable to set font to {}: not one of ["serif", "sans-serif", "monospace"]'.format(font))
 
     @property
     def tableBorderColor(self):
@@ -179,6 +233,15 @@ class SVGConfig:
     def tableBorderColor(self, tableBorderColor):
         if isinstance(tableBorderColor, str) and tableBorderColor.startswith('#') and len(tableBorderColor) == 7:
             self.__tableBorderColor = tableBorderColor
+        else:
+            reason = ''
+            if not isinstance(tableBorderColor, str):
+                reason = 'not a string'
+            elif not tableBorderColor.startswith('#'):
+                reason = 'not a valid code (does not start with #)'
+            elif len(tableBorderColor) != 7:
+                reason = 'not a valid code (#ZZZZZZ)'
+            print('[Warning] - Unable to set tableBorderColor to {}: '.format(tableBorderColor) + reason)
 
     @property
     def showHeader(self):
@@ -189,6 +252,8 @@ class SVGConfig:
     def showHeader(self, showHeader):
         if isinstance(showHeader, bool):
             self.__showHeader = showHeader
+        else:
+            print('[Warning] - Unable to set showHeader to {}: not a bool'.format(showHeader))
 
     @property
     def legendDocked(self):
@@ -199,6 +264,8 @@ class SVGConfig:
     def legendDocked(self, legendDocked):
         if isinstance(legendDocked, bool):
             self.__legendDocked = legendDocked
+        else:
+            print('[Warning] - Unable to set legendDocked to {}: not a bool'.format(legendDocked))
 
     @property
     def legendX(self):
@@ -209,6 +276,8 @@ class SVGConfig:
     def legendX(self, legendX):
         if isinstance(legendX, int) or isinstance(legendX, float):
             self.__legendX = legendX
+        else:
+            print('[Warning] - Unable to set legendX to {}: not a float or int'.format(legendX))
 
     @property
     def legendY(self):
@@ -219,6 +288,8 @@ class SVGConfig:
     def legendY(self, legendY):
         if isinstance(legendY, int) or isinstance(legendY, float):
             self.__legendY = legendY
+        else:
+            print('[Warning] - Unable to set legendY to {}: not a float or int'.format(legendY))
 
     @property
     def legendWidth(self):
@@ -229,6 +300,8 @@ class SVGConfig:
     def legendWidth(self, legendWidth):
         if isinstance(legendWidth, int) or isinstance(legendWidth, float):
             self.__legendWidth = legendWidth
+        else:
+            print('[Warning] - Unable to set legendWidth to {}: not a float or int'.format(legendWidth))
 
     @property
     def legendHeight(self):
@@ -239,6 +312,8 @@ class SVGConfig:
     def legendHeight(self, legendHeight):
         if isinstance(legendHeight, int) or isinstance(legendHeight, float):
             self.__legendHeight = legendHeight
+        else:
+            print('[Warning] - Unable to set legendHeight to {}: not a float or int'.format(legendHeight))
 
     @property
     def showLegend(self):
@@ -249,6 +324,9 @@ class SVGConfig:
     def showLegend(self, showLegend):
         if isinstance(showLegend, bool):
             self.__showLegend = showLegend
+        else:
+            print('[Warning] - Unable to set showLegend to {}: not a bool'.format(showLegend
+                                                                                  ))
 
     @property
     def showFilters(self):
@@ -259,6 +337,8 @@ class SVGConfig:
     def showFilters(self, showFilters):
         if isinstance(showFilters, bool):
             self.__showFilters = showFilters
+        else:
+            print('[Warning] - Unable to set showFilters to {}: not a bool'.format(showFilters))
 
     @property
     def showAbout(self):
@@ -269,6 +349,8 @@ class SVGConfig:
     def showAbout(self, showAbout):
         if isinstance(showAbout, bool):
             self.__showAbout = showAbout
+        else:
+            print('[Warning] - Unable to set showAbout to {}: not a bool'.format(showAbout))
 
     @property
     def border(self):
@@ -279,6 +361,8 @@ class SVGConfig:
     def border(self, border):
         if isinstance(border, float):
             self.__border = border
+        else:
+            print('[Warning] - Unable to set border to {}: not a float'.format(border))
 
 class ToSvg:
     def __init__(self, domain='enterprise', source='taxii', local=None, config=None):
@@ -288,6 +372,7 @@ class ToSvg:
             :param domain: Which domain to utilize for the underlying matrix layout
             :param source: Use the taxii server or local data
             :param local: Optional path to local stix data
+            :param config: Optional pre-existing SVGConfig object
         """
         self.raw_handle = SvgTemplates(domain=domain, source=source, local=local)
         if config != None and isinstance(config, SVGConfig):
@@ -330,7 +415,7 @@ class ToSvg:
         excluded = []
         if layer.layer.hideDisabled:
             for entry in layer.layer.techniques:
-                if not entry.enabled:
+                if entry.enabled == False:
                     if entry.tactic:
                         excluded.append((entry.techniqueID, entry.tactic))
                     else:

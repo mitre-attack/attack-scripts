@@ -147,7 +147,7 @@ tells the exporter what data source to use when building the output matrix. Vali
 x = ToExcel(domain='enterprise', source='taxii', local=None)
 ```
 The ToExcel constructor takes domain, server, and local arguments during instantiation. The domain can 
-be either `enterprise` or `mobile`, and can be pulled directly from a layer file as `layer.domain`. The source argument tells the matrix generation tool which data source to use when building the matrix. `taxii` indicates that the tool should utilize the `cti-taxii` server when building the matrix, while the `local` option indicates that it should use a local bundle respectively. The local argument is only required if the source is set to `local`, in which case it should be a path to a local stix bundle.
+be either `enterprise` or `mobile`, and can be pulled directly from a layer file as `layer.domain`. The source argument tells the matrix generation tool which data source to use when building the matrix. `taxii` indicates that the tool should utilize the official ATT&CK Taxii Server (`cti-taxii`) when building the matrix, while the `local` option indicates that it should use a local bundle respectively. The local argument is only required if the source is set to `local`, in which case it should be a path to a local stix bundle.
 
 ##### .to_xlsx() Method
 ```python
@@ -172,14 +172,14 @@ t2.to_xlsx(layer=lay, filepath="demo2.xlsx")
 ```
 
 ## to_svg.py
-to_svg.py provides the ToSVG class, which is a way to export an existing layer file as an SVG image file. The ToSVG class, like the ToExcel class, has an optional parameter for the initialization function, that 
+to_svg.py provides the ToSvg class, which is a way to export an existing layer file as an SVG image file. The ToSvg class, like the ToExcel class, has an optional parameter for the initialization function, that 
 tells the exporter what data source to use when building the output matrix. Valid options include using live data from cti-taxii.mitre.org or using a local STIX bundle. 
 
-##### ToSVG()
+##### ToSvg()
 ```python
 x = ToSvg(domain='enterprise', source='taxii', local=None, config=None)
 ```
-The ToSVG constructor, just like the ToExcel constructor, takes domain, server, and local arguments during instantiation. The domain can be either `enterprise` or `mobile`, and can be pulled directly from a layer file as `layer.domain`. The source argument tells the matrix generation tool which data source to use when building the matrix. `taxii` indicates that the tool should utilize the `cti-taxii` server when building the matrix, while the `local` option indicates that it should use a local bundle respectively. The local argument is only required if the source is set to `local`, in which case it should be a path to a local stix bundle. The `config` parameter is an optional SVGConfig object that can be used to configure the export as desired. If not provided, the configuration for the export will be set to default values.
+The ToSvg constructor, just like the ToExcel constructor, takes domain, server, and local arguments during instantiation. The domain can be either `enterprise` or `mobile`, and can be pulled directly from a layer file as `layer.domain`. The source argument tells the matrix generation tool which data source to use when building the matrix. `taxii` indicates that the tool should utilize the `cti-taxii` server when building the matrix, while the `local` option indicates that it should use a local bundle respectively. The local argument is only required if the source is set to `local`, in which case it should be a path to a local stix bundle. The `config` parameter is an optional SVGConfig object that can be used to configure the export as desired. If not provided, the configuration for the export will be set to default values.
 
 ##### SVGConfig()
 ```python
@@ -190,25 +190,25 @@ y = SVGConfig(width=8.5, height=11, headerHeight=1, unit="in", showSubtechniques
 ```
 The SVGConfig object is used to configure how an SVG export behaves. The defaults for each of the available values can be found in the declaration above, and a brief explanation for each field is included in the table below. The config object should be provided to the ToSvg object during instantiation, but if values need to be updated on the fly, the currently loaded configuration can be interacted with at `ToSvg().config`. The configuration can also be populated from a json file using the `.load_from_file(filename="path/to/file.json")` method, or stored to one using the `.save_to_file(filename="path/to/file.json)` method.
 
-| attribute| description |
-|:-------|:------------|
-| width | Desired SVG width |
-| height | Desired SVG height |
-| headerHeight | Desired Header Block height |
-| unit | SVG measurement units (qualifies width, height, etc.) |
-| showSubtechniques | Display form for subtechniques - "all", "expanded" (decided by layer), or "none" |
-| font | What font style to use - "sans", "sans-serif", or "monospace" |
-| tableBorderColor | Hex color to use for the technique borders |
-| showHeader | Whether or not to show Header Blocks |
-| legendDocked | Whether or not the legend should be docked |
-| legendX | Where to place the legend on the x axis if not docked |
-| legendY | Where to place the legend on the y axis if not docked |
-| legendWidth | Width of the legend if not docked |
-| legendHeight | Height of the legend if not docked |
-| showLegend | Whether or not to show the legend |
-| showFilters | Whether or not to show the Filter Header Block |
-| showAbout | Whether or not to show the About Header Block | 
-| border | What default border width to use |
+| attribute| description | type | default value |
+|:-------|:------------|:------------|:------------|
+| width | Desired SVG width | number | 8.5 |
+| height | Desired SVG height | number | 11 |
+| headerHeight | Desired Header Block height | number | 1 |
+| unit | SVG measurement units (qualifies width, height, etc.) - "in", "cm", "px", "em", or "pt"| string | "in" | 
+| showSubtechniques | Display form for subtechniques - "all", "expanded" (decided by layer), or "none" | string | "expanded" | 
+| font | What font style to use - "serif", "sans-serif", or "monospace" | string | "sans-serif" |
+| tableBorderColor | Hex color to use for the technique borders | string | "#6B7279" | 
+| showHeader | Whether or not to show Header Blocks | bool | True |
+| legendDocked | Whether or not the legend should be docked | bool | True |
+| legendX | Where to place the legend on the x axis if not docked | number | 0 |
+| legendY | Where to place the legend on the y axis if not docked | number | 1 |
+| legendWidth | Width of the legend if not docked | number | 2 |
+| legendHeight | Height of the legend if not docked | number | 1 |
+| showLegend | Whether or not to show the legend | bool | True |
+| showFilters | Whether or not to show the Filter Header Block | bool | True |
+| showAbout | Whether or not to show the About Header Block | bool | True |
+| border | What default border width to use | number | 0.104 | 
 
 ##### .to_svg() Method
 ```python
