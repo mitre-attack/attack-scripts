@@ -12,19 +12,23 @@ def get_data_from_version(domain, version):
     return MemoryStore(stix_data=stix_json["objects"])
 
 
-def build_dataframes(src, include_deprecated=False):
+def build_dataframes(src, domain):
     """build pandas dataframes for each attack type, and return a dictionary lookup for each type to the relevant dataframe"""
     # get each ATT&CK type
     return {
-        "techniques": stixToDf.techniquesToDf(src, include_deprecated=False),
-        "tactics": stixToDf.tacticsToDf(src, include_deprecated=False),
-        "solationships": stixToDf.relationshipsToDf(src, include_deprecated=False)
+        "techniques": stixToDf.techniquesToDf(src, domain),
+        # "tactics": stixToDf.tacticsToDf(src, domain),
+        # "software": stixToDf.softwareToDf(src, domain),
+        # "groups": stixToDf.groupsToDf(src, domain),
+        # "mitigations": stixToDf.mitigationsToDf(src, domain),
+        # "matrices": stixToDf.matricesToDf(src, domain),
+        # "relationships": stixToDf.relationshipsToDf(src, domain)
     }
 
-def main(domain, version, include_deprecated=False):
+def main(domain, version):
     """create excel files for the ATT&CK dataset of the specified domain and version"""
     # build dataframes
-    dataframes = build_dataframes(get_data_from_version(domain, version), include_deprecated)
+    dataframes = build_dataframes(get_data_from_version(domain, version), domain)
     # set up output directory
     domainVersionString = f"{domain}-{version}"
     if not os.path.exists(domainVersionString):
@@ -36,10 +40,10 @@ def main(domain, version, include_deprecated=False):
         # write the dataframes for the object type into named sheets
         obj_writer = pd.ExcelWriter(os.path.join(domainVersionString, f"{domainVersionString}-{objType}.xlsx"))
         for dfname in dataframes[objType]: 
-            dataframes[objType][dfname].to_excel(obj_writer, sheet_name=dfname) 
+            dataframes[objType][dfname].to_excel(obj_writer, sheet_name=dfname, index=False) 
         obj_writer.save()
          # add main df to master dataset
-        dataframes[objType][objType].to_excel(master_writer, sheet_name=objType)
+        dataframes[objType][objType].to_excel(master_writer, sheet_name=objType, index=False)
     master_writer.save()
 
 if __name__ == '__main__':
@@ -57,11 +61,6 @@ if __name__ == '__main__':
         default="v7.2",
         help=f"which version of ATT&CK to convert"
     )
-    parser.add_argument("--include-deprecated",
-        action="store_true",
-        dest="include_deprecated",
-        help=f"show deprecated and revoked objects"
-    )
     args = parser.parse_args()
     
-    main(args.domain, args.version, args.include_deprecated)
+    main(args.domain, args.version)
