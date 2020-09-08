@@ -2,6 +2,7 @@ import pandas as pd
 from stix2 import Filter
 from itertools import chain
 from tqdm import tqdm
+import datetime
 
 def remove_revoked_deprecated(stix_objects):
     """Remove any revoked or deprecated objects from queries made to the data source"""
@@ -40,7 +41,7 @@ def parseBaseStix(sdo):
     """given an SDO, return a row of fields that are common across the STIX types"""
     row = {}
     if "external_references" in sdo and sdo["external_references"][0]["source_name"] in ["mitre-attack", "mitre-mobile-attack"]:
-        row["ATT&CK ID"] = sdo["external_references"][0]["external_id"]
+        row["ID"] = sdo["external_references"][0]["external_id"]
         row["url"] = sdo["external_references"][0]["url"]
     if "name" in sdo:
         row["name"] = sdo["name"]
@@ -106,10 +107,14 @@ def techniquesToDf(src, domain):
                 row["MTC ID"] = mtc_refs[0]["external_id"]
         
         technique_rows.append(row)
-    return {
+
+    citations = get_citations(techniques)
+    dataframes =  {
         "techniques": pd.DataFrame(technique_rows).sort_values("name"),
-        "citations": get_citations(techniques).sort_values("reference")
     }
+    if not citations.empty: dataframes["citations"] = citations.sort_values("reference")
+
+    return dataframes
 
 def tacticsToDf(src, domain):
     """convert the stix tactics to pandas dataframes. 
@@ -117,7 +122,17 @@ def tacticsToDf(src, domain):
     tactics = src.query([Filter("type", "=", "x-mitre-tactic")])
     tactics = remove_revoked_deprecated(tactics)
 
-    return {}
+    tactic_rows = []
+    for tactic in tqdm(tactics, desc="parsing mitigations"):
+        tactic_rows.append(parseBaseStix(tactic))
+
+    citations = get_citations(tactics)
+    dataframes =  {
+        "tactics": pd.DataFrame(tactic_rows).sort_values("name"),
+    }
+    if not citations.empty: dataframes["citations"] = citations.sort_values("reference")
+
+    return dataframes
 
 def softwareToDf(src, domain):
     """convert the stix software to pandas dataframes. 
@@ -139,11 +154,13 @@ def softwareToDf(src, domain):
         
         software_rows.append(row)
 
-    return {
+    citations = get_citations(software)
+    dataframes =  {
         "software": pd.DataFrame(software_rows).sort_values("name"),
-        "citations": get_citations(software).sort_values("reference")
     }
-    return {}
+    if not citations.empty: dataframes["citations"] = citations.sort_values("reference")
+
+    return dataframes
 
 def groupsToDf(src, domain):
     """convert the stix groups to pandas dataframes. 
@@ -153,19 +170,31 @@ def groupsToDf(src, domain):
     group_rows = []
     for group in tqdm(groups, desc="parsing groups"):
         group_rows.append(parseBaseStix(group))
-
-    return {
+    
+    citations = get_citations(groups)
+    dataframes = {
         "groups": pd.DataFrame(group_rows).sort_values("name"),
-        "citations": get_citations(groups).sort_values("reference")
     }
+    if not citations.empty: dataframes["citations"] = citations.sort_values("reference")
+
+    return dataframes
 
 def mitigationsToDf(src, domain):
     """convert the stix mitigations to pandas dataframes. 
     Return a lookup of labels (descriptors) to dataframes"""
     mitigations = src.query([Filter("type", "=", "course-of-action")])
     mitigations = remove_revoked_deprecated(mitigations)
-
-    return {}
+    mitigation_rows = []
+    for mitigation in tqdm(mitigations, desc="parsing mitigations"):
+        mitigation_rows.append(parseBaseStix(mitigation))
+    
+    citations = get_citations(mitigations)
+    dataframes = {
+        "mitigations": pd.DataFrame(mitigation_rows).sort_values("name"),
+    }
+    if not citations.empty: dataframes["citations"] = get_citations(mitigations).sort_values("reference")
+    
+    return dataframes
 
 def matricesToDf(src, domain):
     """convert the stix matrices to pandas dataframes. 

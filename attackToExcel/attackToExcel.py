@@ -17,10 +17,10 @@ def build_dataframes(src, domain):
     # get each ATT&CK type
     return {
         "techniques": stixToDf.techniquesToDf(src, domain),
-        # "tactics": stixToDf.tacticsToDf(src, domain),
+        "tactics": stixToDf.tacticsToDf(src, domain),
         "software": stixToDf.softwareToDf(src, domain),
         "groups": stixToDf.groupsToDf(src, domain),
-        # "mitigations": stixToDf.mitigationsToDf(src, domain),
+        "mitigations": stixToDf.mitigationsToDf(src, domain),
         # "matrices": stixToDf.matricesToDf(src, domain),
         # "relationships": stixToDf.relationshipsToDf(src, domain)
     }
@@ -45,7 +45,8 @@ def main(domain, version):
         obj_writer.save()
 
         # add citations to master citations list
-        citations = citations.append(dataframes[objType]["citations"])
+        if "citations" in dataframes[objType]:
+            citations = citations.append(dataframes[objType]["citations"])
 
          # add main df to master dataset
         dataframes[objType][objType].to_excel(master_writer, sheet_name=objType, index=False)
