@@ -43,16 +43,17 @@ def get_citations(objects):
     """given a list of STIX objects, return a pandas dataframe for the citations on the objects"""
     citations = []
     for sdo in objects:
-        for ref in sdo["external_references"]:
-            if "external_id" not in ref and "description" in ref and not ref["description"].startswith("(Citation: "):
-                citation = {
-                    "reference": ref["source_name"],
-                    "citation": ref["description"]
-                }
-                if "url" in ref:
-                    citation["url"] = ref["url"]
+        if "external_references" in sdo:
+            for ref in sdo["external_references"]:
+                if "external_id" not in ref and "description" in ref and not ref["description"].startswith("(Citation: "):
+                    citation = {
+                        "reference": ref["source_name"],
+                        "citation": ref["description"]
+                    }
+                    if "url" in ref:
+                        citation["url"] = ref["url"]
 
-                citations.append(citation)
+                    citations.append(citation)
     return pd.DataFrame(citations).drop_duplicates(subset="reference", ignore_index=True)
 
 def parseBaseStix(sdo):
@@ -136,9 +137,16 @@ def techniquesToDf(src, domain):
     dataframes =  {
         "techniques": pd.DataFrame(technique_rows).sort_values("name"),
     }
-    if not citations.empty: dataframes["citations"] = citations.sort_values("reference")
     # add relationships
     dataframes.update(relationshipsToDf(src, relatedType="technique"))
+    # add/merge citations
+    if not citations.empty: 
+        if "citations" in dataframes: # append to existing citations from references
+            dataframes["citations"].append(citations)
+        else: # add citations
+            dataframes["citations"] = citations
+        
+        dataframes["citations"].sort_values("reference")
 
     return dataframes
 
@@ -184,9 +192,16 @@ def softwareToDf(src, domain):
     dataframes =  {
         "software": pd.DataFrame(software_rows).sort_values("name"),
     }
-    if not citations.empty: dataframes["citations"] = citations.sort_values("reference")
     # add relationships
     dataframes.update(relationshipsToDf(src, relatedType="software"))
+    # add/merge citations
+    if not citations.empty: 
+        if "citations" in dataframes: # append to existing citations from references
+            dataframes["citations"].append(citations)
+        else: # add citations
+            dataframes["citations"] = citations
+        
+        dataframes["citations"].sort_values("reference")
 
     return dataframes
 
@@ -203,10 +218,17 @@ def groupsToDf(src, domain):
     dataframes = {
         "groups": pd.DataFrame(group_rows).sort_values("name"),
     }
-    if not citations.empty: dataframes["citations"] = citations.sort_values("reference")
     # add relationships
     dataframes.update(relationshipsToDf(src, relatedType="group"))
-
+    # add/merge citations
+    if not citations.empty: 
+        if "citations" in dataframes: # append to existing citations from references
+            dataframes["citations"].append(citations)
+        else: # add citations
+            dataframes["citations"] = citations
+        
+        dataframes["citations"].sort_values("reference")
+        
     return dataframes
 
 def mitigationsToDf(src, domain):
@@ -222,10 +244,17 @@ def mitigationsToDf(src, domain):
     dataframes = {
         "mitigations": pd.DataFrame(mitigation_rows).sort_values("name"),
     }
-    if not citations.empty: dataframes["citations"] = get_citations(mitigations).sort_values("reference")
     # add relationships
     dataframes.update(relationshipsToDf(src, relatedType="mitigation"))
-
+    # add/merge citations
+    if not citations.empty: 
+        if "citations" in dataframes: # append to existing citations from references
+            dataframes["citations"].append(citations)
+        else: # add citations
+            dataframes["citations"] = citations
+        
+        dataframes["citations"].sort_values("reference")
+        
     return dataframes
 
 def matricesToDf(src, domain):
@@ -245,7 +274,8 @@ def relationshipsToDf(src, relatedType=None):
     relationships = src.query([Filter("type", "=", "relationship")])
     relationships = remove_revoked_deprecated(relationships)
     relationship_rows = []
-    iterdesc = "parsing relationships" if not relatedType else f"parsing relationships for type={relatedType}"
+    used_relationships = []
+    iterdesc = "parsing all relationships" if not relatedType else f"parsing relationships for type={relatedType}"
     for relationship in tqdm(relationships, desc=iterdesc):
         source = src.get(relationship["source_ref"])
         target = src.get(relationship["target_ref"])
@@ -286,14 +316,20 @@ def relationshipsToDf(src, relatedType=None):
         add_side("target", target)
         if "description" in relationship:
             row["mapping description"] = relationship["description"]
-
+        
+        used_relationships.append(relationship) # track relationships that were not filtered
         relationship_rows.append(row)
     
+    citations = get_citations(relationships)
     relationships = pd.DataFrame(relationship_rows).sort_values(["mapping type", "source type", "target type", "source name", "target name"])
     if not relatedType:
-        return {
-            "relationships": relationships
+        dataframes = {
+            "relationships": relationships,
         }
+        if not citations.empty:
+            dataframes["citations"] = citations.sort_values("reference")
+        
+        return dataframes
     else: # break into dataframes by mapping type
         dataframes = {}
 
@@ -311,5 +347,8 @@ def relationshipsToDf(src, relatedType=None):
         relatedMitigations = relationships.query("`mapping type` == 'mitigates'")
         if not relatedMitigations.empty:
             dataframes['associated mitigations' if relatedType == 'technique' else 'techniques addressed'] = relatedMitigations
+        
+        if not citations.empty:
+            dataframes["citations"] = citations.sort_values("reference")
 
         return dataframes
