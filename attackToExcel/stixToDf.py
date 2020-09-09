@@ -3,6 +3,7 @@ from stix2 import Filter
 from itertools import chain
 from tqdm import tqdm
 import datetime
+import re
 
 attackToStixTerm = {
     "technique": ["attack-pattern"],
@@ -322,7 +323,8 @@ def relationshipsToDf(src, relatedType=None):
     
     citations = get_citations(relationships)
     relationships = pd.DataFrame(relationship_rows).sort_values(["mapping type", "source type", "target type", "source name", "target name"])
-    if not relatedType:
+    
+    if not relatedType: # return all relationships and citrations
         dataframes = {
             "relationships": relationships,
         }
@@ -349,6 +351,19 @@ def relationshipsToDf(src, relatedType=None):
             dataframes['associated mitigations' if relatedType == 'technique' else 'techniques addressed'] = relatedMitigations
         
         if not citations.empty:
+            # fitler citations by ones actually used
+            # build master list of used citations
+            usedCitations = set()
+            for dfname in dataframes:
+                df = dataframes[dfname]
+                for description in filter(lambda x: x == x, df["mapping description"].tolist()): # filter out missing descriptions which for whatever reason in pandas don't equal themselves
+                    [usedCitations.add(x) for x in re.findall("\(Citation: (.*?)\)", description)]
+
+            # drop citations that do not occur in any relationship dataframes
+            # print("before dropping unused citations", citations.shape[0])
+            citations = citations[citations.reference.isin(list(usedCitations))] # filter to only used references
+            # print("after dropping unused citations", citations.shape[0])
+
             dataframes["citations"] = citations.sort_values("reference")
 
         return dataframes
