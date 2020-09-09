@@ -137,6 +137,8 @@ def techniquesToDf(src, domain):
         "techniques": pd.DataFrame(technique_rows).sort_values("name"),
     }
     if not citations.empty: dataframes["citations"] = citations.sort_values("reference")
+    # add relationships
+    dataframes.update(relationshipsToDf(src, relatedType="technique"))
 
     return dataframes
 
@@ -183,6 +185,8 @@ def softwareToDf(src, domain):
         "software": pd.DataFrame(software_rows).sort_values("name"),
     }
     if not citations.empty: dataframes["citations"] = citations.sort_values("reference")
+    # add relationships
+    dataframes.update(relationshipsToDf(src, relatedType="software"))
 
     return dataframes
 
@@ -200,6 +204,8 @@ def groupsToDf(src, domain):
         "groups": pd.DataFrame(group_rows).sort_values("name"),
     }
     if not citations.empty: dataframes["citations"] = citations.sort_values("reference")
+    # add relationships
+    dataframes.update(relationshipsToDf(src, relatedType="group"))
 
     return dataframes
 
@@ -217,7 +223,9 @@ def mitigationsToDf(src, domain):
         "mitigations": pd.DataFrame(mitigation_rows).sort_values("name"),
     }
     if not citations.empty: dataframes["citations"] = get_citations(mitigations).sort_values("reference")
-    
+    # add relationships
+    dataframes.update(relationshipsToDf(src, relatedType="mitigation"))
+
     return dataframes
 
 def matricesToDf(src, domain):
@@ -237,7 +245,8 @@ def relationshipsToDf(src, relatedType=None):
     relationships = src.query([Filter("type", "=", "relationship")])
     relationships = remove_revoked_deprecated(relationships)
     relationship_rows = []
-    for relationship in tqdm(relationships, desc="parsing relationships"):
+    iterdesc = "parsing relationships" if not relatedType else f"parsing relationships for type={relatedType}"
+    for relationship in tqdm(relationships, desc=iterdesc):
         source = src.get(relationship["source_ref"])
         target = src.get(relationship["target_ref"])
         
@@ -254,9 +263,13 @@ def relationshipsToDf(src, relatedType=None):
             continue
 
         # filter out relationships not with relatedType
-        if relatedType and not (source["type"] == relatedType or target["type"] == relatedType): 
-            print("skipping unrelated type")
-            continue
+        if relatedType:
+            related = False
+            for stixTerm in attackToStixTerm[relatedType]: # try all stix types for the ATT&CK type
+               if source["type"] == stixTerm or target["type"] == stixTerm: # if any stix type is part of the relationship
+                   related = True
+                   break;
+            if not related: continue # skip this relationship if the types don't match
 
         # add mapping data
         row = {}
@@ -275,8 +288,28 @@ def relationshipsToDf(src, relatedType=None):
             row["mapping description"] = relationship["description"]
 
         relationship_rows.append(row)
+    
+    relationships = pd.DataFrame(relationship_rows).sort_values(["mapping type", "source type", "target type", "source name", "target name"])
+    if not relatedType:
+        return {
+            "relationships": relationships
+        }
+    else: # break into dataframes by mapping type
+        dataframes = {}
 
-    return {
-        "relationships": pd.DataFrame(relationship_rows).sort_values(["mapping type", "source type", "target type", "source name", "target name"])
-    }
+        # group:software / "associated {other type}"
+        relatedGroupSoftware = relationships.query("`mapping type` == 'uses' and (`source type` == 'group' or `source type` == 'software') and (`target type` == 'group' or `target type` == 'software')")
+        if not relatedGroupSoftware.empty:
+            dataframes[f"associated {'software' if relatedType == 'group' else 'groups'}"] = relatedGroupSoftware
 
+        # technique:group + technique:software / "procedure examples"
+        procedureExamples = relationships.query("`mapping type` == 'uses' and `target type` == 'technique'")
+        if not procedureExamples.empty:
+            dataframes["procedure examples"] = procedureExamples
+
+        # technique:mitigation / "mitigation mappings"
+        relatedMitigations = relationships.query("`mapping type` == 'mitigates'")
+        if not relatedMitigations.empty:
+            dataframes['associated mitigations' if relatedType == 'technique' else 'techniques addressed'] = relatedMitigations
+
+        return dataframes
