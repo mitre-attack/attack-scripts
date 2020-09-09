@@ -4,6 +4,24 @@ from itertools import chain
 from tqdm import tqdm
 import datetime
 
+attackToStixTerm = {
+    "technique": ["attack-pattern"],
+    "tactic": ["x-mitre-tactic"],
+    "software": ["tool", "malware"],
+    "group": ["intrusion-set"],
+    "mitigation": ["course-of-action"],
+    "matrix": ["x-mitre-matrix"],
+}
+stixToAttackTerm = {
+    "attack-pattern": "technique",
+    "x-mitre-tactic": "tactic",
+    "tool": "software",
+    "malware": "software",
+    "intrusion-set": "group",
+    "course-of-action": "mitigation",
+    "x-mitre-matrix": "matrix"
+}
+
 def remove_revoked_deprecated(stix_objects):
     """Remove any revoked or deprecated objects from queries made to the data source"""
     # Note we use .get() because the property may not be present in the JSON data. The default is False
@@ -54,7 +72,7 @@ def parseBaseStix(sdo):
     if "x_mitre_version" in sdo:
         row["version"] = sdo["x_mitre_version"]
     if "x_mitre_contributors" in sdo:
-        row["contributors"] = "; ".join(sdo["x_mitre_contributors"])
+        row["contributors"] = "; ".join(sorted(sdo["x_mitre_contributors"]))
     return row
 
 def techniquesToDf(src, domain):
@@ -77,24 +95,30 @@ def techniquesToDf(src, domain):
 
         # base STIX properties
         row = parseBaseStix(technique)
-        if subtechnique: row["name"] = f"{parent['name']}: {technique['name']}"
-        tactics = list(map(lambda kcp: kcp["phase_name"], technique["kill_chain_phases"]))
-        row["tactics"] = ", ".join(tactics),
+        
+        # sub-technique properties
+
+        tactics = list(map(lambda kcp: kcp["phase_name"].replace("-", " ").title(), technique["kill_chain_phases"]))
+        row["tactics"] = ", ".join(sorted(tactics))
 
         if "x_mitre_detection" in technique:
             row["detection"] = technique["x_mitre_detection"]
         if "x_mitre_platforms" in technique:
-            row["platforms"] = ", ".join(technique["x_mitre_platforms"])
+            row["platforms"] = ", ".join(sorted(technique["x_mitre_platforms"]))
 
         # domain specific fields -- enterprise
         if domain == "enterprise-attack":
             row["is sub-technique"] = subtechnique
+            if subtechnique: 
+                row["name"] = f"{parent['name']}: {technique['name']}"
+                row["sub-technique of"] = parent["external_references"][0]["external_id"]
+
             if "x_mitre_data_sources" in technique:
-                row["data sources"] = ", ".join(technique["x_mitre_data_sources"])
+                row["data sources"] = ", ".join(sorted(technique["x_mitre_data_sources"]))
             if "privilege-escalation" in tactics and "x_mitre_permissions_required" in technique:
-                row["permissions required"] = ", ".join(technique["x_mitre_permissions_required"])
+                row["permissions required"] = ", ".join(sorted(technique["x_mitre_permissions_required"]))
             if "defense-evasion" in tactics and "x_mitre_defense_bypassed" in technique:
-                row["defenses bypassed"] = ", ".join(technique["x_mitre_defense_bypassed"])
+                row["defenses bypassed"] = ", ".join(sorted(technique["x_mitre_defense_bypassed"]))
             if "execution" in tactics and "x_mitre_remote_support" in technique:
                 row["supports remote"] = technique["x_mitre_remote_support"]
                 
@@ -147,9 +171,9 @@ def softwareToDf(src, domain):
         row = parseBaseStix(soft)
         # add software-specific fields
         if "x_mitre_platforms" in soft:
-            row["platforms"] = ", ".join(soft["x_mitre_platforms"])
+            row["platforms"] = ", ".join(sorted(soft["x_mitre_platforms"]))
         if "x_mitre_aliases" in soft:
-            row["aliases"] = ", ".join(soft["x_mitre_aliases"])
+            row["aliases"] = ", ".join(sorted(soft["x_mitre_aliases"]))
         row["type"] = soft["type"] # malware or tool
         
         software_rows.append(row)
@@ -204,11 +228,55 @@ def matricesToDf(src, domain):
 
     return {}
 
-def relationshipsToDf(src, domain):
+def relationshipsToDf(src, relatedType=None):
     """convert the stix relationships to pandas dataframes. 
+    args: 
+        src: the ATT&CK dataset
+        relatedType: (optional) string, singular attack type to only return relationships with, e.g "mitigation"
     Return a lookup of labels (descriptors) to dataframes"""
     relationships = src.query([Filter("type", "=", "relationship")])
     relationships = remove_revoked_deprecated(relationships)
+    relationship_rows = []
+    for relationship in tqdm(relationships, desc="parsing relationships"):
+        source = src.get(relationship["source_ref"])
+        target = src.get(relationship["target_ref"])
+        
+        # filter if related objects don't exist or are revoked or deprecated
+        if not source or source.get("x_mitre_deprecated", False) is True or source.get("revoked", False) is True: 
+            continue
+        if not target or target.get("x_mitre_deprecated", False) is True or target.get("revoked", False) is True: 
+            continue
+        if relationship["relationship_type"] == "revoked": 
+            continue
+        
+        # don't track sub-technique relationships, those are tracked in the techniques df
+        if relationship["relationship_type"] == "subtechnique-of": 
+            continue
 
-    return {}
+        # filter out relationships not with relatedType
+        if relatedType and not (source["type"] == relatedType or target["type"] == relatedType): 
+            print("skipping unrelated type")
+            continue
+
+        # add mapping data
+        row = {}
+        def add_side(label, sdo):
+            """add data for one side of the mapping"""
+            if "external_references" in sdo and sdo["external_references"][0]["source_name"] in ["mitre-attack", "mitre-mobile-attack"]:
+                row[f"{label} ID"] = sdo["external_references"][0]["external_id"] # "source ID" or "target ID"
+            if "name" in sdo:
+                row[f"{label} name"] = sdo["name"] # "source name" or "target name"
+            row[f"{label} type"] = stixToAttackTerm[sdo["type"]] # "source type" or "target type"
+        
+        add_side("source", source)
+        row["mapping type"] = relationship["relationship_type"]
+        add_side("target", target)
+        if "description" in relationship:
+            row["mapping description"] = relationship["description"]
+
+        relationship_rows.append(row)
+
+    return {
+        "relationships": pd.DataFrame(relationship_rows).sort_values(["mapping type", "source type", "target type", "source name", "target name"])
+    }
 

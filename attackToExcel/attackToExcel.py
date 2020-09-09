@@ -22,7 +22,7 @@ def build_dataframes(src, domain):
         "groups": stixToDf.groupsToDf(src, domain),
         "mitigations": stixToDf.mitigationsToDf(src, domain),
         # "matrices": stixToDf.matricesToDf(src, domain),
-        # "relationships": stixToDf.relationshipsToDf(src, domain)
+        "relationships": stixToDf.relationshipsToDf(src)
     }
 
 def main(domain, version):
