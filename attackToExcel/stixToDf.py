@@ -55,6 +55,7 @@ def get_citations(objects):
                         citation["url"] = ref["url"]
 
                     citations.append(citation)
+
     return pd.DataFrame(citations).drop_duplicates(subset="reference", ignore_index=True)
 
 def parseBaseStix(sdo):
@@ -143,7 +144,7 @@ def techniquesToDf(src, domain):
     # add/merge citations
     if not citations.empty: 
         if "citations" in dataframes: # append to existing citations from references
-            dataframes["citations"].append(citations)
+            dataframes["citations"] = dataframes["citations"].append(citations)
         else: # add citations
             dataframes["citations"] = citations
         
@@ -198,7 +199,7 @@ def softwareToDf(src, domain):
     # add/merge citations
     if not citations.empty: 
         if "citations" in dataframes: # append to existing citations from references
-            dataframes["citations"].append(citations)
+            dataframes["citations"] = dataframes["citations"].append(citations)
         else: # add citations
             dataframes["citations"] = citations
         
@@ -213,7 +214,23 @@ def groupsToDf(src, domain):
     groups = remove_revoked_deprecated(groups)
     group_rows = []
     for group in tqdm(groups, desc="parsing groups"):
-        group_rows.append(parseBaseStix(group))
+        row = parseBaseStix(group)
+        # add group aliases
+        if "aliases" in group:
+            associated_groups = []
+            associated_group_citations = []
+            for alias in sorted(group["aliases"][1:]):
+                # find the reference for the alias
+                associated_groups.append(alias)
+                for ref in group["external_references"]:
+                    if ref["source_name"] == alias:
+                        associated_group_citations.append(ref["description"])
+                        break;
+                # aliases.append(alias)
+            row["associated groups"] = ", ".join(associated_groups)
+            row["associated groups citations"] = ", ".join(associated_group_citations)
+
+        group_rows.append(row)
     
     citations = get_citations(groups)
     dataframes = {
@@ -224,8 +241,9 @@ def groupsToDf(src, domain):
     # add/merge citations
     if not citations.empty: 
         if "citations" in dataframes: # append to existing citations from references
-            dataframes["citations"].append(citations)
+            dataframes["citations"] = dataframes["citations"].append(citations)
         else: # add citations
+            print("setting citations")
             dataframes["citations"] = citations
         
         dataframes["citations"].sort_values("reference")
@@ -250,7 +268,7 @@ def mitigationsToDf(src, domain):
     # add/merge citations
     if not citations.empty: 
         if "citations" in dataframes: # append to existing citations from references
-            dataframes["citations"].append(citations)
+            dataframes["citations"] = dataframes["citations"].append(citations)
         else: # add citations
             dataframes["citations"] = citations
         
@@ -359,7 +377,7 @@ def relationshipsToDf(src, relatedType=None):
                 for description in filter(lambda x: x == x, df["mapping description"].tolist()): # filter out missing descriptions which for whatever reason in pandas don't equal themselves
                     [usedCitations.add(x) for x in re.findall("\(Citation: (.*?)\)", description)]
 
-            # drop citations that do not occur in any relationship dataframes
+
             # print("before dropping unused citations", citations.shape[0])
             citations = citations[citations.reference.isin(list(usedCitations))] # filter to only used references
             # print("after dropping unused citations", citations.shape[0])
