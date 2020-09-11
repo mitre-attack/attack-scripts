@@ -286,6 +286,7 @@ def matricesToDf(src, domain):
         description is the description of the matrix
         merge is a list of ranges that need to be merged for formatting of the sub-techniques in the matrix
         border is a series of ranges which needs borders for formatting of sub-techniquesin the matrix"""
+    print("building matrices... ", end="", flush=True)
     matrices = src.query([Filter("type", "=", "x-mitre-matrix")])
     matrices = remove_revoked_deprecated(matrices)
     matrices_parsed = []
@@ -314,11 +315,25 @@ def matricesToDf(src, domain):
             techniques = sorted(techniques, key=lambda x: x["name"])
             for technique in techniques:
                 techniques_column.append(technique["name"])
-
+                # append sub-techniques
+                subtechnique_ofs = src.query([
+                    Filter("type", "=", "relationship"),
+                    Filter("relationship_type", "=", "subtechnique-of"),
+                    Filter("target_ref", "=", technique["id"])
+                ])
+                if len(subtechnique_ofs) > 0:
+                    subtechniques = [src.get(rel["source_ref"]) for rel in subtechnique_ofs]
+                    subtechniques = remove_revoked_deprecated(subtechniques)
+                    subtechniques = sorted(subtechniques, key=lambda x: x["name"])
+                    for i in range(len(subtechniques)):
+                        if i != 0: techniques_column.append("") # first sub-technique is parallel to the technique
+                        subtechniques_column.append(subtechniques[i]["name"])
+                else:
+                    subtechniques_column.append("")
             matrix_grid.append(techniques_column)
-            # if len(subtechniques_column) > 0:
-            matrix_grid.append(subtechniques_column)
-            columns.append("")
+            if len(list(filter(lambda x: x != "", subtechniques_column))) > 0:
+                matrix_grid.append(subtechniques_column)
+                columns.append("")
 
         # square the grid so that pandas doesn't complain
         longest_column = 0
@@ -333,23 +348,11 @@ def matricesToDf(src, domain):
         matrix_grid = np.flip(np.rot90(matrix_grid), 0) 
         # create dataframe for array
         df = pd.DataFrame(matrix_grid, columns=columns)
-        print(df)
-
-        # df.insert(tactic_index, tactic["name"], techniques_column)
-        # tactic_index += 1
         
-        # df.insert(tactic_index, "", subtechniques_column, allow_duplicates=True)
-        # tactic_index += 1
-            
-            
-            
-        
-        
-        
-        parsed["matrix"] = df
-        
+        parsed["matrix"] = df        
         matrices_parsed.append(parsed)
 
+    print("done")
     return matrices_parsed
 
 def relationshipsToDf(src, relatedType=None):
