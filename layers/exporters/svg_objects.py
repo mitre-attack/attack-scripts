@@ -74,6 +74,7 @@ def _findSpace(words, width, height, maxFontSize):
     fitTextHeight = min(breakTextHeight, height) * 0.8
 
     longestWordLength = -9999
+    fitTextWidth = 9999
     for w in range(0, len(words)):
         word = words[w]
         longestWordLength = max(longestWordLength, len(word))
@@ -220,7 +221,7 @@ class SVG_HeaderBlock:
             upper = G(tx=0, ty=2.1)
             internal.append(upper)
             if t1text is not None:
-                fs, patch_text = _optimalFontSize(t1text, width, (height-80/2), maxFontSize=28)
+                fs, patch_text = _optimalFontSize(t1text, width, (height-5)/2, maxFontSize=28)
                 lines = len(patch_text)
                 y = (height-5)/4 + 2.1
                 if lines > 1:

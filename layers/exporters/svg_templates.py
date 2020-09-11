@@ -5,12 +5,14 @@ with warnings.catch_warnings():
 
 try:
     from exporters.matrix_gen import MatrixGen
-    from exporters.svg_objects import G, SVG_HeaderBlock, SVG_Technique, Text, convertToPx,_optimalFontSize
+    from exporters.svg_objects import G, SVG_HeaderBlock, SVG_Technique, Text, convertToPx,_optimalFontSize, \
+        _getstringwidth
     from core.gradient import Gradient
     from core.filter import Filter
 except ModuleNotFoundError:
     from ..exporters.matrix_gen import MatrixGen
-    from ..exporters.svg_objects import G, SVG_HeaderBlock, SVG_Technique, Text, convertToPx, _optimalFontSize
+    from ..exporters.svg_objects import G, SVG_HeaderBlock, SVG_Technique, Text, convertToPx, _optimalFontSize, \
+        _getstringwidth
     from ..core.gradient import Gradient
     from ..core.filter import Filter
 
@@ -232,7 +234,6 @@ class SvgTemplates:
         tech_height = (convertToPx(config.height, config.unit) - header_offset -
                        convertToPx(config.border, config.unit)) / max(lengths)
         incre = tech_width + 10
-        set = 0
         for x in self.codex:
             disp = ''
             if showName and showID:
@@ -243,12 +244,11 @@ class SvgTemplates:
                 disp = x.tactic.id
 
             g = G(tx=index, ty=header_offset)
-            gt = G(tx=(tech_width / 2) + 2)
+
             index += incre
             fs, _ = _optimalFontSize(disp, tech_width, tech_height+10, maxFontSize=28)
-            if set == 0:
-                set = fs
-            tx = Text(ctype='TacticName', font_size=set, text=disp, position='middle')
+            tx = Text(ctype='TacticName', font_size=fs, text=disp, position='middle')
+            gt = G(tx=(tech_width)/2)
             gt.append(tx)
             a = self.get_tactic(x, tech_height, tech_width, colors=colors, subtechs=subtechs, exclude=exclude,
                                 mode=(showName, showID), scores=scores, config=config)
