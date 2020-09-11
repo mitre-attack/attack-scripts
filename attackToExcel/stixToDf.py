@@ -4,6 +4,7 @@ from itertools import chain
 from tqdm import tqdm
 import datetime
 import re
+import numpy as np
 
 attackToStixTerm = {
     "technique": ["attack-pattern"],
@@ -279,10 +280,12 @@ def mitigationsToDf(src, domain):
 
 def matricesToDf(src, domain):
     """convert the stix matrices to pandas dataframes. 
-    returns [{ matrix, name, description }, ... ] where 
+    returns [{ matrix, name, description, merge, border }, ... ] where 
         matrix is a pandas dataframe of the matrix
         name is the name of the matrix
-        description is the description of the matrix"""
+        description is the description of the matrix
+        merge is a list of ranges that need to be merged for formatting of the sub-techniques in the matrix
+        border is a series of ranges which needs borders for formatting of sub-techniquesin the matrix"""
     matrices = src.query([Filter("type", "=", "x-mitre-matrix")])
     matrices = remove_revoked_deprecated(matrices)
     matrices_parsed = []
@@ -291,14 +294,59 @@ def matricesToDf(src, domain):
             "name": matrix["name"],
             "description": matrix["description"]
         }
-        header = {}
-        shortnames_ordered = []
+        
+        matrix_grid = []
+
+        tactic_index = 0
+        columns = []
         for tactic_ref in matrix["tactic_refs"]:
             tactic = src.get(tactic_ref)
-            header[tactic["name"]] = []
-            shortnames_ordered.append(tactic["x_mitre_shortname"])
+            columns.append(tactic["name"])
+
+            # parse techniques and sub-techniques
+            techniques_column = []
+            subtechniques_column = []
+            techniques = list(filter(lambda t: not ("x_mitre_is_subtechnique" in t and  t["x_mitre_is_subtechnique"]), src.query([
+                Filter("type", "=", "attack-pattern"),
+                Filter("kill_chain_phases.phase_name", "=", tactic["x_mitre_shortname"]),
+            ])))
+            techniques = remove_revoked_deprecated(techniques)
+            techniques = sorted(techniques, key=lambda x: x["name"])
+            for technique in techniques:
+                techniques_column.append(technique["name"])
+
+            matrix_grid.append(techniques_column)
+            # if len(subtechniques_column) > 0:
+            matrix_grid.append(subtechniques_column)
+            columns.append("")
+
+        # square the grid so that pandas doesn't complain
+        longest_column = 0
+        for column in matrix_grid:
+            longest_column = max(len(column), longest_column)
+        for column in matrix_grid:
+            for i in range((longest_column - len(column))):
+                column.append("")
+        # matrix is now squared
         
-        parsed["matrix"] = pd.DataFrame(header)
+        # reshape array so that pandas consumes it properly
+        matrix_grid = np.flip(np.rot90(matrix_grid), 0) 
+        # create dataframe for array
+        df = pd.DataFrame(matrix_grid, columns=columns)
+        print(df)
+
+        # df.insert(tactic_index, tactic["name"], techniques_column)
+        # tactic_index += 1
+        
+        # df.insert(tactic_index, "", subtechniques_column, allow_duplicates=True)
+        # tactic_index += 1
+            
+            
+            
+        
+        
+        
+        parsed["matrix"] = df
         
         matrices_parsed.append(parsed)
 
