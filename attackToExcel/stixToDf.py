@@ -279,11 +279,30 @@ def mitigationsToDf(src, domain):
 
 def matricesToDf(src, domain):
     """convert the stix matrices to pandas dataframes. 
-    Return a lookup of labels (descriptors) to dataframes"""
+    returns [{ matrix, name, description }, ... ] where 
+        matrix is a pandas dataframe of the matrix
+        name is the name of the matrix
+        description is the description of the matrix"""
     matrices = src.query([Filter("type", "=", "x-mitre-matrix")])
     matrices = remove_revoked_deprecated(matrices)
+    matrices_parsed = []
+    for matrix in matrices:
+        parsed = {
+            "name": matrix["name"],
+            "description": matrix["description"]
+        }
+        header = {}
+        shortnames_ordered = []
+        for tactic_ref in matrix["tactic_refs"]:
+            tactic = src.get(tactic_ref)
+            header[tactic["name"]] = []
+            shortnames_ordered.append(tactic["x_mitre_shortname"])
+        
+        parsed["matrix"] = pd.DataFrame(header)
+        
+        matrices_parsed.append(parsed)
 
-    return {}
+    return matrices_parsed
 
 def relationshipsToDf(src, relatedType=None):
     """convert the stix relationships to pandas dataframes. 

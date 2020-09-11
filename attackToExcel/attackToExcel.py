@@ -21,7 +21,7 @@ def build_dataframes(src, domain):
         "software": stixToDf.softwareToDf(src, domain),
         "groups": stixToDf.groupsToDf(src, domain),
         "mitigations": stixToDf.mitigationsToDf(src, domain),
-        # "matrices": stixToDf.matricesToDf(src, domain),
+        "matrices": stixToDf.matricesToDf(src, domain),
         "relationships": stixToDf.relationshipsToDf(src)
     }
 
@@ -38,18 +38,28 @@ def main(domain, version):
     citations = pd.DataFrame() # master list of citations
     # write individual dataframes and add to master writer
     for objType in dataframes:
-        # write the dataframes for the object type into named sheets
-        obj_writer = pd.ExcelWriter(os.path.join(domainVersionString, f"{domainVersionString}-{objType}.xlsx"))
-        for dfname in dataframes[objType]: 
-            dataframes[objType][dfname].to_excel(obj_writer, sheet_name=dfname, index=False) 
-        obj_writer.save()
+        if objType != "matrices":
+            # write the dataframes for the object type into named sheets
+            obj_writer = pd.ExcelWriter(os.path.join(domainVersionString, f"{domainVersionString}-{objType}.xlsx"))
+            for dfname in dataframes[objType]: 
+                dataframes[objType][dfname].to_excel(obj_writer, sheet_name=dfname, index=False) 
+            obj_writer.save()
 
-        # add citations to master citations list
-        if "citations" in dataframes[objType]:
-            citations = citations.append(dataframes[objType]["citations"])
+            # add citations to master citations list
+            if "citations" in dataframes[objType]:
+                citations = citations.append(dataframes[objType]["citations"])
 
-         # add main df to master dataset
-        dataframes[objType][objType].to_excel(master_writer, sheet_name=objType, index=False)
+            # add main df to master dataset
+            dataframes[objType][objType].to_excel(master_writer, sheet_name=objType, index=False)
+        else: # handle matrix special formatting
+            # TODO add name and description
+            matrix_writer = pd.ExcelWriter(os.path.join(domainVersionString, f"{domainVersionString}-{objType}.xlsx"))
+            for matrix in dataframes[objType]:
+                sheetname = "matrix" if len(dataframes[objType]) == 1 else matrix["name"] + " matrix"
+                matrix["matrix"].to_excel(master_writer, sheet_name=sheetname, index=False)
+                matrix["matrix"].to_excel(matrix_writer, sheet_name=matrix["name"] + " matrix", index=False)
+            matrix_writer.save()
+
     # remove duplicate citations and add to master file
     citations.drop_duplicates(subset="reference", ignore_index=True).sort_values("reference").to_excel(master_writer, sheet_name="citations", index=False)
     # write the master file
