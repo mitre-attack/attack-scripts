@@ -63,11 +63,13 @@ def parseBaseStix(sdo):
     row = {}
     if "external_references" in sdo and sdo["external_references"][0]["source_name"] in ["mitre-attack", "mitre-mobile-attack"]:
         row["ID"] = sdo["external_references"][0]["external_id"]
-        row["url"] = sdo["external_references"][0]["url"]
+        url = sdo["external_references"][0]["url"]
     if "name" in sdo:
         row["name"] = sdo["name"]
     if "description" in sdo:
         row["description"] = sdo["description"]
+    if url: 
+        row["url"] = url
     if "created" in sdo:
         row["created"] = format_date(sdo["created"])
     if "modified" in sdo:
@@ -185,7 +187,7 @@ def softwareToDf(src, domain):
         if "x_mitre_platforms" in soft:
             row["platforms"] = ", ".join(sorted(soft["x_mitre_platforms"]))
         if "x_mitre_aliases" in soft:
-            row["aliases"] = ", ".join(sorted(soft["x_mitre_aliases"]))
+            row["aliases"] = ", ".join(sorted(soft["x_mitre_aliases"][1:]))
         row["type"] = soft["type"] # malware or tool
         
         software_rows.append(row)
@@ -243,7 +245,6 @@ def groupsToDf(src, domain):
         if "citations" in dataframes: # append to existing citations from references
             dataframes["citations"] = dataframes["citations"].append(citations)
         else: # add citations
-            print("setting citations")
             dataframes["citations"] = citations
         
         dataframes["citations"].sort_values("reference")
@@ -361,7 +362,7 @@ def relationshipsToDf(src, relatedType=None):
         # technique:group + technique:software / "procedure examples"
         procedureExamples = relationships.query("`mapping type` == 'uses' and `target type` == 'technique'")
         if not procedureExamples.empty:
-            dataframes["procedure examples"] = procedureExamples
+            dataframes["procedure examples" if relatedType == "technique" else "techniques used"] = procedureExamples
 
         # technique:mitigation / "mitigation mappings"
         relatedMitigations = relationships.query("`mapping type` == 'mitigates'")
@@ -377,10 +378,7 @@ def relationshipsToDf(src, relatedType=None):
                 for description in filter(lambda x: x == x, df["mapping description"].tolist()): # filter out missing descriptions which for whatever reason in pandas don't equal themselves
                     [usedCitations.add(x) for x in re.findall("\(Citation: (.*?)\)", description)]
 
-
-            # print("before dropping unused citations", citations.shape[0])
             citations = citations[citations.reference.isin(list(usedCitations))] # filter to only used references
-            # print("after dropping unused citations", citations.shape[0])
 
             dataframes["citations"] = citations.sort_values("reference")
 
