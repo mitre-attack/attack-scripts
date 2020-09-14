@@ -278,18 +278,41 @@ def mitigationsToDf(src, domain):
         
     return dataframes
 
+class CellRange:
+    """helper class for handling ranges of cells in a spreadsheet. Note: not 0-indexed. Data is optional argument for data to store in the cellrange in the case of merged ranges"""
+    def __init__(self, leftCol, rightCol, topRow, bottomRow, data=None):
+        self.leftCol = leftCol
+        self.rightCol = rightCol
+        self.topRow = topRow
+        self.bottomRow = bottomRow
+        self.data = data
+
+    def to_excel(self):
+        """return the range in excel format, e.g A4:C7"""
+        return f"{self._loc_to_excel(self.topRow, self.leftCol)}:{self._loc_to_excel(self.bottomRow, self.rightCol)}"
+    
+    def _loc_to_excel(self, row, col):
+        """ Convert given row and column number to an Excel-style cell name. Note: not 0-indexed"""
+        letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        result = []
+        while col:
+            col, rem = divmod(col-1, 26)
+            result[:0] = letters[rem]
+        return ''.join(result) + str(row)
+
 def matricesToDf(src, domain):
     """convert the stix matrices to pandas dataframes. 
     returns [{ matrix, name, description, merge, border }, ... ] where 
         matrix is a pandas dataframe of the matrix
         name is the name of the matrix
         description is the description of the matrix
-        merge is a list of ranges that need to be merged for formatting of the sub-techniques in the matrix
-        border is a series of ranges which needs borders for formatting of sub-techniquesin the matrix"""
+        merge is a list of CellRange objects that need to be merged for formatting of the sub-techniques in the matrix
+        border is a list of CellRange objects that need borders for formatting of sub-techniques in the matrix"""
     print("building matrices... ", end="", flush=True)
     matrices = src.query([Filter("type", "=", "x-mitre-matrix")])
     matrices = remove_revoked_deprecated(matrices)
     matrices_parsed = []
+
     for matrix in matrices:
         parsed = {
             "name": matrix["name"],
@@ -297,6 +320,8 @@ def matricesToDf(src, domain):
         }
         
         matrix_grid = []
+        merge = []
+        border = []
 
         tactic_index = 0
         columns = []
@@ -322,18 +347,24 @@ def matricesToDf(src, domain):
                     Filter("target_ref", "=", technique["id"])
                 ])
                 if len(subtechnique_ofs) > 0:
+                    technique_top = len(techniques_column) + 1
                     subtechniques = [src.get(rel["source_ref"]) for rel in subtechnique_ofs]
                     subtechniques = remove_revoked_deprecated(subtechniques)
                     subtechniques = sorted(subtechniques, key=lambda x: x["name"])
                     for i in range(len(subtechniques)):
                         if i != 0: techniques_column.append("") # first sub-technique is parallel to the technique
                         subtechniques_column.append(subtechniques[i]["name"])
+                    technique_bottom = len(techniques_column) + 1
+                    merge.append(CellRange(len(columns), len(columns), technique_top, technique_bottom, data=technique["name"])) # merge technique portion of cell group
                 else:
                     subtechniques_column.append("")
+            
+            
             matrix_grid.append(techniques_column)
             if len(list(filter(lambda x: x != "", subtechniques_column))) > 0:
                 matrix_grid.append(subtechniques_column)
                 columns.append("")
+                merge.append(CellRange(len(columns) - 1, len(columns), 1, 1, data=tactic["name"])) # merge tactic column headers
 
         # square the grid so that pandas doesn't complain
         longest_column = 0
@@ -349,7 +380,10 @@ def matricesToDf(src, domain):
         # create dataframe for array
         df = pd.DataFrame(matrix_grid, columns=columns)
         
-        parsed["matrix"] = df        
+        parsed["matrix"] = df
+        parsed["merge"] = merge
+        parsed["border"] = border
+
         matrices_parsed.append(parsed)
 
     print("done")
