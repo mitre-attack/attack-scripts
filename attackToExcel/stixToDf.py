@@ -282,7 +282,7 @@ def mitigationsToDf(src, domain):
 
 class CellRange:
     """
-    helper class for handling ranges of cells in a spreadsheet. Note: not 0-indexed. 
+    helper class for handling ranges of cells in a spreadsheet. Note: not 0-indexed, row and cols start at 1. 
     Data is optional argument for data to store in the cellrange in the case of merged ranges
     format is a dict {name, format} for the xlsxwriter style. Formats of the same name will not be defined multiple times to the worksheet; only the first definition will be used
     """
@@ -294,7 +294,7 @@ class CellRange:
         self.data = data
         self.format = format
 
-    def to_excel(self):
+    def to_excel_format(self):
         """return the range in excel format, e.g A4:C7"""
         return f"{self._loc_to_excel(self.topRow, self.leftCol)}:{self._loc_to_excel(self.bottomRow, self.rightCol)}"
     
@@ -326,16 +326,15 @@ def matricesToDf(src, domain):
             "description": matrix["description"]
         }
         
-        matrix_grid = []
-        merge = []
+        matrix_grid = [] # matrix layout in 2d array
+        merge = [] # list of CellRange objects to merge later
 
-        tactic_index = 0
-        columns = []
+        columns = [] # column names
         for tactic_ref in matrix["tactic_refs"]:
             tactic = src.get(tactic_ref)
-            columns.append(tactic["name"])
+            columns.append(tactic["name"]) # add tactic header
 
-            # parse techniques and sub-techniques
+            # parse techniques in tactic
             techniques_column = []
             subtechniques_column = []
             techniques = list(filter(lambda t: not ("x_mitre_is_subtechnique" in t and  t["x_mitre_is_subtechnique"]), src.query([
@@ -344,50 +343,52 @@ def matricesToDf(src, domain):
             ])))
             techniques = remove_revoked_deprecated(techniques)
             techniques = sorted(techniques, key=lambda x: x["name"])
+            # add techniques
             for technique in techniques:
                 techniques_column.append(technique["name"])
-                # append sub-techniques
+                # sub-technique relationships
                 subtechnique_ofs = src.query([
                     Filter("type", "=", "relationship"),
                     Filter("relationship_type", "=", "subtechnique-of"),
                     Filter("target_ref", "=", technique["id"])
                 ])
-                if len(subtechnique_ofs) > 0:
-                    technique_top = len(techniques_column) + 1
+                if len(subtechnique_ofs) > 0: # if there are sub-techniques on the tactic
+                    technique_top = len(techniques_column) + 1 # top of row range to merge
+                    # get sub-techniques
                     subtechniques = [src.get(rel["source_ref"]) for rel in subtechnique_ofs]
                     subtechniques = remove_revoked_deprecated(subtechniques)
                     subtechniques = sorted(subtechniques, key=lambda x: x["name"])
-                    for i in range(len(subtechniques)):
-                        if i != 0: techniques_column.append("") # first sub-technique is parallel to the technique
-                        subtechniques_column.append(subtechniques[i]["name"])
-                    technique_bottom = len(techniques_column) + 1
-                    if technique_top != technique_bottom:
+                    for i in range(len(subtechniques)): # for each sub-technique
+                        if i != 0: techniques_column.append("") # first sub-technique is parallel to the technique in the layout
+                        subtechniques_column.append(subtechniques[i]["name"]) 
+                    technique_bottom = len(techniques_column) + 1 # bottom of row range to merge
+                    if technique_top != technique_bottom: # more than 1 sub-technique
                         merge.append(CellRange(  # merge technique portion of cell group
                             len(columns), 
                             len(columns), 
                             technique_top, 
                             technique_bottom, 
                             data=technique["name"],
-                            format={
+                            format={ # format of the merged range
                                 "name": "supertechnique",
                                 "format": { 'valign': 'vcenter', 'text_wrap': 1 }
                             }
                         ))
-                else:
+                else: # no sub-techniques; add empty cell parallel to technique
                     subtechniques_column.append("")
-            
-            
-            matrix_grid.append(techniques_column)
-            if len(list(filter(lambda x: x != "", subtechniques_column))) > 0:
-                matrix_grid.append(subtechniques_column)
-                columns.append("")
-                merge.append( # merge tactic column headers
+            # end adding techniques and sub-techniques to column
+
+            matrix_grid.append(techniques_column) # add technique column to grid
+            if len(list(filter(lambda x: x != "", subtechniques_column))) > 0: # if there are sub-techniques for the tactic as well
+                matrix_grid.append(subtechniques_column) # add sub-technique sub-column
+                columns.append("") # add empty tactic header for the sub-column
+                merge.append( # merge tactic column header with the sub-column header that was just appended
                     CellRange(len(columns) - 1, 
                     len(columns), 
                     1, 
                     1, 
                     data=tactic["name"],
-                    format={
+                    format={ # tactic header formatting
                         "name": "tacticHeader",
                         "format": {
                             "bold": 1,
@@ -398,7 +399,7 @@ def matricesToDf(src, domain):
                     }
                 ))
 
-        # square the grid so that pandas doesn't complain
+        # square the grid because pandas doesn't like jagged columns
         longest_column = 0
         for column in matrix_grid:
             longest_column = max(len(column), longest_column)
@@ -412,12 +413,14 @@ def matricesToDf(src, domain):
         # create dataframe for array
         df = pd.DataFrame(matrix_grid, columns=columns)
         
-        parsed["matrix"] = df
-        parsed["merge"] = merge
-        parsed["columns"] = len(columns)
+        # Set additional data for the matrix
+        parsed["matrix"] = df # actual dataframe
+        parsed["merge"] = merge # merge ranges and associated styles
+        parsed["columns"] = len(columns) # number of columns with data
 
         matrices_parsed.append(parsed)
-
+    
+    # end adding of matrices
     print("done")
     return matrices_parsed
 
@@ -427,14 +430,15 @@ def relationshipsToDf(src, relatedType=None):
         src: the ATT&CK dataset
         relatedType: (optional) string, singular attack type to only return relationships with, e.g "mitigation"
     Return a lookup of labels (descriptors) to dataframes"""
+    # get master list of relationships
     relationships = src.query([Filter("type", "=", "relationship")])
     relationships = remove_revoked_deprecated(relationships)
-    relationship_rows = []
-    used_relationships = []
+    relationship_rows = [] # build list of rows for dataframe
+    # tqdm description depends on the related type and parameters
     iterdesc = "parsing all relationships" if not relatedType else f"parsing relationships for type={relatedType}"
-    for relationship in tqdm(relationships, desc=iterdesc):
-        source = src.get(relationship["source_ref"])
-        target = src.get(relationship["target_ref"])
+    for relationship in tqdm(relationships, desc=iterdesc): 
+        source = src.get(relationship["source_ref"]) # source object of the relationship
+        target = src.get(relationship["target_ref"]) # target object of the relationship
         
         # filter if related objects don't exist or are revoked or deprecated
         if not source or source.get("x_mitre_deprecated", False) is True or source.get("revoked", False) is True: 
@@ -468,12 +472,11 @@ def relationshipsToDf(src, relatedType=None):
             row[f"{label} type"] = stixToAttackTerm[sdo["type"]] # "source type" or "target type"
         
         add_side("source", source)
-        row["mapping type"] = relationship["relationship_type"]
+        row["mapping type"] = relationship["relationship_type"] # mapping type goes between the source/target data
         add_side("target", target)
-        if "description" in relationship:
+        if "description" in relationship: # add description of relationship to the end of the row
             row["mapping description"] = relationship["description"]
         
-        used_relationships.append(relationship) # track relationships that were not filtered
         relationship_rows.append(row)
     
     citations = get_citations(relationships)
