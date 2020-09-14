@@ -25,10 +25,9 @@ def build_dataframes(src, domain):
         "relationships": stixToDf.relationshipsToDf(src)
     }
 
-def main(domain, version):
-    """create excel files for the ATT&CK dataset of the specified domain and version"""
-    # build dataframes
-    dataframes = build_dataframes(get_data_from_version(domain, version), domain)
+def write_excel(dataframes, domain, version):
+    """given a set of dataframes from build_dataframes, write the ATT&CK dataset to output directory"""
+
     print("writing and formatting files... ", end="", flush=True)
     # set up output directory
     domainVersionString = f"{domain}-{version}"
@@ -100,6 +99,13 @@ def main(domain, version):
     # write the master file
     master_writer.save()
     print("done")
+
+
+def main(domain, version):
+    """create excel files for the ATT&CK dataset of the specified domain and version"""
+    # build dataframes
+    dataframes = build_dataframes(get_data_from_version(domain, version), domain)
+    write_excel(dataframes, domain, version)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
