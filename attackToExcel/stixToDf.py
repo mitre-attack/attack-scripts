@@ -105,8 +105,8 @@ def techniquesToDf(src, domain):
         row = parseBaseStix(technique)
         
         # sub-technique properties
-
-        tactics = list(map(lambda kcp: kcp["phase_name"].replace("-", " ").title(), technique["kill_chain_phases"]))
+        tactic_shortnames = list(map(lambda kcp: kcp["phase_name"], technique["kill_chain_phases"]))
+        tactics = list(map(lambda t: t.replace("-", " ").title(), tactic_shortnames))
         row["tactics"] = ", ".join(sorted(tactics))
 
         if "x_mitre_detection" in technique:
@@ -123,11 +123,11 @@ def techniquesToDf(src, domain):
 
             if "x_mitre_data_sources" in technique:
                 row["data sources"] = ", ".join(sorted(technique["x_mitre_data_sources"]))
-            if "privilege-escalation" in tactics and "x_mitre_permissions_required" in technique:
+            if "privilege-escalation" in tactic_shortnames and "x_mitre_permissions_required" in technique:
                 row["permissions required"] = ", ".join(sorted(technique["x_mitre_permissions_required"]))
-            if "defense-evasion" in tactics and "x_mitre_defense_bypassed" in technique:
+            if "defense-evasion" in tactic_shortnames and "x_mitre_defense_bypassed" in technique:
                 row["defenses bypassed"] = ", ".join(sorted(technique["x_mitre_defense_bypassed"]))
-            if "execution" in tactics and "x_mitre_remote_support" in technique:
+            if "execution" in tactic_shortnames and "x_mitre_remote_support" in technique:
                 row["supports remote"] = technique["x_mitre_remote_support"]
                 
         # domain specific fields -- mobile
