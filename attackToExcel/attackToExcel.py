@@ -55,16 +55,42 @@ def main(domain, version):
         else: # handle matrix special formatting
             # TODO add name and description
             matrix_writer = pd.ExcelWriter(os.path.join(domainVersionString, f"{domainVersionString}-{objType}.xlsx"), engine='xlsxwriter')
+
             for matrix in dataframes[objType]:
                 sheetname = "matrix" if len(dataframes[objType]) == 1 else matrix["name"] + " matrix"
                 matrix["matrix"].to_excel(master_writer, sheet_name=sheetname, index=False)
                 matrix["matrix"].to_excel(matrix_writer, sheet_name=sheetname, index=False)
-                # merge ranges
+                # track added formats
                 for writer in [master_writer, matrix_writer]:
+                    # define column border styles
+                    borderleft = writer.book.add_format({"left": 2})
+                    borderright = writer.book.add_format({"right": 2})
+
+                    formats = {} # formats already defined on the writer
                     sheet = writer.sheets[sheetname]
+                    # merge ranges
                     for mergeRange in matrix["merge"]:
-                        # print("merging range", mergeRange.to_excel())
-                        sheet.merge_range(mergeRange.to_excel(), mergeRange.data, None)
+                        if mergeRange.format:
+                            if mergeRange.format["name"] not in formats: # add format to book if not defined
+                                formats[mergeRange.format["name"]] = writer.book.add_format(mergeRange.format["format"])
+                            theformat = formats[mergeRange.format["name"]] # get saved format if already added
+                            if mergeRange.format["name"] == "tacticHeader": 
+                                # also set border for entire column for grouping
+                                sheet.set_column(
+                                    mergeRange.leftCol - 1,
+                                    mergeRange.leftCol - 1,
+                                    width=20, # set column widths to make matrix more readable
+                                    cell_format=borderleft
+                                )
+                                sheet.set_column(
+                                    mergeRange.rightCol - 1,
+                                    mergeRange.rightCol - 1,
+                                    width=20, # set column widths to make matrix more readable
+                                    cell_format=borderright
+                                )
+                        else: theformat = None # no format
+                        sheet.merge_range(mergeRange.to_excel(), mergeRange.data, theformat)
+                        
             matrix_writer.save()
 
     # remove duplicate citations and add to master file

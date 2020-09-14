@@ -24,6 +24,8 @@ stixToAttackTerm = {
     "x-mitre-matrix": "matrix"
 }
 
+ATTACKBLUE = "#062F4F"
+
 def remove_revoked_deprecated(stix_objects):
     """Remove any revoked or deprecated objects from queries made to the data source"""
     # Note we use .get() because the property may not be present in the JSON data. The default is False
@@ -279,13 +281,18 @@ def mitigationsToDf(src, domain):
     return dataframes
 
 class CellRange:
-    """helper class for handling ranges of cells in a spreadsheet. Note: not 0-indexed. Data is optional argument for data to store in the cellrange in the case of merged ranges"""
-    def __init__(self, leftCol, rightCol, topRow, bottomRow, data=None):
+    """
+    helper class for handling ranges of cells in a spreadsheet. Note: not 0-indexed. 
+    Data is optional argument for data to store in the cellrange in the case of merged ranges
+    format is a dict {name, format} for the xlsxwriter style. Formats of the same name will not be defined multiple times to the worksheet; only the first definition will be used
+    """
+    def __init__(self, leftCol, rightCol, topRow, bottomRow, data=None, format=None):
         self.leftCol = leftCol
         self.rightCol = rightCol
         self.topRow = topRow
         self.bottomRow = bottomRow
         self.data = data
+        self.format = format
 
     def to_excel(self):
         """return the range in excel format, e.g A4:C7"""
@@ -307,7 +314,7 @@ def matricesToDf(src, domain):
         name is the name of the matrix
         description is the description of the matrix
         merge is a list of CellRange objects that need to be merged for formatting of the sub-techniques in the matrix
-        border is a list of CellRange objects that need borders for formatting of sub-techniques in the matrix"""
+        columns is the number of columns in the data"""
     print("building matrices... ", end="", flush=True)
     matrices = src.query([Filter("type", "=", "x-mitre-matrix")])
     matrices = remove_revoked_deprecated(matrices)
@@ -321,7 +328,6 @@ def matricesToDf(src, domain):
         
         matrix_grid = []
         merge = []
-        border = []
 
         tactic_index = 0
         columns = []
@@ -355,7 +361,18 @@ def matricesToDf(src, domain):
                         if i != 0: techniques_column.append("") # first sub-technique is parallel to the technique
                         subtechniques_column.append(subtechniques[i]["name"])
                     technique_bottom = len(techniques_column) + 1
-                    merge.append(CellRange(len(columns), len(columns), technique_top, technique_bottom, data=technique["name"])) # merge technique portion of cell group
+                    if technique_top != technique_bottom:
+                        merge.append(CellRange(  # merge technique portion of cell group
+                            len(columns), 
+                            len(columns), 
+                            technique_top, 
+                            technique_bottom, 
+                            data=technique["name"],
+                            format={
+                                "name": "supertechnique",
+                                "format": { 'valign': 'vcenter', 'text_wrap': 1 }
+                            }
+                        ))
                 else:
                     subtechniques_column.append("")
             
@@ -364,7 +381,22 @@ def matricesToDf(src, domain):
             if len(list(filter(lambda x: x != "", subtechniques_column))) > 0:
                 matrix_grid.append(subtechniques_column)
                 columns.append("")
-                merge.append(CellRange(len(columns) - 1, len(columns), 1, 1, data=tactic["name"])) # merge tactic column headers
+                merge.append( # merge tactic column headers
+                    CellRange(len(columns) - 1, 
+                    len(columns), 
+                    1, 
+                    1, 
+                    data=tactic["name"],
+                    format={
+                        "name": "tacticHeader",
+                        "format": {
+                            "bold": 1,
+                            "border": 2,
+                            "font_size": 14,
+                            "align": "center",
+                        }
+                    }
+                ))
 
         # square the grid so that pandas doesn't complain
         longest_column = 0
@@ -382,7 +414,7 @@ def matricesToDf(src, domain):
         
         parsed["matrix"] = df
         parsed["merge"] = merge
-        parsed["border"] = border
+        parsed["columns"] = len(columns)
 
         matrices_parsed.append(parsed)
 
