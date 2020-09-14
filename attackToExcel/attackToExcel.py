@@ -63,8 +63,8 @@ def main(domain, version):
                 # track added formats
                 for writer in [master_writer, matrix_writer]:
                     # define column border styles
-                    borderleft = writer.book.add_format({"left": 2})
-                    borderright = writer.book.add_format({"right": 2})
+                    borderleft = writer.book.add_format({"left": 1})
+                    borderright = writer.book.add_format({"right": 1})
 
                     formats = {} # formats already defined on the writer
                     sheet = writer.sheets[sheetname]

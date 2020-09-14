@@ -391,7 +391,7 @@ def matricesToDf(src, domain):
                         "name": "tacticHeader",
                         "format": {
                             "bold": 1,
-                            "border": 2,
+                            "border": 1,
                             "font_size": 14,
                             "align": "center",
                         }
