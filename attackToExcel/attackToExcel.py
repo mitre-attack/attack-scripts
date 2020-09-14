@@ -65,9 +65,11 @@ def main(domain, version):
                     # define column border styles
                     borderleft = writer.book.add_format({"left": 1})
                     borderright = writer.book.add_format({"right": 1})
-
                     formats = {} # formats already defined on the writer
                     sheet = writer.sheets[sheetname]
+
+                    sheet.set_column(0, matrix["columns"], width=20) # set all columns to 20 width
+
                     # merge ranges
                     for mergeRange in matrix["merge"]:
                         if mergeRange.format:
