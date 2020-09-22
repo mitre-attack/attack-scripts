@@ -23,7 +23,7 @@ def build_taxii_source(collection_name):
     return MemorySource(stix_data=taxii_ds.query())
 
 
-def get_all_techniques(src, source_name, tactic):
+def get_all_techniques(src, source_name, tactic=None):
     """Filters data source by attack-pattern which extracts all ATT&CK Techniques"""
     filters = [
         Filter("type", "=", "attack-pattern"),
@@ -98,7 +98,7 @@ def arg_parse():
     return parser
 
 
-def do_mapping(ds, fieldnames, relationship_type, type_filter, source_name, sorting_keys, tactic):
+def do_mapping(ds, fieldnames, relationship_type, type_filter, source_name, sorting_keys, tactic=None):
     """Main logic to map techniques to mitigations, groups or software"""
     all_attack_patterns = get_all_techniques(ds, source_name, tactic)
     writable_results = []

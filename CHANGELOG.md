@@ -1,3 +1,7 @@
+# Changes staged on develop
+## Improvements
+- Added option to filter mappings by tactic in [technique_mappings_to_csv](technique_mappings_to_csv.py). See pull request [#46](https://github.com/mitre-attack/attack-scripts/pull/46).
+
 # v1.5.2 - 2 September 2020
 ## Improvements
 - Clarified documentation on creation of virtual environments for Windows compatibility.
