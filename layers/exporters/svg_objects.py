@@ -1,5 +1,6 @@
 import drawSvg as draw
 import colorsys
+import numpy as np
 import os
 from PIL import ImageFont
 
@@ -85,6 +86,35 @@ def _findSpace(words, width, height, maxFontSize):
     size = min(maxFontSize, fitTextHeight, fitTextWidth)
     return size
 
+
+def _find_breaks(num_spaces, num_breaks=3):
+    """
+        INTERNAL: Generate break mapping
+
+        :param num_spaces: number of spaces in string
+        :param num_breaks: number of breaks to insert
+        :return: list of possible break mappings
+    """
+    breaks = set()
+
+    def recurse(breakset_inherit, depth, num_breaks):
+        """recursive combinatorics; breakset is binary array of break locations; depth is the depth of recursion,
+            num_breaks is how many breaks should be added"""
+        for i in range(len(breakset_inherit)):  # for each possible break
+            # insert a break here
+            breakset = np.copy(breakset_inherit)
+            breakset[i] = 1
+            breaks.add("".join(str(x) for x in breakset))
+            # try inserting another depth of break
+            if depth < num_breaks - 1: recurse(breakset, depth + 1, num_breaks)
+
+    initial_breaks = [0] * num_spaces
+    breaks.add("".join(str(x) for x in initial_breaks))
+    recurse(initial_breaks, 0, num_breaks)
+
+    return breaks
+
+
 def _optimalFontSize(st, width, height, maxFontSize=12):
     """
         INTERNAL: Calculate the optimal fontsize and word layout for a box of width x height
@@ -98,10 +128,16 @@ def _optimalFontSize(st, width, height, maxFontSize=12):
     words = st.split(" ")
     bestSize = -9999
     bestWordArrangement = []
-    for j in range(0, 2**(len(words) - 1)):
+
+    num_spaces = len(words)
+    num_breaks = 1
+    if num_spaces < 20:
+        num_breaks = 2
+    elif num_spaces < 50:
+        num_breaks = 3
+    breaks = _find_breaks(num_spaces, num_breaks)
+    for binaryString in breaks:
         wordSet = []
-        construct = "{0:0" + str(len(words)) + 'b}'
-        binaryString = construct.format(j)
 
         for k in range(0, len(binaryString)):
             if binaryString[k] == "0":
@@ -266,7 +302,10 @@ class SVG_HeaderBlock:
                     cells.append(cell)
                     tblob = str(entry[1])
                     off = (block_width-(5 * (1+ len(tblob))))/2
-                    label = Text(tblob, 12, ctype='label', ty=25, tx=off)
+                    if off < 0:
+                        off = 0
+                    fs, _ = _optimalFontSize("0", width/len(colors), height)
+                    label = Text(tblob, fs, ctype='label', ty=25, tx=off)
                     cell.append(label)
         return g
 
