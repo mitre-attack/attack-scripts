@@ -60,7 +60,6 @@ class SvgTemplates:
         psych = 0
         overlay = None
         if config.showHeader:
-            operation_x = max_x - 30
 
             root = G(tx=5, ty=5, style='font-family: {}'.format(ff))
 
@@ -74,11 +73,12 @@ class SvgTemplates:
                 header_count += 1
             if config.showFilters:
                 header_count += 1
-            if config.showLegend and config.legendDocked:
+            if config.showLegend and gradient is not False and config.legendDocked:
                 header_count += 1
 
+            operation_x = (max_x - 10) - (15 * (header_count - 1))
             if header_count > 0:
-                header_width = max_x / header_count - (15 * (header_count-1))
+                header_width = operation_x / header_count
                 if config.showAbout:
                     if desc is not None:
                         g = SVG_HeaderBlock().build(height=header_height, width=header_width, label='about', t1text=name,
@@ -96,11 +96,11 @@ class SvgTemplates:
                         fi.stages = ["act"]
                     g2 = SVG_HeaderBlock().build(height=header_height, width=header_width, label='filters',
                                              t1text=', '.join(fi.platforms), t2text=fi.stages[0], config=config)
-                    b2 = G(tx=operation_x / header_count * psych + 20 * psych)
+                    b2 = G(tx=operation_x / header_count * psych + 15 * psych)
                     header.append(b2)
                     b2.append(g2)
                     psych += 1
-                if config.showLegend:
+                if config.showLegend and gradient is not False:
                     gr = gradient
                     if gr is None:
                         gr = Gradient(colors=["#ff6666","#ffe766","#8ec843"], minValue=1, maxValue=100)
@@ -111,7 +111,7 @@ class SvgTemplates:
                             (gr.compute_color(int(gr.minValue + div * i)), gr.minValue + div * i))
                     colors.append((gr.compute_color(gr.maxValue), gr.maxValue))
                     if config.legendDocked:
-                        b3 = G(tx=operation_x / header_count * psych + 20 * psych)
+                        b3 = G(tx=operation_x / header_count * psych + 15 * psych)
                         g3 = SVG_HeaderBlock().build(height=header_height, width=header_width, label='legend',
                                                      variant='graphic', colors=colors, config=config)
                         header.append(b3)
@@ -149,7 +149,7 @@ class SvgTemplates:
             :param subtechs: List of visible subtechniques
             :param exclude: List of excluded techniques
             :param mode: Tuple describing text for techniques (Show Name, Show ID)
-            :return: Instantiated tactic column
+            :return: Instantiated tactic column (or none if no techniques were found)
         """
         offset = 0
         column = G(ty=2)
@@ -172,6 +172,8 @@ class SvgTemplates:
                 a, offset = self.get_tech(offset, mode, x, tactic=self.h.convert(tactic.tactic.name),
                                           subtechniques=[], colors=colors, config=config, height=height, width=width)
             column.append(a)
+        if len(column.children) == 0:
+            return None
         return column
 
     def get_tech(self, offset, mode, technique, tactic, config, height, width, subtechniques=[], colors=[]):
@@ -209,30 +211,33 @@ class SvgTemplates:
             :param exclude: List of excluded techniques
             :return:
         """
+        grad = False
+        if len(scores):
+            grad = lhandle.gradient
         d, presence, overlay = self._build_headers(lhandle.name, config, lhandle.description, lhandle.filters,
-                                            lhandle.gradient)
+                                            grad)
         self.codex = self.h._adjust_ordering(self.codex, sort, scores)
         self.lhandle = lhandle
         glob = G()
         index = 5
         lengths = []
         for x in self.codex:
-            sum = len(x.techniques)
+            su = len(x.techniques)
             for enum in exclude:
                 if enum[0] in [y.id for y in x.techniques]:
                     if self.h.convert(enum[1]) == x.tactic.name or enum[1] == False:
-                        sum -= 1
+                        su -= 1
             for y in x.subtechniques:
                 if y in [z[0] for z in subtechs]:
-                    sum += len(x.subtechniques[y])
-            lengths.append(sum)
-        tech_width = (convertToPx(config.width, config.unit) / len(self.codex)) - 10
+                    su += len(x.subtechniques[y])
+            lengths.append(su)
+        tech_width = (convertToPx(config.width, config.unit) / sum([1 for x in lengths if x > 0])) - 10
         header_offset = convertToPx(config.headerHeight, config.unit)
         if presence == 0:
             header_offset = 0
-        header_offset += 30
+        header_offset += 15
         tech_height = (convertToPx(config.height, config.unit) - header_offset -
-                       convertToPx(config.border, config.unit)) / max(lengths)
+                       convertToPx(config.border, config.unit)) / (max(lengths) + 1)
         incre = tech_width + 10
         for x in self.codex:
             disp = ''
@@ -245,16 +250,19 @@ class SvgTemplates:
 
             g = G(tx=index, ty=header_offset)
 
-            index += incre
-            fs, _ = _optimalFontSize(disp, tech_width, tech_height+10, maxFontSize=28)
+            fs, _ = _optimalFontSize(disp, tech_width, tech_height, maxFontSize=28)
             tx = Text(ctype='TacticName', font_size=fs, text=disp, position='middle')
-            gt = G(tx=(tech_width)/2)
+            gt = G(tx=(tech_width)/2, ty=(tech_height)/2)
             gt.append(tx)
             a = self.get_tactic(x, tech_height, tech_width, colors=colors, subtechs=subtechs, exclude=exclude,
                                 mode=(showName, showID), scores=scores, config=config)
+            b = G(ty=tech_height)
             g.append(gt)
-            g.append(a)
-            glob.append(g)
+            b.append(a)
+            g.append(b)
+            if a:
+                glob.append(g)
+                index += incre
         d.append(glob)
         if overlay:
             d.append(overlay)

@@ -135,6 +135,9 @@ def _optimalFontSize(st, width, height, maxFontSize=12):
         num_breaks = 2
     elif num_spaces < 50:
         num_breaks = 3
+
+    if _findSpace([st], width, height, maxFontSize) == maxFontSize:
+        return maxFontSize, [st]
     breaks = _find_breaks(num_spaces, num_breaks)
     for binaryString in breaks:
         wordSet = []
@@ -152,8 +155,8 @@ def _optimalFontSize(st, width, height, maxFontSize=12):
         if size > bestSize:
             bestSize = size
             bestWordArrangement = wordSet
-        if size == maxFontSize:
-            break
+        #if size == maxFontSize:
+        #    break
 
     return bestSize, bestWordArrangement
 
@@ -257,24 +260,28 @@ class SVG_HeaderBlock:
             upper = G(tx=0, ty=2.1)
             internal.append(upper)
             if t1text is not None:
-                fs, patch_text = _optimalFontSize(t1text, width, (height-5)/2, maxFontSize=28)
+                bu = t2text is not None and t2text is not ""
+                theight = (height-5)
+                if bu:
+                    theight = theight / 2
+                fs, patch_text = _optimalFontSize(t1text, width, theight, maxFontSize=28)
                 lines = len(patch_text)
-                y = (height-5)/4 + 2.1
+                y = theight/2 + 2.1
                 if lines > 1:
-                    y = y - (((height-5)/16) * (lines-1))
+                    y = y - (theight / 5 * (lines-1))
                 t1 = Text("\n".join(patch_text), fs, '', x=4, y=y)
                 upper.append(t1)
-                upper.append(Line(0, width-10, (height-5)/2, (height-5)/2, stroke='#dddddd'))
-                if t2text is not None and t2text is not "":
+                if bu:
+                    upper.append(Line(0, width - 10, theight, theight, stroke='#dddddd'))
                     upper_fs = fs
-                    lower_offset = ((height-5)/2 + 2.1)
+                    lower_offset = (theight + 2.1)
                     lower = G(tx=0, ty= lower_offset)
                     fs, patch_text = _optimalFontSize(t2text, width, (height - (height/3 + upper_fs)), maxFontSize=28)
-                    y = (height-5)/4 + 2.1
+                    y = theight / 2 + 2.1
                     lines = len(patch_text)
                     adju = "\n".join(patch_text)
                     if lines > 1:
-                        y = y - (((height - 5) / 16) * (lines - 1))
+                        y = y - ((theight / 5) * (lines - 1))
                     if float(fs) > lower_offset:
                         y = y + 2*(float(fs) - lower_offset)
                     t2 = Text(adju, fs, '', x=4, y=y)
