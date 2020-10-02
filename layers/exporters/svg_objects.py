@@ -268,7 +268,9 @@ class SVG_HeaderBlock:
                 lines = len(patch_text)
                 y = theight/2 + 2.1
                 if lines > 1:
-                    y = y - (theight / 5 * (lines-1))
+                    y = y - (theight / 5 * (lines - 1))
+                if float(fs) < (convertToPx(config.border, config.unit) + 2.1):
+                    y = y - (theight / 5)
                 t1 = Text("\n".join(patch_text), fs, '', x=4, y=y)
                 upper.append(t1)
                 if bu:

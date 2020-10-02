@@ -60,8 +60,8 @@ class SvgTemplates:
         psych = 0
         overlay = None
         if config.showHeader:
-
-            root = G(tx=5, ty=5, style='font-family: {}'.format(ff))
+            border = convertToPx(config.border, config.unit)
+            root = G(tx=border, ty=border, style='font-family: {}'.format(ff))
 
             header = G()
             root.append(header)
@@ -76,16 +76,16 @@ class SvgTemplates:
             if config.showLegend and gradient is not False and config.legendDocked:
                 header_count += 1
 
-            operation_x = (max_x - 10) - (15 * (header_count - 1))
+            operation_x = (max_x - border) - (1.5 * border * (header_count - 1))
             if header_count > 0:
                 header_width = operation_x / header_count
                 if config.showAbout:
                     if desc is not None:
-                        g = SVG_HeaderBlock().build(height=header_height, width=header_width, label='about', t1text=name,
-                                                    t2text=desc, config=config)
+                        g = SVG_HeaderBlock().build(height=header_height, width=header_width, label='about',
+                                                    t1text=name, t2text=desc, config=config)
                     else:
-                        g = SVG_HeaderBlock().build(height=header_height, width=header_width, label='about', t1text=name,
-                                                    config=config)
+                        g = SVG_HeaderBlock().build(height=header_height, width=header_width, label='about',
+                                                    t1text=name, config=config)
                     b1.append(g)
                     psych += 1
                 if config.showFilters:
@@ -96,7 +96,7 @@ class SvgTemplates:
                         fi.stages = ["act"]
                     g2 = SVG_HeaderBlock().build(height=header_height, width=header_width, label='filters',
                                              t1text=', '.join(fi.platforms), t2text=fi.stages[0], config=config)
-                    b2 = G(tx=operation_x / header_count * psych + 15 * psych)
+                    b2 = G(tx=operation_x / header_count * psych + 1.5 * border * psych)
                     header.append(b2)
                     b2.append(g2)
                     psych += 1
@@ -111,7 +111,7 @@ class SvgTemplates:
                             (gr.compute_color(int(gr.minValue + div * i)), gr.minValue + div * i))
                     colors.append((gr.compute_color(gr.maxValue), gr.maxValue))
                     if config.legendDocked:
-                        b3 = G(tx=operation_x / header_count * psych + 15 * psych)
+                        b3 = G(tx=operation_x / header_count * psych + 1.5 * border * psych)
                         g3 = SVG_HeaderBlock().build(height=header_height, width=header_width, label='legend',
                                                      variant='graphic', colors=colors, config=config)
                         header.append(b3)
@@ -218,9 +218,10 @@ class SvgTemplates:
                                             grad)
         self.codex = self.h._adjust_ordering(self.codex, sort, scores)
         self.lhandle = lhandle
-        glob = G()
-        index = 5
+        index = 0
         lengths = []
+        border = convertToPx(config.border, config.unit)
+        glob = G(tx=border)
         for x in self.codex:
             su = len(x.techniques)
             for enum in exclude:
@@ -231,14 +232,15 @@ class SvgTemplates:
                 if y in [z[0] for z in subtechs]:
                     su += len(x.subtechniques[y])
             lengths.append(su)
-        tech_width = (convertToPx(config.width, config.unit) / sum([1 for x in lengths if x > 0])) - 10
+        tech_width = ((convertToPx(config.width, config.unit) - 1.2 * border) / sum([1 for x in lengths if x > 0])) - \
+            border
         header_offset = convertToPx(config.headerHeight, config.unit)
         if presence == 0:
             header_offset = 0
-        header_offset += 15
+        header_offset += 2.5 * border
         tech_height = (convertToPx(config.height, config.unit) - header_offset -
                        convertToPx(config.border, config.unit)) / (max(lengths) + 1)
-        incre = tech_width + 10
+        incre = tech_width + 1.1 * border
         for x in self.codex:
             disp = ''
             if showName and showID:
