@@ -109,6 +109,20 @@ class MatrixGen:
         self.matrix = {}
         self._build_matrix()
 
+    @staticmethod
+    def _remove_revoked_deprecated(content):
+        """Remove any revoked or deprecated objects from queries made to the data source"""
+        return list(
+            filter(
+                lambda x: x.get("x_mitre_deprecated", False) is False and x.get("revoked", False) is False,
+                content
+            )
+        )
+
+    def _search(self, domain, query):
+        interum = self.collections[domain].query(query)
+        return self._remove_revoked_deprecated(interum)
+
     def _get_tactic_listing(self, domain='enterprise'):
         """
             INTERNAL - retrieves tactics for the associated domain
@@ -117,11 +131,11 @@ class MatrixGen:
         """
         tactics = {}
         t_filt = []
-        matrix = self.collections[domain].query([Filter('type', '=', 'x-mitre-matrix')])
+        matrix = self._search(domain, [Filter('type', '=', 'x-mitre-matrix')])
         for i in range(len(matrix)):
             tactics[matrix[i]['name']] = []
             for tactic_id in matrix[i]['tactic_refs']:
-                tactics[matrix[i]['name']].append(self.collections[domain].query([Filter('id', '=', tactic_id)])[0])
+                tactics[matrix[i]['name']].append(self._search(domain,([Filter('id', '=', tactic_id)]))[0])
         for entry in tactics[matrix[0]['name']]:
             self.convert_data[entry['x_mitre_shortname']] = entry['name']
             self.convert_data[entry['name']] = entry['x_mitre_shortname']
@@ -137,9 +151,11 @@ class MatrixGen:
         """
         techniques = []
         subtechs = {}
-        techs = self.collections[domain].query([Filter('type', '=', 'attack-pattern'), Filter('kill_chain_phases.phase_name', '=', tactic)])
+        techs = self._search(domain,[Filter('type', '=', 'attack-pattern'),
+                                     Filter('kill_chain_phases.phase_name', '=', tactic)])
         for entry in techs:
-            if entry['kill_chain_phases'][0]['kill_chain_name'] == 'mitre-attack':
+            if entry['kill_chain_phases'][0]['kill_chain_name'] == 'mitre-attack' or \
+                            entry['kill_chain_phases'][0]['kill_chain_name'] == 'mitre-mobile-attack':
                 tid = [t['external_id'] for t in entry['external_references'] if 'attack' in t['source_name']]
                 if '.' not in tid[0]:
                     techniques.append(MatrixEntry(id=tid[0], name=entry['name']))

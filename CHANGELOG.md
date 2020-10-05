@@ -1,3 +1,8 @@
+# v1.6 - 5 October 2020
+## Improvements
+- Added [layer to SVG](https://github.com/mitre-attack/attack-scripts/tree/master/layers#to_svgpy) converter. See issue [#1](https://github.com/mitre-attack/attack-scripts/issues/1).
+- Added option to filter mappings by tactic in [technique_mappings_to_csv](technique_mappings_to_csv.py). See pull request [#46](https://github.com/mitre-attack/attack-scripts/pull/46).
+
 # v1.5.2 - 2 September 2020
 ## Improvements
 - Clarified documentation on creation of virtual environments for Windows compatibility.

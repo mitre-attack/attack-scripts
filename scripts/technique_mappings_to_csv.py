@@ -23,12 +23,15 @@ def build_taxii_source(collection_name):
     return MemorySource(stix_data=taxii_ds.query())
 
 
-def get_all_techniques(src, source_name):
+def get_all_techniques(src, source_name, tactic=None):
     """Filters data source by attack-pattern which extracts all ATT&CK Techniques"""
     filters = [
         Filter("type", "=", "attack-pattern"),
         Filter("external_references.source_name", "=", source_name),
     ]
+    if tactic:
+        filters.append(Filter('kill_chain_phases.phase_name', '=', tactic))
+
     results = src.query(filters)
     return remove_deprecated(results)
 
@@ -90,13 +93,14 @@ def arg_parse():
     parser = argparse.ArgumentParser(description="Fetches the current ATT&CK content expressed as STIX2 and creates spreadsheet mapping Techniques with Mitigations, Groups or Software.")
     parser.add_argument("-d", "--domain", type=str, required=True, choices=["enterprise_attack", "mobile_attack"], help="Which ATT&CK domain to use (Enterprise, Mobile).")
     parser.add_argument("-m", "--mapping-type", type=str, required=True, choices=["groups", "mitigations", "software"], help="Which type of object to output mappings for using ATT&CK content.")
+    parser.add_argument("-t", "--tactic",  type=str, required=False,  help=" Filter based on this tactic name (e.g. initial-access) " )
     parser.add_argument("-s", "--save", type=str, required=False, help="Save the CSV file with a different filename.")
     return parser
 
 
-def do_mapping(ds, fieldnames, relationship_type, type_filter, source_name, sorting_keys):
+def do_mapping(ds, fieldnames, relationship_type, type_filter, source_name, sorting_keys, tactic=None):
     """Main logic to map techniques to mitigations, groups or software"""
-    all_attack_patterns = get_all_techniques(ds, source_name)
+    all_attack_patterns = get_all_techniques(ds, source_name, tactic)
     writable_results = []
 
     for attack_pattern in tqdm.tqdm(all_attack_patterns, desc="parsing data for techniques"):
@@ -133,28 +137,28 @@ def main(args):
         "mobile_attack": "mitre-mobile-attack",
     }
     source_name = source_map[args.domain]
-
+    tactic = args.tactic
     if op == "groups":
         filename = args.save or "groups.csv"
         fieldnames = ("TID", "Technique Name", "GID", "Group Name", "Group Description", "Usage")
         relationship_type = "uses"
         type_filter = "intrusion-set"
         sorting_keys = ("TID", "GID")
-        rowdicts = do_mapping(data_source, fieldnames, relationship_type, type_filter, source_name, sorting_keys)
+        rowdicts = do_mapping(data_source, fieldnames, relationship_type, type_filter, source_name, sorting_keys, tactic)
     elif op == "mitigations":
         filename = args.save or "mitigations.csv"
         fieldnames = ("TID", "Technique Name", "MID", "Mitigation Name", "Mitigation Description", "Application")
         relationship_type = "mitigates"
         type_filter = "course-of-action"
         sorting_keys = ("TID", "MID")
-        rowdicts = do_mapping(data_source, fieldnames, relationship_type, type_filter, source_name, sorting_keys)
+        rowdicts = do_mapping(data_source, fieldnames, relationship_type, type_filter, source_name, sorting_keys, tactic)
     elif op == "software":
         filename = args.save or "software.csv"
         fieldnames = ("TID", "Technique Name", "SID", "Software Name", "Software Description", "Use")
         relationship_type = "uses"
         type_filter = "malware"
         sorting_keys = ("TID", "SID")
-        rowdicts = do_mapping(data_source, fieldnames, relationship_type, type_filter, source_name, sorting_keys)
+        rowdicts = do_mapping(data_source, fieldnames, relationship_type, type_filter, source_name, sorting_keys, tactic)
     else:
         raise RuntimeError("Unknown option: %s" % op)
 
