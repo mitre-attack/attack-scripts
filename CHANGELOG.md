@@ -1,3 +1,7 @@
+# Changes staged on develop
+## Improvements
+- Removed pre-ATT&CK domain from scripts to support migration of that content to enterprise tactics. See issue [#36](https://github.com/mitre-attack/attack-scripts/issues/36).
+
 # v1.6 - 5 October 2020
 ## Improvements
 - Added [layer to SVG](https://github.com/mitre-attack/attack-scripts/tree/master/layers#to_svgpy) converter. See issue [#1](https://github.com/mitre-attack/attack-scripts/issues/1).

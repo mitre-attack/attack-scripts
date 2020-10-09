@@ -12,18 +12,15 @@ from dateutil import parser as dateparser
 # helper maps
 domainToDomainLabel = {
     'enterprise-attack': 'Enterprise', 
-    'pre-attack': 'PRE-ATT&CK', 
     'mobile-attack': 'Mobile'
 }
 domainToLayerFileDomain = {
     'enterprise-attack': 'mitre-enterprise',
-    'mobile-attack': 'mitre-mobile',
-    'pre-attack': 'pre-attack'
+    'mobile-attack': 'mitre-mobile'
 }
 domainToTaxiiCollectionId = {
     "enterprise-attack": "95ecc380-afe9-11e4-9b6c-751b66dd541e",
     "mobile-attack": "2f669986-b40b-4423-b720-4396ca6a462b",
-    "pre-attack": "062767bd-02d2-4b72-84ba-56caef0f8658"
 }
 attackTypeToStixFilter = { # stix filters for querying for each type of data
     'technique': [Filter('type', '=', 'attack-pattern')],
@@ -69,7 +66,7 @@ class DiffStix(object):
     """
     def __init__(
         self,
-        domains=['enterprise-attack', 'pre-attack', 'mobile-attack'],
+        domains=['enterprise-attack', 'mobile-attack'],
         layers=None,
         markdown=None,
         minor_changes=False,
@@ -502,10 +499,6 @@ class DiffStix(object):
                 "tacticRowBackground": "#205b8f",
                 "selectTechniquesAcrossTactics": True
             }
-            # default to show pre-attack on pre layer
-            if domain == "pre-attack": layer_json["filters"] = {
-                "stages": ["prepare"]
-            }
 
             layers[domain] = layer_json
 
@@ -538,7 +531,6 @@ def layers_dict_to_files(outfiles, layers):
     # write each layer to separate files
     json.dump(layers['enterprise-attack'], open(outfiles[0], "w"), indent=4)
     json.dump(layers['mobile-attack'], open(outfiles[1], "w"), indent=4)
-    json.dump(layers['pre-attack'], open(outfiles[2], "w"), indent=4)
 
     verboseprint("done")
 
@@ -554,7 +546,7 @@ if __name__ == '__main__':
     ]
     
     parser = argparse.ArgumentParser(
-         description="Create -markdown and/or -layers reporting on the changes between two versions of the ATT&CK content. Takes STIX bundles as input. For default operation, put enterprise-attack.json, mobile-attack.json, and pre-attack.json bundles in 'old' and 'new' folders for the script to compare."
+         description="Create -markdown and/or -layers reporting on the changes between two versions of the ATT&CK content. Takes STIX bundles as input. For default operation, put enterprise-attack.json and mobile-attack.json bundles in 'old' and 'new' folders for the script to compare."
     )
 
     parser.add_argument("-old",
@@ -588,10 +580,10 @@ if __name__ == '__main__':
         nargs="+",
         metavar="DOMAIN",
         choices=[
-            "enterprise-attack", "pre-attack", "mobile-attack"
+            "enterprise-attack", "mobile-attack"
         ],
         default=[
-            "enterprise-attack", "pre-attack", "mobile-attack"
+            "enterprise-attack", "mobile-attack"
         ],
         help="which domains to report on. Choices (and defaults) are %(choices)s"
     )
