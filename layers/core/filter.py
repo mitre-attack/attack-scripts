@@ -6,7 +6,7 @@ except ValueError:
         UNSETVALUE
 
 
-class Filter:
+class Filterv4:
     def __init__(self, domain="mitre-enterprise"):
         """
             Initialization - Creates a filter object, with an optional
@@ -15,21 +15,8 @@ class Filter:
             :param domain: The domain used for this layer (mitre-enterprise
                 or mitre-mobile)
         """
-        self.__stages = UNSETVALUE
         self.domain = domain
         self.__platforms = UNSETVALUE
-
-    @property
-    def stages(self):
-        if self.__stages != UNSETVALUE:
-            return self.__stages
-
-    @stages.setter
-    def stages(self, stage):
-        typeCheckerArray(type(self).__name__, stage, str, "stage")
-        categoryChecker(type(self).__name__, stage[0], ["act", "prepare"],
-                        "stages")
-        self.__stages = stage
 
     @property
     def platforms(self):
@@ -63,3 +50,20 @@ class Filter:
                     = listing[entry]
         if len(temp) > 0:
             return temp
+
+class Filter(Filterv4):
+    def __init__(self, domain="mitre-enterprise"):
+        self.__stages = UNSETVALUE
+        super().__init__(domain)
+
+    @property
+    def stages(self):
+        if self.__stages != UNSETVALUE:
+            return self.__stages
+
+    @stages.setter
+    def stages(self, stage):
+        typeCheckerArray(type(self).__name__, stage, str, "stage")
+        categoryChecker(type(self).__name__, stage[0], ["act", "prepare"],
+                        "stages")
+        self.__stages = stage

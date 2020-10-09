@@ -1,5 +1,5 @@
 try:
-    from ..core.filter import Filter
+    from ..core.filter import Filter, Filterv4
     from ..core.layout import Layout
     from ..core.technique import Technique
     from ..core.gradient import Gradient
@@ -51,7 +51,7 @@ class _LayerObj:
     @version.setter
     def version(self, version):
         typeChecker(type(self).__name__, version, str, "version")
-        categoryChecker(type(self).__name__, version, ["3.0"], "version")
+        categoryChecker(type(self).__name__, version, ["3.0", "4.0"], "version")
         self.__version = version
 
     @property
@@ -92,9 +92,13 @@ class _LayerObj:
 
     @filters.setter
     def filters(self, filters):
-        try:
+        if self.version == "4.0":
+            temp = Filterv4(self.domain)
+        else:
             temp = Filter(self.domain)
-            temp.stages = filters['stages']
+        try:
+            if self.version != "4.0":
+                temp.stages = filters['stages']
             temp.platforms = filters['platforms']
             self.__filters = temp
         except KeyError as e:
