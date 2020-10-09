@@ -671,11 +671,11 @@ if __name__ == '__main__':
         markdown_string_to_file(args.markdown, md_string)
 
     if args.layers is not None:
-        if len(args.layers) is 0:
+        if len(args.layers) == 0:
             # no files specified, e.g. '-layers', use defaults
             diffStix.layers = layer_defaults
             args.layers = layer_defaults
-        elif len(args.layers) is 3:
+        elif len(args.layers) == 3:
             # files specified, e.g. '-layers file.json file2.json file3.json', use specified
             diffStix.layers = args.layers       # assumes order of files is enterprise, mobile, pre attack (same order as defaults)
         else:
