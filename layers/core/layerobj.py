@@ -5,6 +5,7 @@ try:
     from ..core.gradient import Gradient
     from ..core.legenditem import LegendItem
     from ..core.metadata import Metadata
+    from ..core.versions import Versions
     from ..core.exceptions import UNSETVALUE, typeChecker, BadInput, handler, \
         categoryChecker, UnknownLayerProperty
 except ValueError:
@@ -14,11 +15,12 @@ except ValueError:
     from core.gradient import Gradient
     from core.legenditem import LegendItem
     from core.metadata import Metadata
+    from core.versions import Versions
     from core.exceptions import UNSETVALUE, typeChecker, BadInput, handler, \
         categoryChecker, UnknownLayerProperty
 
 class _LayerObj:
-    def __init__(self, version, name, domain):
+    def __init__(self, versions, name, domain):
         """
             Initialization - Creates a layer object
 
@@ -27,7 +29,7 @@ class _LayerObj:
             :param domain: The domain for this layer (mitre-enterprise
                 or mitre-mobile)
         """
-        self.version = version
+        self.versions = versions
         self.name = name
         self.__description = UNSETVALUE
         self.domain = domain
@@ -46,13 +48,28 @@ class _LayerObj:
 
     @property
     def version(self):
-        return self.__version
+        return self.__versions.layer
 
     @version.setter
     def version(self, version):
         typeChecker(type(self).__name__, version, str, "version")
         categoryChecker(type(self).__name__, version, ["3.0", "4.0"], "version")
-        self.__version = version
+        self.__versions.layer = version
+
+    @property
+    def versions(self):
+        return self.__versions
+
+    @versions.setter
+    def versions(self, versions):
+        typeChecker(type(self).__name__, versions, dict, "version")
+        attack = None
+        nav = None
+        if 'attack' in versions:
+            attack = versions['attack']
+        if 'navigator' in versions:
+            nav = versions['navigator']
+        self.__versions = Versions(versions['layer'], attack, nav)
 
     @property
     def name(self):
@@ -70,8 +87,11 @@ class _LayerObj:
     @domain.setter
     def domain(self, domain):
         typeChecker(type(self).__name__, domain, str, "domain")
-        categoryChecker(type(self).__name__, domain, ["mitre-enterprise",
-                                                      "mitre-mobile"],
+        dom = domain
+        if dom.startswith('mitre'):
+            dom = dom.split('-')[-1] + '-attack'
+        categoryChecker(type(self).__name__, dom, ["enterprise-attack",
+                                                      "mobile-attack"],
                         "domain")
         self.__domain = domain
 
@@ -301,7 +321,7 @@ class _LayerObj:
             Converts the currently loaded layer into a dict
             :returns: A dict representation of the current layer object
         """
-        temp = dict(name=self.name, version=self.version, domain=self.domain)
+        temp = dict(name=self.name, versions=self.versions.get_dict(), domain=self.domain)
 
         if self.description:
             temp['description'] = self.description

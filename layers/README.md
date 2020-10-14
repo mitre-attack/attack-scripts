@@ -12,7 +12,7 @@ This folder contains modules and scripts for working with ATT&CK Navigator layer
 | [legenditem](core/legenditem.py) | Implements a basic [legenditem object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md#legenditem-object-properties). |
 | [metadata](core/metadata.py) | Implements a basic [metadata object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md#metadata-object-properties). |
 | [technique](core/technique.py) | Implements a basic [technique object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md#technique-object-properties). |
-
+| [version](core/versions.py) | Impelments a basic [version object]().|
 #### Manipulator Scripts
 | script | description |
 |:-------|:------------|
@@ -36,7 +36,7 @@ This folder contains modules and scripts for working with ATT&CK Navigator layer
 | [layerExporter_cli.py](layerExporter_cli.py) | A commandline utility to export Layer files to excel or svg formats using the exporter tools. Run with `-h` for usage. |
 
 ## Layer
-The Layer class provides format validation and read/write capabilities to aid in working with ATT&CK Navigator Layers in python. It is the primary interface through which other Layer-related classes defined in the core module should be used. The Layer class API and a usage example are below.
+The Layer class provides format validation and read/write capabilities to aid in working with ATT&CK Navigator Layers in python. It is the primary interface through which other Layer-related classes defined in the core module should be used. The Layer class API and a usage example are below. The class currently supports version 3 and 4 of the ATT&CK Layer spec, and will upgrade version 3 layers into compatible version 4 ones whenever possible.
 
 | method [x = Layer()]| description |
 |:-------|:------------|
@@ -56,6 +56,14 @@ example_layer_dict = {
     "domain": "mitre-enterprise"
 }
 
+example_layer4_dict = {
+    "name": "layer v4 example",
+    "versions" : {
+        "layer" : "4.0"
+    },
+    "domain": "enterprise-attack"
+}
+
 example_layer_location = "/path/to/layer/file.json"
 example_layer_out_location = "/path/to/new/layer/file.json"
 
@@ -65,7 +73,7 @@ layer1 = Layer(example_layer_dict)              # Create a new layer and load ex
 layer1.to_file(example_layer_out_location)  # Write out the loaded layer to the specified file
 
 layer2 = Layer()                                # Create a new layer object
-layer2.from_dict(example_layer_dict)           # Load layer data into existing layer object
+layer2.from_dict(example_layer4_dict)           # Load layer data into existing layer object
 print(layer2.to_dict())                        # Retrieve the loaded layer's data as a dictionary, and print it
 
 layer3 = Layer()                                # Create a new layer object

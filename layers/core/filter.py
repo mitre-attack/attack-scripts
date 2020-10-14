@@ -46,8 +46,9 @@ class Filterv4:
             if entry == 'domain':
                 continue
             if listing[entry] != UNSETVALUE:
-                temp[entry.split(type(self).__name__ + '__')[-1]] \
-                    = listing[entry]
+                subname = entry.split('__')[-1]
+                if subname != 'stages':
+                    temp[subname] = listing[entry]
         if len(temp) > 0:
             return temp
 
