@@ -26,7 +26,10 @@ def generate():
     # return the techniques in a layer dict
     return {
         "name": "heatmap example",
-        "version": "3.0",
+        "versions": {
+            "layer": "4.0",
+            "navigator": "4.0"
+        },
         "sorting": 3, # descending order of score
         "description": "An example layer where all techniques have a randomized score",
         "domain": "mitre-enterprise",
