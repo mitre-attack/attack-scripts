@@ -7,7 +7,7 @@ try:
     from ..core.metadata import Metadata
     from ..core.versions import Versions
     from ..core.exceptions import UNSETVALUE, typeChecker, BadInput, handler, \
-        categoryChecker, UnknownLayerProperty
+        categoryChecker, UnknownLayerProperty, loadChecker, MissingParameters
 except ValueError:
     from core.filter import Filter
     from core.layout import Layout
@@ -17,19 +17,18 @@ except ValueError:
     from core.metadata import Metadata
     from core.versions import Versions
     from core.exceptions import UNSETVALUE, typeChecker, BadInput, handler, \
-        categoryChecker, UnknownLayerProperty
+        categoryChecker, UnknownLayerProperty, loadChecker, MissingParameters
 
 class _LayerObj:
-    def __init__(self, versions, name, domain):
+    def __init__(self, name, domain):
         """
             Initialization - Creates a layer object
 
-            :param version: The corresponding att&ck layer version
             :param name: The name for this layer
-            :param domain: The domain for this layer (mitre-enterprise
-                or mitre-mobile)
+            :param domain: The domain for this layer (enterprise-attack
+                or mobile-attack)
         """
-        self.versions = versions
+        self.__versions = UNSETVALUE
         self.name = name
         self.__description = UNSETVALUE
         self.domain = domain
@@ -48,28 +47,35 @@ class _LayerObj:
 
     @property
     def version(self):
-        return self.__versions.layer
+        if self.__versions != UNSETVALUE:
+            return self.__versions.layer
 
     @version.setter
     def version(self, version):
         typeChecker(type(self).__name__, version, str, "version")
         categoryChecker(type(self).__name__, version, ["3.0", "4.0"], "version")
+        if self.__versions is UNSETVALUE:
+            self.__versions = Versions()
         self.__versions.layer = version
 
     @property
     def versions(self):
-        return self.__versions
+        if self.__versions != UNSETVALUE:
+            return self.__versions
 
     @versions.setter
     def versions(self, versions):
         typeChecker(type(self).__name__, versions, dict, "version")
-        attack = None
-        nav = None
+        attack = UNSETVALUE
         if 'attack' in versions:
             attack = versions['attack']
-        if 'navigator' in versions:
-            nav = versions['navigator']
-        self.__versions = Versions(versions['layer'], attack, nav)
+        try:
+            loadChecker(type(self).__name__, versions, ['layer', 'navigator'], "versions")
+            self.__versions = Versions(versions['layer'], attack, versions['navigator'])
+        except MissingParameters as e:
+            handler(type(self).__name__, 'versions {} is missing parameters: '
+                                         '{}. Skipping.'
+                    .format(versions, e))
 
     @property
     def name(self):
@@ -112,20 +118,16 @@ class _LayerObj:
 
     @filters.setter
     def filters(self, filters):
-        if self.version == "4.0":
-            temp = Filterv4(self.domain)
-        else:
-            temp = Filter(self.domain)
+        temp = Filterv4(self.domain)
         try:
-            if self.version != "4.0":
-                temp.stages = filters['stages']
+            loadChecker(type(self).__name__, filters, ['platforms'], "filters")
+            # force upgrade to v4
             temp.platforms = filters['platforms']
             self.__filters = temp
-        except KeyError as e:
-            handler(type(self).__name__, "Unable to properly extract "
-                                         "information from filter: {}."
-                    .format(e))
-            raise BadInput
+        except MissingParameters as e:
+            handler(type(self).__name__, 'Filters {} is missing parameters: '
+                                         '{}. Skipping.'
+                    .format(filters, e))
 
     @property
     def sorting(self):
@@ -173,17 +175,17 @@ class _LayerObj:
     def techniques(self, techniques):
         typeChecker(type(self).__name__, techniques, list, "techniques")
         self.__techniques = []
-        entry = ""
-        try:
-            for entry in techniques:
+
+        for entry in techniques:
+            try:
+                loadChecker(type(self).__name__, entry, ['techniqueID'], "technique")
                 temp = Technique(entry['techniqueID'])
                 temp._loader(entry)
                 self.__techniques.append(temp)
-        except KeyError as e:
-            handler(type(self).__name__, "Unable to properly extract "
-                                         "information from technique {}: {}."
-                    .format(entry, e))
-            raise BadInput
+            except MissingParameters as e:
+                handler(type(self).__name__, 'Technique {} is missing parameters: '
+                                             '{}. Skipping.'
+                        .format(entry, e))
 
     @property
     def gradient(self):
@@ -193,12 +195,12 @@ class _LayerObj:
     @gradient.setter
     def gradient(self, gradient):
         try:
-            self.__gradient = Gradient(gradient['colors'],
-                                       gradient['minValue'],
-                                       gradient['maxValue'])
-        except KeyError as e:
-            handler(type(self).__name__, 'Gradient is missing parameters: {}. '
-                                         'Unable to load.'.format(e))
+            loadChecker(type(self).__name__, gradient, ['colors', 'minValue', 'maxValue'], "gradient")
+            self.__gradient = Gradient(gradient['colors'], gradient['minValue'], gradient['maxValue'])
+        except MissingParameters as e:
+            handler(type(self).__name__, 'Gradient {} is missing parameters: '
+                                         '{}. Skipping.'
+                    .format(gradient, e))
 
     @property
     def legendItems(self):
@@ -209,15 +211,15 @@ class _LayerObj:
     def legendItems(self, legendItems):
         typeChecker(type(self).__name__, legendItems, list, "legendItems")
         self.__legendItems = []
-        entry = ""
-        try:
-            for entry in legendItems:
+        for entry in legendItems:
+            try:
+                loadChecker(type(self).__name__, entry, ['label', 'color'], "legendItem")
                 temp = LegendItem(entry['label'], entry['color'])
                 self.__legendItems.append(temp)
-        except KeyError as e:
-            handler(type(self).__name__, 'LegendItem {} is missing parameters:'
-                                         ' {}. Unable to load.'
-                    .format(entry, e))
+            except MissingParameters as e:
+                handler(type(self).__name__, 'Legend Item {} is missing parameters: '
+                                             '{}. Skipping.'
+                        .format(entry, e))
 
     @property
     def showTacticRowBackground(self):
@@ -272,13 +274,13 @@ class _LayerObj:
     def metadata(self, metadata):
         typeChecker(type(self).__name__, metadata, list, "metadata")
         self.__metadata = []
-        entry = ""
-        try:
-            for entry in metadata:
+        for entry in metadata:
+            try:
+                loadChecker(type(self).__name__, entry, ['name', 'value'], "metadata")
                 self.__metadata.append(Metadata(entry['name'], entry['value']))
-        except KeyError as e:
-            handler(type(self).__name__, 'Metadata {} is missing parameters: '
-                                         '{}. Unable to load.'
+            except MissingParameters as e:
+                handler(type(self).__name__, 'Metadata {} is missing parameters: '
+                                         '{}. Skipping.'
                     .format(entry, e))
 
     def _enumerate(self):
@@ -321,10 +323,12 @@ class _LayerObj:
             Converts the currently loaded layer into a dict
             :returns: A dict representation of the current layer object
         """
-        temp = dict(name=self.name, versions=self.versions.get_dict(), domain=self.domain)
+        temp = dict(name=self.name, domain=self.domain)
 
         if self.description:
             temp['description'] = self.description
+        if self.versions:
+            temp['versions'] = self.versions.get_dict()
         if self.filters:
             temp['filters'] = self.filters.get_dict()
         if self.sorting:
@@ -364,6 +368,13 @@ class _LayerObj:
         """
         if field == 'description':
             self.description = data
+        elif field.startswith('version'):
+            if not field.endswith('s'):
+                # force upgrade
+                ver_obj = dict(layer="4.0", navigator="4.0")
+                self.versions = ver_obj
+            else:
+                self.versions = data
         elif field == 'filters':
             self.filters = data
         elif field == 'sorting':

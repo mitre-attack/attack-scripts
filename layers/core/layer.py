@@ -75,18 +75,7 @@ class Layer:
             Loads the data stored in self.data into a LayerObj (self.layer)
         """
         try:
-            if 'version' in self._data:
-                ver_obj = dict(layer=self._data['version'])
-            else:
-                ver_obj = self._data['versions']
-        except:
-            handler(type(self).__name__, 'Layer version is malformed. '
-                                         'Unable to load')
-            self.__layer = None
-            return
-        try:
-            self.__layer = _LayerObj(ver_obj, self._data['name'],
-                                    self._data['domain'])
+            self.__layer = _LayerObj(self._data['name'],  self._data['domain'])
         except BadType or BadInput as e:
             handler(type(self).__name__, 'Layer is malformed: {}. '
                                          'Unable to load.'.format(e))
@@ -99,7 +88,7 @@ class Layer:
             return
 
         for key in self._data:
-            if key not in ['version', 'versions', 'name', 'domain']:
+            if key not in ['name', 'domain']:
                 try:
                     self.__layer._linker(key, self._data[key])
                 except Exception as e:

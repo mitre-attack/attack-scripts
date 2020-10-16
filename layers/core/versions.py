@@ -5,7 +5,7 @@ except ValueError:
 
 
 class Versions:
-    def __init__(self, layer="4.0", attack=UNSETVALUE, navigator=UNSETVALUE):
+    def __init__(self, layer="4.0", attack=UNSETVALUE, navigator="4.0"):
         """
             Initialization - Creates a v4 Versions object
 
@@ -14,7 +14,7 @@ class Versions:
             :param navigator: The navigator version
         """
         self.layer = layer
-        self.attack = attack
+        self.__attack = attack
         self.navigator = navigator
 
     @property
@@ -33,6 +33,7 @@ class Versions:
     @navigator.setter
     def navigator(self, navigator):
         typeChecker(type(self).__name__, navigator, str, "navigator")
+        categoryChecker(type(self).__name__, navigator, ["4.0"], "navigator version")
         self.__navigator = navigator
 
     @property
@@ -42,7 +43,10 @@ class Versions:
     @layer.setter
     def layer(self, layer):
         typeChecker(type(self).__name__, layer, str, "layer")
-        categoryChecker(type(self).__name__, layer, ["3.0", "4.0"], "version")
+        categoryChecker(type(self).__name__, layer, ["3.0", "4.0"], "layer version")
+        if layer == '3.0':
+            print('[NOTICE] - Forcibly upgrading version from {} to 4.0.'.format(layer))
+            layer = "4.0"
         self.__layer = layer
 
     def get_dict(self):
