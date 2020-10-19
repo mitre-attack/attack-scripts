@@ -67,7 +67,7 @@ def generate():
             "navigator": "4.0"
         },
         "description": "All techniques used by an APT group with phrase 'bear' in the group aliases",
-        "domain": "mitre-enterprise",
+        "domain": "enterprise-attack",
         "techniques": techniques_list,
         "legendItems": [{
             "label": "Used by a group the phrase 'bear' in the group aliases",

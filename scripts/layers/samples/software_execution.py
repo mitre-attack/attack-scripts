@@ -72,7 +72,7 @@ def generate(softwaretype="software"):
             "layer": "4.0",
             "navigator": "4.0"
         },
-        "domain": "mitre-enterprise",
+        "domain": "enterprise-attack",
         "techniques": techniques_list,
         "sorting": 3, # order in descending order of score (count)
         "gradient": {

@@ -32,7 +32,7 @@ def generate():
         },
         "sorting": 3, # descending order of score
         "description": "An example layer where all techniques have a randomized score",
-        "domain": "mitre-enterprise",
+        "domain": "enterprise-attack",
         "techniques": techniques_list,
     }
 

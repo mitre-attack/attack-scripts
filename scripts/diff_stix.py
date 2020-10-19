@@ -14,10 +14,6 @@ domainToDomainLabel = {
     'enterprise-attack': 'Enterprise', 
     'mobile-attack': 'Mobile'
 }
-domainToLayerFileDomain = {
-    'enterprise-attack': 'mitre-enterprise',
-    'mobile-attack': 'mitre-mobile'
-}
 domainToTaxiiCollectionId = {
     "enterprise-attack": "95ecc380-afe9-11e4-9b6c-751b66dd541e",
     "mobile-attack": "2f669986-b40b-4423-b720-4396ca6a462b",
@@ -493,7 +489,7 @@ class DiffStix(object):
                 },
                 "name": f"{thedate} {domainToDomainLabel[domain]} Updates",
                 "description": f"{domainToDomainLabel[domain]} updates for the {thedate} release of ATT&CK",
-                "domain": domainToLayerFileDomain[domain],
+                "domain": domain,
                 "techniques": techniques,
                 "sorting": 0,
                 "hideDisabled": False,

@@ -122,7 +122,7 @@ def generate(show_nodetect=False):
             "navigator": "4.0"
         },
         "description": description,
-        "domain": "mitre-enterprise",
+        "domain": "enterprise-attack",
         "techniques": techniques_list,
         "legendItems": legend
     }
