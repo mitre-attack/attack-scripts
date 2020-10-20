@@ -1,6 +1,6 @@
 # layers
 
-This folder contains modules and scripts for working with ATT&CK Navigator layers. ATT&CK Navigator Layers are a set of annotations overlayed on top of the ATT&CK Matrix. For more about ATT&CK Navigator layers, visit the ATT&CK Navigator repository. The core module allows users to load, validate, manipulate, and save ATT&CK layers. A brief overview of the components can be found below. All scripts adhere to the MITRE ATT&CK Navigator Layer file format, [version 3.0](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md).
+This folder contains modules and scripts for working with ATT&CK Navigator layers. ATT&CK Navigator Layers are a set of annotations overlayed on top of the ATT&CK Matrix. For more about ATT&CK Navigator layers, visit the ATT&CK Navigator repository. The core module allows users to load, validate, manipulate, and save ATT&CK layers. A brief overview of the components can be found below. All scripts adhere to the MITRE ATT&CK Navigator Layer file format, [version 4.0](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4.md), but will accept legacy [version 3.0](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md) layers, upgrading them to version 4.
 
 #### Core Modules
 | script | description |
@@ -50,7 +50,7 @@ The Layer class provides format validation and read/write capabilities to aid in
 #### Example Usage
 
 ```python
-example_layer_dict = {
+example_layer3_dict = {
     "name": "example layer",
     "version": "3.0",
     "domain": "mitre-enterprise"
@@ -70,7 +70,7 @@ example_layer_out_location = "/path/to/new/layer/file.json"
 
 from layers.core import Layer
 
-layer1 = Layer(example_layer_dict)              # Create a new layer and load existing data
+layer1 = Layer(example_layer3_dict)              # Create a new layer and load existing data
 layer1.to_file(example_layer_out_location)  # Write out the loaded layer to the specified file
 
 layer2 = Layer()                                # Create a new layer object
