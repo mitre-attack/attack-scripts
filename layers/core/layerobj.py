@@ -122,6 +122,8 @@ class _LayerObj:
         try:
             loadChecker(type(self).__name__, filters, ['platforms'], "filters")
             # force upgrade to v4
+            if 'stages' in filters:
+                print('[Filters] - V3 Field "stages" detected. Upgrading Filters object to V4.')
             temp.platforms = filters['platforms']
             self.__filters = temp
         except MissingParameters as e:
@@ -371,6 +373,7 @@ class _LayerObj:
         elif field.startswith('version'):
             if not field.endswith('s'):
                 # force upgrade
+                print('[Version] - V3 version field detected. Upgrading to V4 Versions object.')
                 ver_obj = dict(layer="4.0", navigator="4.0")
                 self.versions = ver_obj
             else:
