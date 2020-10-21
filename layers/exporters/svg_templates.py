@@ -8,13 +8,13 @@ try:
     from exporters.svg_objects import G, SVG_HeaderBlock, SVG_Technique, Text, convertToPx,_optimalFontSize, \
         _getstringwidth
     from core.gradient import Gradient
-    from core.filter import Filterv4
+    from core.filter import Filter
 except ModuleNotFoundError:
     from ..exporters.matrix_gen import MatrixGen
     from ..exporters.svg_objects import G, SVG_HeaderBlock, SVG_Technique, Text, convertToPx, _optimalFontSize, \
         _getstringwidth
     from ..core.gradient import Gradient
-    from ..core.filter import Filterv4
+    from ..core.filter import Filter
 
 
 class BadTemplateException(Exception):
@@ -91,7 +91,7 @@ class SvgTemplates:
                 if config.showFilters:
                     fi = filters
                     if fi is None:
-                        fi = Filterv4()
+                        fi = Filter()
                         fi.platforms = ["Windows", "Linux",	"macOS"]
                     g2 = SVG_HeaderBlock().build(height=header_height, width=header_width, label='filters',
                                              t1text=', '.join(fi.platforms), config=config)

@@ -6,8 +6,8 @@ except ValueError:
         UNSETVALUE
 
 
-class Filterv4:
-    def __init__(self, domain="mitre-enterprise"):
+class Filter:
+    def __init__(self, domain="enterprise-attack"):
         """
             Initialization - Creates a filter object, with an optional
                 domain input
@@ -52,7 +52,7 @@ class Filterv4:
         if len(temp) > 0:
             return temp
 
-class Filter(Filterv4):
+class Filterv3(Filter):
     def __init__(self, domain="mitre-enterprise"):
         self.__stages = UNSETVALUE
         super().__init__(domain)

@@ -1,5 +1,5 @@
 try:
-    from ..core.filter import Filter, Filterv4
+    from ..core.filter import Filter
     from ..core.layout import Layout
     from ..core.technique import Technique
     from ..core.gradient import Gradient
@@ -118,7 +118,7 @@ class _LayerObj:
 
     @filters.setter
     def filters(self, filters):
-        temp = Filterv4(self.domain)
+        temp = Filter(self.domain)
         try:
             loadChecker(type(self).__name__, filters, ['platforms'], "filters")
             # force upgrade to v4
