@@ -68,8 +68,11 @@ def generate(softwaretype="software"):
     return {
         "name": layername,
         "description": layerdescription,
-        "version": "3.0",
-        "domain": "mitre-enterprise",
+        "versions": {
+            "layer": "4.0",
+            "navigator": "4.0"
+        },
+        "domain": "enterprise-attack",
         "techniques": techniques_list,
         "sorting": 3, # order in descending order of score (count)
         "gradient": {

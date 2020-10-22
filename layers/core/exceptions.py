@@ -21,6 +21,9 @@ class UnknownTechniqueProperty(Exception):
     pass
 
 
+class MissingParameters(Exception):
+    pass
+
 def handler(caller, msg):
     """
         Prints a debug/warning/error message
@@ -85,3 +88,20 @@ def categoryChecker(caller, testee, valid, field):
     if testee not in valid:
         handler(caller, '{} not a valid value for {}'.format(testee, field))
         raise BadInput
+
+def loadChecker(caller, testee, required, field):
+    """
+        Verifies that the tested object contains all required fields
+        :param caller: the entity that called this function (used for error
+            messages)
+        :param testee: the element to test
+        :param requireds: a list of required values for the testee
+        :param field: what the element is to be used as (used for error
+            messages)
+        :raises BadInput: error denoting the testee element is not one of
+            the valid options
+    """
+    for entry in required:
+        if entry not in testee:
+            handler(caller, '{} is not present in {} [{}]'.format(entry, field, testee))
+            raise MissingParameters

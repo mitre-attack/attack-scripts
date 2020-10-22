@@ -1,18 +1,18 @@
 # layers
 
-This folder contains modules and scripts for working with ATT&CK Navigator layers. ATT&CK Navigator Layers are a set of annotations overlayed on top of the ATT&CK Matrix. For more about ATT&CK Navigator layers, visit the ATT&CK Navigator repository. The core module allows users to load, validate, manipulate, and save ATT&CK layers. A brief overview of the components can be found below. All scripts adhere to the MITRE ATT&CK Navigator Layer file format, [version 3.0](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md).
+This folder contains modules and scripts for working with ATT&CK Navigator layers. ATT&CK Navigator Layers are a set of annotations overlayed on top of the ATT&CK Matrix. For more about ATT&CK Navigator layers, visit the ATT&CK Navigator repository. The core module allows users to load, validate, manipulate, and save ATT&CK layers. A brief overview of the components can be found below. All scripts adhere to the MITRE ATT&CK Navigator Layer file format, [version 4.0](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4.md), but will accept legacy [version 3.0](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md) layers, upgrading them to version 4.
 
 #### Core Modules
 | script | description |
 |:-------|:------------|
-| [filter](core/filter.py) | Implements a basic [filter object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md#filter-object-properties). |
-| [gradient](core/gradient.py) | Implements a basic [gradient object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md#gradient-object-properties). |
+| [filter](core/filter.py) | Implements a basic [filter object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4.md#filter-object-properties). |
+| [gradient](core/gradient.py) | Implements a basic [gradient object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4.md#gradient-object-properties). |
 | [layer](core/layer.py) | Provides an interface for interacting with core module's layer representation. A further breakdown can be found in the corresponding [section](#Layer) below. |
-| [layout](core/layout.py) | Implements a basic [layout object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md#layout-object-properties). |
-| [legenditem](core/legenditem.py) | Implements a basic [legenditem object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md#legenditem-object-properties). |
-| [metadata](core/metadata.py) | Implements a basic [metadata object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md#metadata-object-properties). |
-| [technique](core/technique.py) | Implements a basic [technique object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md#technique-object-properties). |
-
+| [layout](core/layout.py) | Implements a basic [layout object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4.md#layout-object-properties). |
+| [legenditem](core/legenditem.py) | Implements a basic [legenditem object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4.md#legenditem-object-properties). |
+| [metadata](core/metadata.py) | Implements a basic [metadata object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4.md#metadata-object-properties). |
+| [technique](core/technique.py) | Implements a basic [technique object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4.md#technique-object-properties). |
+| [versions](core/versions.py) | Impelments a basic [versions object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4.md#versions-object-properties).|
 #### Manipulator Scripts
 | script | description |
 |:-------|:------------|
@@ -36,7 +36,7 @@ This folder contains modules and scripts for working with ATT&CK Navigator layer
 | [layerExporter_cli.py](layerExporter_cli.py) | A commandline utility to export Layer files to excel or svg formats using the exporter tools. Run with `-h` for usage. |
 
 ## Layer
-The Layer class provides format validation and read/write capabilities to aid in working with ATT&CK Navigator Layers in python. It is the primary interface through which other Layer-related classes defined in the core module should be used. The Layer class API and a usage example are below.
+The Layer class provides format validation and read/write capabilities to aid in working with ATT&CK Navigator Layers in python. It is the primary interface through which other Layer-related classes defined in the core module should be used. The Layer class API and a usage example are below. The class currently supports version 3 and 4 of the ATT&CK Layer spec, and will upgrade version 3 layers into compatible version 4 ones whenever possible.
 
 | method [x = Layer()]| description |
 |:-------|:------------|
@@ -50,10 +50,19 @@ The Layer class provides format validation and read/write capabilities to aid in
 #### Example Usage
 
 ```python
-example_layer_dict = {
+example_layer3_dict = {
     "name": "example layer",
     "version": "3.0",
     "domain": "mitre-enterprise"
+}
+
+example_layer4_dict = {
+    "name": "layer v4 example",
+    "versions" : {
+        "layer" : "4.0",
+        "navigator": "4.0"
+    },
+    "domain": "enterprise-attack"
 }
 
 example_layer_location = "/path/to/layer/file.json"
@@ -61,11 +70,11 @@ example_layer_out_location = "/path/to/new/layer/file.json"
 
 from layers.core import Layer
 
-layer1 = Layer(example_layer_dict)              # Create a new layer and load existing data
+layer1 = Layer(example_layer3_dict)              # Create a new layer and load existing data
 layer1.to_file(example_layer_out_location)  # Write out the loaded layer to the specified file
 
 layer2 = Layer()                                # Create a new layer object
-layer2.from_dict(example_layer_dict)           # Load layer data into existing layer object
+layer2.from_dict(example_layer4_dict)           # Load layer data into existing layer object
 print(layer2.to_dict())                        # Retrieve the loaded layer's data as a dictionary, and print it
 
 layer3 = Layer()                                # Create a new layer object
