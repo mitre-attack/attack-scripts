@@ -7,7 +7,7 @@ except ValueError:
 
 
 class Filter:
-    def __init__(self, domain="mitre-enterprise"):
+    def __init__(self, domain="enterprise-attack"):
         """
             Initialization - Creates a filter object, with an optional
                 domain input
@@ -15,21 +15,8 @@ class Filter:
             :param domain: The domain used for this layer (mitre-enterprise
                 or mitre-mobile)
         """
-        self.__stages = UNSETVALUE
         self.domain = domain
         self.__platforms = UNSETVALUE
-
-    @property
-    def stages(self):
-        if self.__stages != UNSETVALUE:
-            return self.__stages
-
-    @stages.setter
-    def stages(self, stage):
-        typeCheckerArray(type(self).__name__, stage, str, "stage")
-        categoryChecker(type(self).__name__, stage[0], ["act", "prepare"],
-                        "stages")
-        self.__stages = stage
 
     @property
     def platforms(self):
@@ -59,7 +46,25 @@ class Filter:
             if entry == 'domain':
                 continue
             if listing[entry] != UNSETVALUE:
-                temp[entry.split(type(self).__name__ + '__')[-1]] \
-                    = listing[entry]
+                subname = entry.split('__')[-1]
+                if subname != 'stages':
+                    temp[subname] = listing[entry]
         if len(temp) > 0:
             return temp
+
+class Filterv3(Filter):
+    def __init__(self, domain="mitre-enterprise"):
+        self.__stages = UNSETVALUE
+        super().__init__(domain)
+
+    @property
+    def stages(self):
+        if self.__stages != UNSETVALUE:
+            return self.__stages
+
+    @stages.setter
+    def stages(self, stage):
+        typeCheckerArray(type(self).__name__, stage, str, "stage")
+        categoryChecker(type(self).__name__, stage[0], ["act", "prepare"],
+                        "stages")
+        self.__stages = stage

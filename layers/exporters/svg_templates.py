@@ -93,9 +93,8 @@ class SvgTemplates:
                     if fi is None:
                         fi = Filter()
                         fi.platforms = ["Windows", "Linux",	"macOS"]
-                        fi.stages = ["act"]
                     g2 = SVG_HeaderBlock().build(height=header_height, width=header_width, label='filters',
-                                             t1text=', '.join(fi.platforms), t2text=fi.stages[0], config=config)
+                                             t1text=', '.join(fi.platforms), config=config)
                     b2 = G(tx=operation_x / header_count * psych + 1.5 * border * psych)
                     header.append(b2)
                     b2.append(g2)
