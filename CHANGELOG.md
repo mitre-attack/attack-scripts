@@ -1,4 +1,4 @@
-# Changes staged on develop
+# v1.7 - 27 October 2020
 ## Improvements
 - Removed pre-ATT&CK domain from scripts to support migration of that content to enterprise tactics. See issue [#36](https://github.com/mitre-attack/attack-scripts/issues/36).
 - Updated scripts which produce layers to use v4.0 of the Navigator Layer Format. See issue [#47](https://github.com/mitre-attack/attack-scripts/issues/47).
