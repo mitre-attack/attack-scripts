@@ -117,9 +117,12 @@ def generate(show_nodetect=False):
     # layer struct
     return {
         "name": name,
-        "version": "3.0",
+        "versions": {
+            "layer": "4.0",
+            "navigator": "4.0"
+        },
         "description": description,
-        "domain": "mitre-enterprise",
+        "domain": "enterprise-attack",
         "techniques": techniques_list,
         "legendItems": legend
     }

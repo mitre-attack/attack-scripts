@@ -62,9 +62,12 @@ def generate():
     # construct and return the layer as a dict
     return {
         "name": "*Bear APTs",
-        "version": "3.0",
+        "versions": {
+            "layer": "4.0",
+            "navigator": "4.0"
+        },
         "description": "All techniques used by an APT group with phrase 'bear' in the group aliases",
-        "domain": "mitre-enterprise",
+        "domain": "enterprise-attack",
         "techniques": techniques_list,
         "legendItems": [{
             "label": "Used by a group the phrase 'bear' in the group aliases",
