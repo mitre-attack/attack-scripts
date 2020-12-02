@@ -22,6 +22,8 @@ class ExcelTemplates:
         muse = domain
         if muse.startswith('mitre-'):
             muse = domain[6:]
+        if muse.endswith('-attack'):
+            muse = domain[:-7]
         if muse in ['enterprise', 'mobile']:
             self.mode = muse
             self.h = MatrixGen(source=source, local=local)

@@ -1,11 +1,11 @@
 try:
     from ..core.exceptions import BadInput, handler, typeChecker, \
         UNSETVALUE, UnknownTechniqueProperty, BadType
-    from ..core.metadata import Metadata
+    from ..core.metadata import Metadata, MetaDiv
 except ValueError:
     from core.exceptions import BadInput, handler, typeChecker, \
         UNSETVALUE, UnknownTechniqueProperty, BadType
-    from core.metadata import Metadata
+    from core.metadata import Metadata, MetaDiv
 
 
 class Technique:
@@ -104,7 +104,10 @@ class Technique:
         entry = ""
         try:
             for entry in metadata:
-                self.__metadata.append(Metadata(entry['name'], entry['value']))
+                if "divider" in entry:
+                    self.__metadata.append(MetaDiv(entry["divider"]))
+                else:
+                    self.__metadata.append(Metadata(entry['name'], entry['value']))
         except KeyError as e:
             handler(type(self).__name__, 'Metadata {} is missing parameters: '
                                          '{}. Unable to load.'
