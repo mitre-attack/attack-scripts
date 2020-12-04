@@ -91,7 +91,7 @@ class SVGConfig:
         self.legendY = legendY
         self.legendWidth = legendWidth
         self.legendHeight = legendHeight
-        self.d_showDomain = showDomain
+        self.showDomain = showDomain
         self.showLegend = showLegend
         self.showFilters = showFilters
         self.showAbout = showAbout

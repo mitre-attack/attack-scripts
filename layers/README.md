@@ -1,6 +1,6 @@
 # layers
 
-This folder contains modules and scripts for working with ATT&CK Navigator layers. ATT&CK Navigator Layers are a set of annotations overlayed on top of the ATT&CK Matrix. For more about ATT&CK Navigator layers, visit the ATT&CK Navigator repository. The core module allows users to load, validate, manipulate, and save ATT&CK layers. A brief overview of the components can be found below. All scripts adhere to the MITRE ATT&CK Navigator Layer file format, [version 4.1](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4_1.md), but will accept legacy [version 3.0](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md) layers, upgrading them to version 4.1.
+This folder contains modules and scripts for working with ATT&CK Navigator layers. ATT&CK Navigator Layers are a set of annotations overlaid on top of the ATT&CK Matrix. For more about ATT&CK Navigator layers, visit the ATT&CK Navigator repository. The core module allows users to load, validate, manipulate, and save ATT&CK layers. A brief overview of the components can be found below. All scripts adhere to the MITRE ATT&CK Navigator Layer file format, [version 4.1](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4_1.md), but will accept legacy [version 3.0](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md) layers, upgrading them to version 4.1.
 
 #### Core Modules
 | script | description |
@@ -57,10 +57,11 @@ example_layer3_dict = {
 }
 
 example_layer4_dict = {
-    "name": "layer v4 example",
+    "name": "layer v4.1 example",
     "versions" : {
-        "layer" : "4.0",
-        "navigator": "4.0"
+        "attack": "8",
+        "layer" : "4.1",
+        "navigator": "4.1"
     },
     "domain": "enterprise-attack"
 }
@@ -216,7 +217,7 @@ The SVGConfig object is used to configure how an SVG export behaves. The default
 | legendHeight | Height of the legend if not docked | number | 1 |
 | showLegend | Whether or not to show the legend | bool | True |
 | showFilters | Whether or not to show the Filter Header Block | bool | True |
-| showDomain | Whether or not to show the Domain and Version Header Block | bool | True
+| showDomain | Whether or not to show the Domain and Version Header Block | bool | True |
 | showAbout | Whether or not to show the About Header Block | bool | True |
 | border | What default border width to use | number | 0.104 |
 
