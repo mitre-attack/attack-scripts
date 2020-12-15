@@ -33,6 +33,8 @@ class SvgTemplates:
         muse = domain
         if muse.startswith('mitre-'):
             muse = domain[6:]
+        if muse.endswith('-attack'):
+            muse = domain[:-7]
         if muse in ['enterprise', 'mobile']:
             self.mode = muse
             self.h = MatrixGen(source=source, local=local)
@@ -41,12 +43,14 @@ class SvgTemplates:
         else:
             raise BadTemplateException
 
-    def _build_headers(self, name, config, desc=None, filters=None, gradient=None):
+    def _build_headers(self, name, config, domain='Enterprise', version='8', desc=None, filters=None, gradient=None):
         """
             Internal - build the header blocks for the svg
 
             :param name: The name of the layer being exported
             :param config: SVG Config object
+            :param domain: The layer's domain
+            :param version: The layer's version
             :param desc: Description of the layer being exported
             :param filters: Any filters applied to the layer being exported
             :param gradient: Gradient information included with the layer
@@ -73,10 +77,12 @@ class SvgTemplates:
                 header_count += 1
             if config.showFilters:
                 header_count += 1
+            if config.showDomain:
+                header_count += 1
             if config.showLegend and gradient is not False and config.legendDocked:
                 header_count += 1
 
-            operation_x = (max_x - border) - (1.5 * border * (header_count - 1))
+            operation_x = (max_x - border) - (1.5 * border * (header_count - 1)) - border
             if header_count > 0:
                 header_width = operation_x / header_count
                 if config.showAbout:
@@ -87,6 +93,18 @@ class SvgTemplates:
                         g = SVG_HeaderBlock().build(height=header_height, width=header_width, label='about',
                                                     t1text=name, config=config)
                     b1.append(g)
+                    psych += 1
+                if config.showDomain:
+                    if domain.startswith('mitre-'):
+                        domain = domain[6:].capitalize()
+                    if domain.endswith('-attack'):
+                        domain = domain[:-7].capitalize()
+                    tag = domain + ' ATT&CK v' + version
+                    gD = SVG_HeaderBlock().build(height=header_height, width=header_width, label='domain',
+                                                t1text=tag, config=config)
+                    bD = G(tx=operation_x / header_count * psych + 1.5 * border * psych)
+                    header.append(bD)
+                    bD.append(gD)
                     psych += 1
                 if config.showFilters:
                     fi = filters
@@ -213,8 +231,9 @@ class SvgTemplates:
         grad = False
         if len(scores):
             grad = lhandle.gradient
-        d, presence, overlay = self._build_headers(lhandle.name, config, lhandle.description, lhandle.filters,
-                                            grad)
+        d, presence, overlay = self._build_headers(lhandle.name, config, lhandle.domain,
+                                                   lhandle.versions.attack, lhandle.description, lhandle.filters,
+                                                   grad)
         self.codex = self.h._adjust_ordering(self.codex, sort, scores)
         self.lhandle = lhandle
         index = 0
@@ -231,7 +250,7 @@ class SvgTemplates:
                 if y in [z[0] for z in subtechs]:
                     su += len(x.subtechniques[y])
             lengths.append(su)
-        tech_width = ((convertToPx(config.width, config.unit) - 1.2 * border) / sum([1 for x in lengths if x > 0])) - \
+        tech_width = ((convertToPx(config.width, config.unit) - 2.2 * border) / sum([1 for x in lengths if x > 0])) - \
             border
         header_offset = convertToPx(config.headerHeight, config.unit)
         if presence == 0:

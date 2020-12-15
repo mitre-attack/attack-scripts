@@ -28,13 +28,14 @@ class SVGConfig:
     d_showLegend=True
     d_showFilters=True
     d_showAbout=True
+    d_showDomain=True
     d_border=0.104
 
     def __init__(self, width=d_width, height=d_height, headerHeight=d_headerHeight, unit=d_unit,
                  showSubtechniques=d_showSubtechniques, font=d_font, tableBorderColor=d_tableBorderColor,
                  showHeader=d_showHeader, legendDocked=d_legendDocked, legendX=d_legendX, legendY=d_legendY,
                  legendWidth=d_legendWidth, legendHeight=d_legendHeight, showLegend=d_showLegend,
-                 showFilters=d_showFilters, showAbout=d_showAbout, border=d_border):
+                 showFilters=d_showFilters, showAbout=d_showAbout, showDomain=d_showDomain, border=d_border):
         """
             Define parameters to configure SVG export
 
@@ -54,6 +55,7 @@ class SVGConfig:
             :param showLegend: Whether or not to show the legend
             :param showFilters: Whether or not to show the Filter Header Block
             :param showAbout: Whether or not to show the About Header Block
+            :param showDomain: Whether or not to show the Domain Version Header Block
             :param border: What default border width to use
         """
         # force defaults in case bad values are provided so we don't crash later
@@ -70,6 +72,7 @@ class SVGConfig:
         self.legendY = self.d_legendY
         self.legendWidth = self.d_legendWidth
         self.legendHeight = self.d_legendHeight
+        self.showDomain = self.d_showDomain
         self.showLegend = self.d_showLegend
         self.showFilters = self.d_showFilters
         self.showAbout = self.d_showAbout
@@ -88,6 +91,7 @@ class SVGConfig:
         self.legendY = legendY
         self.legendWidth = legendWidth
         self.legendHeight = legendHeight
+        self.showDomain = showDomain
         self.showLegend = showLegend
         self.showFilters = showFilters
         self.showAbout = showAbout
@@ -351,6 +355,18 @@ class SVGConfig:
             self.__showAbout = showAbout
         else:
             print('[Warning] - Unable to set showAbout to {}: not a bool'.format(showAbout))
+
+    @property
+    def showDomain(self):
+        if self.__showDomain is not None:
+            return self.__showDomain
+
+    @showDomain.setter
+    def showDomain(self, showDomain):
+        if isinstance(showDomain, bool):
+            self.__showDomain = showDomain
+        else:
+            print('[Warning] - Unable to set showAbout to {}: not a bool'.format(showDomain))
 
     @property
     def border(self):

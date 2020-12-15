@@ -1,18 +1,18 @@
 # layers
 
-This folder contains modules and scripts for working with ATT&CK Navigator layers. ATT&CK Navigator Layers are a set of annotations overlayed on top of the ATT&CK Matrix. For more about ATT&CK Navigator layers, visit the ATT&CK Navigator repository. The core module allows users to load, validate, manipulate, and save ATT&CK layers. A brief overview of the components can be found below. All scripts adhere to the MITRE ATT&CK Navigator Layer file format, [version 4.0](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4.md), but will accept legacy [version 3.0](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md) layers, upgrading them to version 4.
+This folder contains modules and scripts for working with ATT&CK Navigator layers. ATT&CK Navigator Layers are a set of annotations overlaid on top of the ATT&CK Matrix. For more about ATT&CK Navigator layers, visit the ATT&CK Navigator repository. The core module allows users to load, validate, manipulate, and save ATT&CK layers. A brief overview of the components can be found below. All scripts adhere to the MITRE ATT&CK Navigator Layer file format, [version 4.1](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4_1.md), but will accept legacy [version 3.0](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv3.md) layers, upgrading them to version 4.1.
 
 #### Core Modules
 | script | description |
 |:-------|:------------|
-| [filter](core/filter.py) | Implements a basic [filter object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4.md#filter-object-properties). |
-| [gradient](core/gradient.py) | Implements a basic [gradient object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4.md#gradient-object-properties). |
+| [filter](core/filter.py) | Implements a basic [filter object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4_1.md#filter-object-properties). |
+| [gradient](core/gradient.py) | Implements a basic [gradient object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4_1.md#gradient-object-properties). |
 | [layer](core/layer.py) | Provides an interface for interacting with core module's layer representation. A further breakdown can be found in the corresponding [section](#Layer) below. |
-| [layout](core/layout.py) | Implements a basic [layout object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4.md#layout-object-properties). |
-| [legenditem](core/legenditem.py) | Implements a basic [legenditem object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4.md#legenditem-object-properties). |
-| [metadata](core/metadata.py) | Implements a basic [metadata object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4.md#metadata-object-properties). |
-| [technique](core/technique.py) | Implements a basic [technique object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4.md#technique-object-properties). |
-| [versions](core/versions.py) | Impelments a basic [versions object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4.md#versions-object-properties).|
+| [layout](core/layout.py) | Implements a basic [layout object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4_1.md#layout-object-properties). |
+| [legenditem](core/legenditem.py) | Implements a basic [legenditem object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4_1.md#legenditem-object-properties). |
+| [metadata](core/metadata.py) | Implements a basic [metadata object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4_1.md#metadata-object-properties). |
+| [technique](core/technique.py) | Implements a basic [technique object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4_1.md#technique-object-properties). |
+| [versions](core/versions.py) | Impelments a basic [versions object](https://github.com/mitre-attack/attack-navigator/blob/develop/layers/LAYERFORMATv4_1.md#versions-object-properties).|
 #### Manipulator Scripts
 | script | description |
 |:-------|:------------|
@@ -22,14 +22,14 @@ This folder contains modules and scripts for working with ATT&CK Navigator layer
 | script | description |
 |:-------|:------------|
 | [to_excel](exporters/to_excel.py) | Provides a means by which to export an ATT&CK Layer to an excel file. A further breakdown can be found in the corresponding [section](#to_excel.py) below. |
-| [to_svg](exporters/to_svg.py) | Provides a means by which to export an ATT&CK layer to an svg image file. A further breakdown can be found in the corresponding [section](#to_svg.py) below. This file also contains the `SVGConfig` object that can be used to configure the SVG export.| 
+| [to_svg](exporters/to_svg.py) | Provides a means by which to export an ATT&CK layer to an svg image file. A further breakdown can be found in the corresponding [section](#to_svg.py) below. This file also contains the `SVGConfig` object that can be used to configure the SVG export.|
 ##### Utility Modules
 | script | description |
 |:-------|:------------|
 | [excel_templates](exporters/excel_templates.py) | Provides a means by which to convert a matrix into a clean excel matrix template. |
 | [matrix_gen](exporters/matrix_gen.py) | Provides a means by which to generate a matrix from raw data, either from the ATT&CK TAXII server or from a local STIX Bundle. |
 | [svg_templates](exporters/svg_templates.py) | Provides a means by which to convert a layer file into a marked up svg file. |
-| [svg_objects](exporters/svg_objects.py) | Provides raw templates and supporting functionality for generating svg objects. | 
+| [svg_objects](exporters/svg_objects.py) | Provides raw templates and supporting functionality for generating svg objects. |
 ##### Command Line Tools
 | script | description |
 |:-------|:------------|
@@ -45,7 +45,7 @@ The Layer class provides format validation and read/write capabilities to aid in
 | x.from_file(_filepath_) | Loads an ATT&CK layer from a file location specified by the _filepath_. |
 | x.to_file(_filepath_) | Saves the current state of the loaded ATT&CK layer to a json file denoted by the _filepath_. |
 | x.to_dict() | Returns a representation of the current ATT&CK layer object as a dictionary. |
-| x.to_str() | Returns a representation of the current ATT&CK layer object as a string representation of a dictionary. | 
+| x.to_str() | Returns a representation of the current ATT&CK layer object as a string representation of a dictionary. |
 
 #### Example Usage
 
@@ -57,10 +57,11 @@ example_layer3_dict = {
 }
 
 example_layer4_dict = {
-    "name": "layer v4 example",
+    "name": "layer v4.1 example",
     "versions" : {
-        "layer" : "4.0",
-        "navigator": "4.0"
+        "attack": "8",
+        "layer" : "4.1",
+        "navigator": "4.1"
     },
     "domain": "enterprise-attack"
 }
@@ -88,7 +89,7 @@ Layerops.py provides the LayerOps class, which is a way to combine layer files i
 ```python
  x = LayerOps(score=score, comment=comment, enabled=enabled, colors=colors, metadata=metadata, name=name, desc=desc, default_values=default_values)
 ```
- 
+
  Each of the _inputs_ takes a lambda function that will be used to combine technique object fields matching the parameter. The one exception to this is _default_values_, which is an optional dictionary argument containing default values to provide the lambda functions if techniques of the combined layers are missing them.
 
 ##### .process() Method
@@ -111,8 +112,8 @@ demo3 = Layer()
 demo3.from_file("C:\Users\attack\Downloads\layer3.json")
 
 # Example 1) Build a LayerOps object that takes a list and averages scores across the layers
-lo = LayerOps(score=lambda x: sum(x) / len(x), 
-              name=lambda x: x[1], 
+lo = LayerOps(score=lambda x: sum(x) / len(x),
+              name=lambda x: x[1],
               desc=lambda x: "This is an list example")     # Build LayerOps object
 out_layer = lo.process([demo, demo2])                       # Trigger processing on a list of demo and demo2 layers
 out_layer.to_file("C:\demo_layer1.json")                    # Save averaged layer to file
@@ -120,8 +121,8 @@ out_layer2 = lo.process([demo, demo2, demo3])               # Trigger processing
 visual_aid = out_layer2.to_dict()                           # Retrieve dictionary representation of processed layer
 
 # Example 2) Build a LayerOps object that takes a dictionary and averages scores across the layers
-lo2 = LayerOps(score=lambda x: sum([x[y] for y in x]) / len([x[y] for y in x]), 
-               color=lambda x: x['b'], 
+lo2 = LayerOps(score=lambda x: sum([x[y] for y in x]) / len([x[y] for y in x]),
+               color=lambda x: x['b'],
                desc=lambda x: "This is a dict example")      # Build LayerOps object, with lambda
 out_layer3 = lo2.process({'a': demo, 'b': demo2})            # Trigger processing on a dictionary of demo and demo2
 dict_layer = out_layer3.to_dict()                            # Retrieve dictionary representation of processed layer
@@ -147,23 +148,23 @@ out_layer6.to_file("C:\demo_layer6.json")                     # Save combined co
 ```
 
 ## to_excel.py
-to_excel.py provides the ToExcel class, which is a way to export an existing layer file as an Excel 
-spreadsheet. The ToExcel class has an optional parameter for the initialization function, that 
-tells the exporter what data source to use when building the output matrix. Valid options include using live data from cti-taxii.mitre.org or using a local STIX bundle. 
+to_excel.py provides the ToExcel class, which is a way to export an existing layer file as an Excel
+spreadsheet. The ToExcel class has an optional parameter for the initialization function, that
+tells the exporter what data source to use when building the output matrix. Valid options include using live data from cti-taxii.mitre.org or using a local STIX bundle.
 
 ##### ToExcel()
 ```python
 x = ToExcel(domain='enterprise', source='taxii', local=None)
 ```
-The ToExcel constructor takes domain, server, and local arguments during instantiation. The domain can 
+The ToExcel constructor takes domain, server, and local arguments during instantiation. The domain can
 be either `enterprise` or `mobile`, and can be pulled directly from a layer file as `layer.domain`. The source argument tells the matrix generation tool which data source to use when building the matrix. `taxii` indicates that the tool should utilize the official ATT&CK Taxii Server (`cti-taxii`) when building the matrix, while the `local` option indicates that it should use a local bundle respectively. The local argument is only required if the source is set to `local`, in which case it should be a path to a local stix bundle.
 
 ##### .to_xlsx() Method
 ```python
 x.to_xlsx(layer=layer, filepath="layer.xlsx")
 ```
-The to_xlsx method exports the layer file referenced as `layer`, as an excel file to the 
-`filepath` specified. 
+The to_xlsx method exports the layer file referenced as `layer`, as an excel file to the
+`filepath` specified.
 
 #### Example Usage
 ```python
@@ -181,8 +182,8 @@ t2.to_xlsx(layer=lay, filepath="demo2.xlsx")
 ```
 
 ## to_svg.py
-to_svg.py provides the ToSvg class, which is a way to export an existing layer file as an SVG image file. The ToSvg class, like the ToExcel class, has an optional parameter for the initialization function, that 
-tells the exporter what data source to use when building the output matrix. Valid options include using live data from cti-taxii.mitre.org or using a local STIX bundle. 
+to_svg.py provides the ToSvg class, which is a way to export an existing layer file as an SVG image file. The ToSvg class, like the ToExcel class, has an optional parameter for the initialization function, that
+tells the exporter what data source to use when building the output matrix. Valid options include using live data from cti-taxii.mitre.org or using a local STIX bundle.
 
 ##### ToSvg()
 ```python
@@ -195,7 +196,7 @@ The ToSvg constructor, just like the ToExcel constructor, takes domain, server, 
 y = SVGConfig(width=8.5, height=11, headerHeight=1, unit="in", showSubtechniques="expanded",
                  font="sans-serif", tableBorderColor="#6B7279", showHeader=True, legendDocked=True,
                  legendX=0, legendY=0, legendWidth=2, legendHeight=1, showLegend=True, showFilters=True,
-                 showAbout=True, border=0.104)
+                 showAbout=True, showDomain=True, border=0.104)
 ```
 The SVGConfig object is used to configure how an SVG export behaves. The defaults for each of the available values can be found in the declaration above, and a brief explanation for each field is included in the table below. The config object should be provided to the ToSvg object during instantiation, but if values need to be updated on the fly, the currently loaded configuration can be interacted with at `ToSvg().config`. The configuration can also be populated from a json file using the `.load_from_file(filename="path/to/file.json")` method, or stored to one using the `.save_to_file(filename="path/to/file.json)` method.
 
@@ -204,10 +205,10 @@ The SVGConfig object is used to configure how an SVG export behaves. The default
 | width | Desired SVG width | number | 8.5 |
 | height | Desired SVG height | number | 11 |
 | headerHeight | Desired Header Block height | number | 1 |
-| unit | SVG measurement units (qualifies width, height, etc.) - "in", "cm", "px", "em", or "pt"| string | "in" | 
-| showSubtechniques | Display form for subtechniques - "all", "expanded" (decided by layer), or "none" | string | "expanded" | 
+| unit | SVG measurement units (qualifies width, height, etc.) - "in", "cm", "px", "em", or "pt"| string | "in" |
+| showSubtechniques | Display form for subtechniques - "all", "expanded" (decided by layer), or "none" | string | "expanded" |
 | font | What font style to use - "serif", "sans-serif", or "monospace" | string | "sans-serif" |
-| tableBorderColor | Hex color to use for the technique borders | string | "#6B7279" | 
+| tableBorderColor | Hex color to use for the technique borders | string | "#6B7279" |
 | showHeader | Whether or not to show Header Blocks | bool | True |
 | legendDocked | Whether or not the legend should be docked | bool | True |
 | legendX | Where to place the legend on the x axis if not docked | number | 0 |
@@ -216,15 +217,16 @@ The SVGConfig object is used to configure how an SVG export behaves. The default
 | legendHeight | Height of the legend if not docked | number | 1 |
 | showLegend | Whether or not to show the legend | bool | True |
 | showFilters | Whether or not to show the Filter Header Block | bool | True |
+| showDomain | Whether or not to show the Domain and Version Header Block | bool | True |
 | showAbout | Whether or not to show the About Header Block | bool | True |
-| border | What default border width to use | number | 0.104 | 
+| border | What default border width to use | number | 0.104 |
 
 ##### .to_svg() Method
 ```python
 x.to_svg(layer=layer, filepath="layer.svg")
 ```
-The to_svg method exports the layer file referenced as `layer`, as an excel file to the 
-`filepath` specified. 
+The to_svg method exports the layer file referenced as `layer`, as an excel file to the
+`filepath` specified.
 
 #### Example Usage
 ```python
