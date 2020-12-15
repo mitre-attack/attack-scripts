@@ -119,7 +119,7 @@ if __name__ == '__main__':
     )
     parser.add_argument("-version",
         type=str,
-        default="v7.2",
+        default="v8.1",
         help=f"which version of ATT&CK to convert"
     )
     args = parser.parse_args()
