@@ -1,3 +1,7 @@
+# v1.8 - 15 December 2020
+## Improvements
+- Updated Layer library to support ATT&CK Navigator Layer format version 4.1. 
+
 # v1.7 - 27 October 2020
 ## Improvements
 - Removed pre-ATT&CK domain from scripts to support migration of that content to enterprise tactics. See issue [#36](https://github.com/mitre-attack/attack-scripts/issues/36).

@@ -4,7 +4,7 @@ try:
     from ..core.technique import Technique
     from ..core.gradient import Gradient
     from ..core.legenditem import LegendItem
-    from ..core.metadata import Metadata
+    from ..core.metadata import Metadata, MetaDiv
     from ..core.versions import Versions
     from ..core.exceptions import UNSETVALUE, typeChecker, BadInput, handler, \
         categoryChecker, UnknownLayerProperty, loadChecker, MissingParameters
@@ -14,7 +14,7 @@ except ValueError:
     from core.technique import Technique
     from core.gradient import Gradient
     from core.legenditem import LegendItem
-    from core.metadata import Metadata
+    from core.metadata import Metadata, MetaDiv
     from core.versions import Versions
     from core.exceptions import UNSETVALUE, typeChecker, BadInput, handler, \
         categoryChecker, UnknownLayerProperty, loadChecker, MissingParameters
@@ -53,7 +53,7 @@ class _LayerObj:
     @version.setter
     def version(self, version):
         typeChecker(type(self).__name__, version, str, "version")
-        categoryChecker(type(self).__name__, version, ["3.0", "4.0"], "version")
+        categoryChecker(type(self).__name__, version, ["3.0", "4.0", "4.1"], "version")
         if self.__versions is UNSETVALUE:
             self.__versions = Versions()
         self.__versions.layer = version
@@ -278,8 +278,11 @@ class _LayerObj:
         self.__metadata = []
         for entry in metadata:
             try:
-                loadChecker(type(self).__name__, entry, ['name', 'value'], "metadata")
-                self.__metadata.append(Metadata(entry['name'], entry['value']))
+                if "divider" in entry:
+                        self.__metadata.append(MetaDiv(entry["divider"]))
+                else:
+                    loadChecker(type(self).__name__, entry, ['name', 'value'], "metadata")
+                    self.__metadata.append(Metadata(entry['name'], entry['value']))
             except MissingParameters as e:
                 handler(type(self).__name__, 'Metadata {} is missing parameters: '
                                          '{}. Skipping.'
