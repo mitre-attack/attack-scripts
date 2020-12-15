@@ -69,8 +69,8 @@ def generate(softwaretype="software"):
         "name": layername,
         "description": layerdescription,
         "versions": {
-            "layer": "4.0",
-            "navigator": "4.0"
+            "layer": "4.1",
+            "navigator": "4.1"
         },
         "domain": "enterprise-attack",
         "techniques": techniques_list,

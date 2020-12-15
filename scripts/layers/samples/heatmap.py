@@ -27,8 +27,8 @@ def generate():
     return {
         "name": "heatmap example",
         "versions": {
-            "layer": "4.0",
-            "navigator": "4.0"
+            "layer": "4.1",
+            "navigator": "4.1"
         },
         "sorting": 3, # descending order of score
         "description": "An example layer where all techniques have a randomized score",

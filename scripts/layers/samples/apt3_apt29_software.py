@@ -118,8 +118,8 @@ def generate(show_nodetect=False):
     return {
         "name": name,
         "versions": {
-            "layer": "4.0",
-            "navigator": "4.0"
+            "layer": "4.1",
+            "navigator": "4.1"
         },
         "description": description,
         "domain": "enterprise-attack",

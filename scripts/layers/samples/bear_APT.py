@@ -63,8 +63,8 @@ def generate():
     return {
         "name": "*Bear APTs",
         "versions": {
-            "layer": "4.0",
-            "navigator": "4.0"
+            "layer": "4.1",
+            "navigator": "4.1"
         },
         "description": "All techniques used by an APT group with phrase 'bear' in the group aliases",
         "domain": "enterprise-attack",
