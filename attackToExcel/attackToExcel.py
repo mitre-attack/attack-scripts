@@ -6,14 +6,24 @@ import requests
 import pandas as pd
 
 def get_data_from_version(domain, version):
-    """get the ATT&CK STIX data for the given version from MITRE/CTI. Domain should be 'enterprise-attack', 'mobile-attack' or 'pre-attack'."""
+    """
+    get the ATT&CK STIX data for the given version from MITRE/CTI.
+    :param domain: the domain of ATT&CK to fetch data from, e.g "enterprise-attack"
+    :param version: the version of attack to fetch data from, e.g "v8.1"
+    :returns: a MemoryStore containing the domain data
+    """
     url = f"https://raw.githubusercontent.com/mitre/cti/ATT%26CK-{version}/{domain}/{domain}.json"
     stix_json = requests.get(url, verify=False).json()
     return MemoryStore(stix_data=stix_json["objects"])
 
 
 def build_dataframes(src, domain):
-    """build pandas dataframes for each attack type, and return a dictionary lookup for each type to the relevant dataframe"""
+    """
+    build pandas dataframes for each attack type, and return a dictionary lookup for each type to the relevant dataframe
+    :param src: MemoryStore or other stix2 DataSource object
+    :param domain: domain of ATT&CK src corresponds to, e.g "enterprise-attack"
+    :returns: a dict lookup of each ATT&CK type to dataframes for the given type to be ingested by write_excel
+    """
     # get each ATT&CK type
     return {
         "techniques": stixToDf.techniquesToDf(src, domain),
@@ -26,7 +36,15 @@ def build_dataframes(src, domain):
     }
 
 def write_excel(dataframes, domain, version, outputDir="."):
-    """given a set of dataframes from build_dataframes, write the ATT&CK dataset to output directory"""
+    """
+    given a set of dataframes from build_dataframes, write the ATT&CK dataset to output directory
+    :param dataframes: pandas dataframes as built by build_dataframes
+    :param domain: domain of ATT&CK the dataframes correspond to, e.g "enterprise-attack"
+    :param version: the version of ATT&CK the dataframes correspond to, e.g "v8.1"
+    :param outputDir: optional, the directory to write the excel files to. If omitted writes to a 
+                      subfolder of the current directory depending on specified name and version
+    :returns: a list of filepaths corresponding to the files written by the function
+    """
 
     print("writing formatted files... ", end="", flush=True)
     # master list of files that have been written
@@ -114,15 +132,21 @@ def write_excel(dataframes, domain, version, outputDir="."):
     return written_files
 
 
-def main(domain, version, outputDir):
-    """create excel files for the ATT&CK dataset of the specified domain and version"""
+def main(domain, version, outputDir="."):
+    """
+    Download ATT&CK data from MITRE/CTI and convert it to excel spreadsheets
+    :param domain: the domain of ATT&CK to download, e.g "enterprise-attack"
+    :param version: the version of ATT&CK to download, e.g "v8.1"
+    :param outputDir: optional, the directory to write the excel files to. If omitted writes to a 
+                      subfolder of the current directory depending on specified name and version
+    """
     # build dataframes
     dataframes = build_dataframes(get_data_from_version(domain, version), domain)
     write_excel(dataframes, domain, version, outputDir)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-         description="Convert ATT&CK STIX data to excel spreadsheets"
+         description="Download ATT&CK data from MITRE/CTI and convert it to excel spreadsheets"
     )
     parser.add_argument("-domain",
         type=str,

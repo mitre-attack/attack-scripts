@@ -6,26 +6,6 @@ import datetime
 import re
 import numpy as np
 
-attackToStixTerm = {
-    "technique": ["attack-pattern"],
-    "tactic": ["x-mitre-tactic"],
-    "software": ["tool", "malware"],
-    "group": ["intrusion-set"],
-    "mitigation": ["course-of-action"],
-    "matrix": ["x-mitre-matrix"],
-}
-stixToAttackTerm = {
-    "attack-pattern": "technique",
-    "x-mitre-tactic": "tactic",
-    "tool": "software",
-    "malware": "software",
-    "intrusion-set": "group",
-    "course-of-action": "mitigation",
-    "x-mitre-matrix": "matrix"
-}
-
-ATTACKBLUE = "#062F4F"
-
 def remove_revoked_deprecated(stix_objects):
     """Remove any revoked or deprecated objects from queries made to the data source"""
     # Note we use .get() because the property may not be present in the JSON data. The default is False
@@ -38,7 +18,7 @@ def remove_revoked_deprecated(stix_objects):
     )
 
 def format_date(date):
-    """ Given a date string, format to %d %B %Y """
+    """ Given a date string, return it formatted as %d %B %Y """
     if isinstance(date, str):
         date = datetime.datetime.strptime(date, "%Y-%m-%dT%H:%M:%S.%fZ")
     return ("{} {} {}").format(date.strftime("%d"), date.strftime("%B"), date.strftime("%Y"))
@@ -62,7 +42,7 @@ def get_citations(objects):
     return pd.DataFrame(citations).drop_duplicates(subset="reference", ignore_index=True)
 
 def parseBaseStix(sdo):
-    """given an SDO, return a row of fields that are common across the STIX types"""
+    """given an SDO, return a dict of field names:values that are common across all ATT&CK STIX types"""
     row = {}
     url = None
     if "external_references" in sdo and sdo["external_references"][0]["source_name"] in ["mitre-attack", "mitre-mobile-attack", "mitre-ics-attack"]:
@@ -85,8 +65,13 @@ def parseBaseStix(sdo):
     return row
 
 def techniquesToDf(src, domain):
-    """convert the stix techniques to pandas dataframes. 
-    Return a lookup of labels (descriptors) to dataframes"""
+    """
+    Parse STIX techniques from the given data and return corresponding pandas dataframes. 
+    :param src: MemoryStore or other stix2 DataSource object holding the domain data
+    :param domain: domain of ATT&CK src corresponds to, e.g "enterprise-attack"
+    :returns: a lookup of labels (descriptors/names) to dataframes
+    """
+
     techniques = src.query([Filter("type", "=", "attack-pattern")])
     techniques = remove_revoked_deprecated(techniques)
     technique_rows = []
@@ -162,8 +147,13 @@ def techniquesToDf(src, domain):
     return dataframes
 
 def tacticsToDf(src, domain):
-    """convert the stix tactics to pandas dataframes. 
-    Return a lookup of labels (descriptors) to dataframes"""
+    """
+    Parse STIX tactics from the given data and return corresponding pandas dataframes. 
+    :param src: MemoryStore or other stix2 DataSource object holding the domain data
+    :param domain: domain of ATT&CK src corresponds to, e.g "enterprise-attack"
+    :returns: a lookup of labels (descriptors/names) to dataframes
+    """
+
     tactics = src.query([Filter("type", "=", "x-mitre-tactic")])
     tactics = remove_revoked_deprecated(tactics)
 
@@ -180,8 +170,13 @@ def tacticsToDf(src, domain):
     return dataframes
 
 def softwareToDf(src, domain):
-    """convert the stix software to pandas dataframes. 
-    Return a lookup of labels (descriptors) to dataframes"""
+    """
+    Parse STIX software from the given data and return corresponding pandas dataframes. 
+    :param src: MemoryStore or other stix2 DataSource object holding the domain data
+    :param domain: domain of ATT&CK src corresponds to, e.g "enterprise-attack"
+    :returns: a lookup of labels (descriptors/names) to dataframes
+    """
+
     software = list(chain.from_iterable( # software are the union of the tool and malware types
         src.query(f) for f in [Filter("type", "=", "tool"), Filter("type", "=", "malware")]
     ))
@@ -217,8 +212,13 @@ def softwareToDf(src, domain):
     return dataframes
 
 def groupsToDf(src, domain):
-    """convert the stix groups to pandas dataframes. 
-    Return a lookup of labels (descriptors) to dataframes"""
+    """
+    Parse STIX groups from the given data and return corresponding pandas dataframes. 
+    :param src: MemoryStore or other stix2 DataSource object holding the domain data
+    :param domain: domain of ATT&CK src corresponds to, e.g "enterprise-attack"
+    :returns: a lookup of labels (descriptors/names) to dataframes
+    """
+    
     groups = src.query([Filter("type", "=", "intrusion-set")])
     groups = remove_revoked_deprecated(groups)
     group_rows = []
@@ -259,8 +259,13 @@ def groupsToDf(src, domain):
     return dataframes
 
 def mitigationsToDf(src, domain):
-    """convert the stix mitigations to pandas dataframes. 
-    Return a lookup of labels (descriptors) to dataframes"""
+    """
+    Parse STIX mitigations from the given data and return corresponding pandas dataframes. 
+    :param src: MemoryStore or other stix2 DataSource object holding the domain data
+    :param domain: domain of ATT&CK src corresponds to, e.g "enterprise-attack"
+    :returns: a lookup of labels (descriptors/names) to dataframes
+    """
+    
     mitigations = src.query([Filter("type", "=", "course-of-action")])
     mitigations = remove_revoked_deprecated(mitigations)
     mitigation_rows = []
@@ -288,7 +293,7 @@ class CellRange:
     """
     helper class for handling ranges of cells in a spreadsheet. Note: not 0-indexed, row and cols start at 1. 
     Data is optional argument for data to store in the cellrange in the case of merged ranges
-    format is a dict {name, format} for the xlsxwriter style. Formats of the same name will not be defined multiple times to the worksheet; only the first definition will be used
+    format is a dict {name, format} for the XlsxWriter style. Formats of the same name will not be defined multiple times to the worksheet; only the first definition will be used
     """
     def __init__(self, leftCol, rightCol, topRow, bottomRow, data=None, format=None):
         self.leftCol = leftCol
@@ -312,13 +317,18 @@ class CellRange:
         return ''.join(result) + str(row)
 
 def matricesToDf(src, domain):
-    """convert the stix matrices to pandas dataframes. 
-    returns [{ matrix, name, description, merge, border }, ... ] where 
+    """
+    Parse STIX matrices from the given data and return parsed matrix structures
+    :param src: MemoryStore or other stix2 DataSource object holding the domain data
+    :param domain: domain of ATT&CK src corresponds to, e.g "enterprise-attack"
+    :returns: [{ matrix, name, description, merge, border }, ... ] where 
         matrix is a pandas dataframe of the matrix
         name is the name of the matrix
         description is the description of the matrix
         merge is a list of CellRange objects that need to be merged for formatting of the sub-techniques in the matrix
-        columns is the number of columns in the data"""
+        columns is the number of columns in the data
+    """
+
     print("building matrices... ", end="", flush=True)
     matrices = src.query([Filter("type", "=", "x-mitre-matrix")])
     matrices = remove_revoked_deprecated(matrices)
@@ -434,11 +444,32 @@ def matricesToDf(src, domain):
     return matrices_parsed
 
 def relationshipsToDf(src, relatedType=None):
-    """convert the stix relationships to pandas dataframes. 
-    args: 
-        src: the ATT&CK dataset
-        relatedType: (optional) string, singular attack type to only return relationships with, e.g "mitigation"
-    Return a lookup of labels (descriptors) to dataframes"""
+    """
+    Parse STIX relationships from the given data and return corresponding pandas dataframes. 
+    :param src: MemoryStore or other stix2 DataSource object holding the domain data
+    :param relatedType: optional, singular attack type to only return relationships with, e.g "mitigation"
+    :returns: a lookup of labels (descriptors/names) to dataframes
+    """
+    
+    # Helper lookups
+    attackToStixTerm = {
+        "technique": ["attack-pattern"],
+        "tactic": ["x-mitre-tactic"],
+        "software": ["tool", "malware"],
+        "group": ["intrusion-set"],
+        "mitigation": ["course-of-action"],
+        "matrix": ["x-mitre-matrix"],
+    }
+    stixToAttackTerm = {
+        "attack-pattern": "technique",
+        "x-mitre-tactic": "tactic",
+        "tool": "software",
+        "malware": "software",
+        "intrusion-set": "group",
+        "course-of-action": "mitigation",
+        "x-mitre-matrix": "matrix"
+    }
+
     # get master list of relationships
     relationships = src.query([Filter("type", "=", "relationship")])
     relationships = remove_revoked_deprecated(relationships)
