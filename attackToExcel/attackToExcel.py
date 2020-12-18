@@ -61,12 +61,12 @@ def write_excel(dataframes, domain, version):
                 # for each writer, format the matrix for readability
                 for writer in [master_writer, matrix_writer]:
                     # define column border styles
-                    borderleft = writer.book.add_format({"left": 1})
-                    borderright = writer.book.add_format({"right": 1})
+                    borderleft = writer.book.add_format({"left": 1, "shrink": 1})
+                    borderright = writer.book.add_format({"right": 1, "shrink": 1})
                     formats = {} # formats only need to be defined once: pointers stored here for subsequent uses
                     sheet = writer.sheets[sheetname]
 
-                    sheet.set_column(0, matrix["columns"], width=20) # set all columns to 20 width
+                    sheet.set_column(0, matrix["columns"], width=20) # set all columns to 20 width, and add text shrinking to fit
 
                     # merge supertechniques and tactic headers if sub-techniques are present on a tactic
                     for mergeRange in matrix["merge"]:
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     )
     parser.add_argument("-domain",
         type=str,
-        choices=["enterprise-attack", "mobile-attack"],
+        choices=["enterprise-attack", "mobile-attack", "ics-attack"],
         default="enterprise-attack",
         help="which domain of ATT&CK to convert"
     )

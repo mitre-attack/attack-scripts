@@ -64,7 +64,8 @@ def get_citations(objects):
 def parseBaseStix(sdo):
     """given an SDO, return a row of fields that are common across the STIX types"""
     row = {}
-    if "external_references" in sdo and sdo["external_references"][0]["source_name"] in ["mitre-attack", "mitre-mobile-attack"]:
+    url = None
+    if "external_references" in sdo and sdo["external_references"][0]["source_name"] in ["mitre-attack", "mitre-mobile-attack", "mitre-ics-attack"]:
         row["ID"] = sdo["external_references"][0]["external_id"]
         url = sdo["external_references"][0]["url"]
     if "name" in sdo:
@@ -113,6 +114,11 @@ def techniquesToDf(src, domain):
             row["detection"] = technique["x_mitre_detection"]
         if "x_mitre_platforms" in technique:
             row["platforms"] = ", ".join(sorted(technique["x_mitre_platforms"]))
+        
+        # domain specific fields -- ICS + Enterprise
+        if domain in ["enterprise-attack", "ics-attack"]:
+            if "x_mitre_data_sources" in technique:
+                row["data sources"] = ", ".join(sorted(technique["x_mitre_data_sources"]))
 
         # domain specific fields -- enterprise
         if domain == "enterprise-attack":
@@ -121,8 +127,6 @@ def techniquesToDf(src, domain):
                 row["name"] = f"{parent['name']}: {technique['name']}"
                 row["sub-technique of"] = parent["external_references"][0]["external_id"]
 
-            if "x_mitre_data_sources" in technique:
-                row["data sources"] = ", ".join(sorted(technique["x_mitre_data_sources"]))
             if "privilege-escalation" in tactic_shortnames and "x_mitre_permissions_required" in technique:
                 row["permissions required"] = ", ".join(sorted(technique["x_mitre_permissions_required"]))
             if "defense-evasion" in tactic_shortnames and "x_mitre_defense_bypassed" in technique:
@@ -371,7 +375,11 @@ def matricesToDf(src, domain):
                             data=technique["name"],
                             format={ # format of the merged range
                                 "name": "supertechnique",
-                                "format": { 'valign': 'vcenter', 'text_wrap': 1 }
+                                "format": { 
+                                    'valign': 'vcenter', 
+                                    'text_wrap': 1, 
+                                    'shrink': 1 
+                                }
                             }
                         ))
                 else: # no sub-techniques; add empty cell parallel to technique
@@ -395,6 +403,7 @@ def matricesToDf(src, domain):
                             "border": 1,
                             "font_size": 14,
                             "align": "center",
+                            "shrink": 1
                         }
                     }
                 ))
