@@ -25,25 +25,31 @@ def build_dataframes(src, domain):
         "relationships": stixToDf.relationshipsToDf(src)
     }
 
-def write_excel(dataframes, domain, version):
+def write_excel(dataframes, domain, version, outputDir="."):
     """given a set of dataframes from build_dataframes, write the ATT&CK dataset to output directory"""
 
-    print("writing and formatting files... ", end="", flush=True)
+    print("writing formatted files... ", end="", flush=True)
+    # master list of files that have been written
+    written_files = []
     # set up output directory
     domainVersionString = f"{domain}-{version}"
-    if not os.path.exists(domainVersionString):
-        os.mkdir(domainVersionString)
+    outputDirectory = os.path.join(outputDir, domainVersionString)
+    if not os.path.exists(outputDirectory):
+        os.makedirs(outputDirectory)
     # master dataset file
-    master_writer = pd.ExcelWriter(os.path.join(domainVersionString, f"{domainVersionString}.xlsx"), engine='xlsxwriter')
+    master_fp = os.path.join(outputDirectory, f"{domainVersionString}.xlsx")
+    master_writer = pd.ExcelWriter(master_fp, engine='xlsxwriter')
     citations = pd.DataFrame() # master list of citations
     # write individual dataframes and add to master writer
     for objType in dataframes:
         if objType != "matrices":
             # write the dataframes for the object type into named sheets
-            obj_writer = pd.ExcelWriter(os.path.join(domainVersionString, f"{domainVersionString}-{objType}.xlsx"))
+            fp = os.path.join(outputDirectory, f"{domainVersionString}-{objType}.xlsx")
+            obj_writer = pd.ExcelWriter(fp)
             for dfname in dataframes[objType]: 
                 dataframes[objType][dfname].to_excel(obj_writer, sheet_name=dfname, index=False) 
             obj_writer.save()
+            written_files.append(fp)
 
             # add citations to master citations list
             if "citations" in dataframes[objType]:
@@ -52,7 +58,8 @@ def write_excel(dataframes, domain, version):
             # add main df to master dataset
             dataframes[objType][objType].to_excel(master_writer, sheet_name=objType, index=False)
         else: # handle matrix special formatting
-            matrix_writer = pd.ExcelWriter(os.path.join(domainVersionString, f"{domainVersionString}-{objType}.xlsx"), engine='xlsxwriter')
+            fp = os.path.join(outputDirectory, f"{domainVersionString}-{objType}.xlsx")
+            matrix_writer = pd.ExcelWriter(fp, engine='xlsxwriter')
             for matrix in dataframes[objType]: # some domains have multiple matrices
                 sheetname = "matrix" if len(dataframes[objType]) == 1 else matrix["name"] + " matrix" # name them accordingly if there are multiple
                 matrix["matrix"].to_excel(master_writer, sheet_name=sheetname, index=False) # write unformatted matrix data to master file
@@ -92,20 +99,26 @@ def write_excel(dataframes, domain, version):
                         sheet.merge_range(mergeRange.to_excel_format(), mergeRange.data, theformat) # apply the merge
             
             matrix_writer.save() # save the matrix data
+            written_files.append(fp)
             # end of matrix sheet writing
 
     # remove duplicate citations and add sheet to master file
     citations.drop_duplicates(subset="reference", ignore_index=True).sort_values("reference").to_excel(master_writer, sheet_name="citations", index=False)
     # write the master file
     master_writer.save()
+    written_files.append(master_fp)
     print("done")
+    print("files created:")
+    for thefile in written_files:
+        print("\t", thefile)
+    return written_files
 
 
-def main(domain, version):
+def main(domain, version, outputDir):
     """create excel files for the ATT&CK dataset of the specified domain and version"""
     # build dataframes
     dataframes = build_dataframes(get_data_from_version(domain, version), domain)
-    write_excel(dataframes, domain, version)
+    write_excel(dataframes, domain, version, outputDir)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -120,8 +133,13 @@ if __name__ == '__main__':
     parser.add_argument("-version",
         type=str,
         default="v8.1",
-        help=f"which version of ATT&CK to convert"
+        help="which version of ATT&CK to convert"
+    )
+    parser.add_argument("-output",
+        type=str,
+        default=".",
+        help="output directory"
     )
     args = parser.parse_args()
     
-    main(args.domain, args.version)
+    main(args.domain, args.version, args.output)
