@@ -33,9 +33,11 @@ Example of accessing [Pandas](https://pandas.pydata.org/) DataFrames:
 import attackToExcel
 import stixToDf
 
+# download and parse ATT&CK STIX data
 attackdata = attackToExcel.get_data_from_version("enterprise-attack")
 techniques_data = stixToDf.techniquesToDf(attackdata, "enterprise-attack")
 
+# show T1102 and sub-techniques of T1102
 techniques_df = techniques_data["techniques"]
 print(techniques_df[techniques_df["ID"].str.contains("T1102")]["name"])
 # 512                                 Web Service
@@ -44,6 +46,7 @@ print(techniques_df[techniques_df["ID"].str.contains("T1102")]["name"])
 # 323          Web Service: One-Way Communication
 # Name: name, dtype: object
 
+# show citation data for LOLBAS Wmic reference
 citations_df = techniques_data["citations"]
 print(citations_df[citations_df["reference"].str.contains("LOLBAS Wmic")])
 #         reference                                           citation                                                url
