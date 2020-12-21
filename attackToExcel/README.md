@@ -1,6 +1,6 @@
 # ATT&CK To Excel
 
-This folder contains a module for converting ATT&CK STIX data to excel spreadsheets. 
+This folder contains a module for converting [ATT&CK STIX data](https://github.com/mitre/cti) to Excel spreadsheets. 
 
 ## Usage
 Print full usage instructions:

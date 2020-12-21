@@ -5,17 +5,20 @@ import os
 import requests
 import pandas as pd
 
-def get_data_from_version(domain, version):
+def get_data_from_version(domain, version=None):
     """
     get the ATT&CK STIX data for the given version from MITRE/CTI.
     :param domain: the domain of ATT&CK to fetch data from, e.g "enterprise-attack"
-    :param version: the version of attack to fetch data from, e.g "v8.1"
+    :param version: the version of attack to fetch data from, e.g "v8.1". If omitted, returns the latest version
     :returns: a MemoryStore containing the domain data
     """
-    url = f"https://raw.githubusercontent.com/mitre/cti/ATT%26CK-{version}/{domain}/{domain}.json"
+    if version:
+        url = f"https://raw.githubusercontent.com/mitre/cti/ATT%26CK-{version}/{domain}/{domain}.json"
+    else:
+        url = f"https://raw.githubusercontent.com/mitre/cti/master/{domain}/{domain}.json"
+
     stix_json = requests.get(url, verify=False).json()
     return MemoryStore(stix_data=stix_json["objects"])
-
 
 def build_dataframes(src, domain):
     """
@@ -35,14 +38,15 @@ def build_dataframes(src, domain):
         "relationships": stixToDf.relationshipsToDf(src)
     }
 
-def write_excel(dataframes, domain, version, outputDir="."):
+def write_excel(dataframes, domain, version=None, outputDir="."):
     """
     given a set of dataframes from build_dataframes, write the ATT&CK dataset to output directory
     :param dataframes: pandas dataframes as built by build_dataframes
     :param domain: domain of ATT&CK the dataframes correspond to, e.g "enterprise-attack"
-    :param version: the version of ATT&CK the dataframes correspond to, e.g "v8.1"
+    :param version: optional, the version of ATT&CK the dataframes correspond to, e.g "v8.1". 
+                    If omitted, the output files will not be labelled with the version number
     :param outputDir: optional, the directory to write the excel files to. If omitted writes to a 
-                      subfolder of the current directory depending on specified name and version
+                      subfolder of the current directory depending on specified domain and version
     :returns: a list of filepaths corresponding to the files written by the function
     """
 
@@ -50,7 +54,10 @@ def write_excel(dataframes, domain, version, outputDir="."):
     # master list of files that have been written
     written_files = []
     # set up output directory
-    domainVersionString = f"{domain}-{version}"
+    if version:
+        domainVersionString = f"{domain}-{version}"
+    else:
+        domainVersionString = domain
     outputDirectory = os.path.join(outputDir, domainVersionString)
     if not os.path.exists(outputDirectory):
         os.makedirs(outputDirectory)
@@ -132,13 +139,13 @@ def write_excel(dataframes, domain, version, outputDir="."):
     return written_files
 
 
-def main(domain, version, outputDir="."):
+def main(domain, version=None, outputDir="."):
     """
     Download ATT&CK data from MITRE/CTI and convert it to excel spreadsheets
     :param domain: the domain of ATT&CK to download, e.g "enterprise-attack"
-    :param version: the version of ATT&CK to download, e.g "v8.1"
+    :param version: optional, the version of ATT&CK to download, e.g "v8.1". If omitted will build the current version of ATT&CK
     :param outputDir: optional, the directory to write the excel files to. If omitted writes to a 
-                      subfolder of the current directory depending on specified name and version
+                      subfolder of the current directory depending on specified domain and version
     """
     # build dataframes
     dataframes = build_dataframes(get_data_from_version(domain, version), domain)
@@ -156,13 +163,12 @@ if __name__ == '__main__':
     )
     parser.add_argument("-version",
         type=str,
-        default="v8.1",
-        help="which version of ATT&CK to convert"
+        help="which version of ATT&CK to convert. If omitted, builds the latest version"
     )
     parser.add_argument("-output",
         type=str,
         default=".",
-        help="output directory"
+        help="output directory. If omitted writes to a subfolder of the current directory depending on the domain and version"
     )
     args = parser.parse_args()
     
