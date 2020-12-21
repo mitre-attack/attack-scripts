@@ -1,6 +1,6 @@
 # ATT&CK To Excel
 
-This folder contains a module for converting [ATT&CK STIX data](https://github.com/mitre/cti) to Excel spreadsheets. It also provides a means to convert ATT&CK data into [Pandas](https://pandas.pydata.org/) dataframes for data analysis.
+This folder contains a module for converting [ATT&CK STIX data](https://github.com/mitre/cti) to Excel spreadsheets. It also provides a means to access ATT&CK data as [Pandas](https://pandas.pydata.org/) DataFrames for data analysis.
 
 ## Usage
 Print full usage instructions:
@@ -24,11 +24,11 @@ The Excel representation of the ATT&CK dataset includes both master spreadsheets
 
 A citations sheet can be used to look up the in-text citations which appear in some fields. For domains that include multiple matrices, such as Mobile ATT&CK, each matrix gets its own named sheet. Unlike the STIX dataset, objects that have been revoked or deprecated are not included in the spreadsheets.
 
-## Accessing the Pandas Dataframes
+## Accessing the Pandas DataFrames
 
-Internally, attackToExcel stores the parsed STIX data as Pandas dataframes. These can be retrieved for use in data analysis. 
+Internally, attackToExcel stores the parsed STIX data as Pandas DataFrames. These can be retrieved for use in data analysis. 
 
-Example of accessing [Pandas](https://pandas.pydata.org/) dataframes:
+Example of accessing [Pandas](https://pandas.pydata.org/) DataFrames:
 ```python
 import attackToExcel
 import stixToDf
