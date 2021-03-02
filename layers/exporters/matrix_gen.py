@@ -11,6 +11,7 @@ class MatrixEntry:
             self.id = id
         if name is not None:
             self.name = name
+        self.score = None
 
     @property
     def id(self):
