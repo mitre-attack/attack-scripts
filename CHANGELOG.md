@@ -1,3 +1,9 @@
+# v1.8.1 - 3 March 2021
+## Fixes
+- Layer library should no longer throw errors when it encounters the "Network" and "PRE" platforms.
+- Layer library should no longer throw errors if it encounters a layer with a version number higher than it expects.
+- Setting `showSubtechniques` to true on a technique should no longer cause a crash when exporting the layer to SVG.
+
 # v1.8 - 15 December 2020
 ## Improvements
 - Updated Layer library to support ATT&CK Navigator Layer format version 4.1. 
