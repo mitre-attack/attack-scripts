@@ -260,7 +260,7 @@ class SVG_HeaderBlock:
             upper = G(tx=0, ty=2.1)
             internal.append(upper)
             if t1text is not None:
-                bu = t2text is not None and t2text is not ""
+                bu = t2text != None and t2text != ""
                 theight = (height-5)
                 if bu:
                     theight = theight / 2
