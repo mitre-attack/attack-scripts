@@ -1,3 +1,7 @@
+# v1.9.0 - 23 March 2021
+## Fixes
+- Fixed a bug with the layer to SVG exporter which was causing sub-technique scores colors to disappear.
+
 # v1.8.1 - 3 March 2021
 ## Fixes
 - Layer library should no longer throw errors when it encounters the "Network" and "PRE" platforms.
