@@ -4,6 +4,7 @@
 ## Fixes
 - [diff_stix.py](scripts/diff_stix.py) should no longer crash when exporting layers but with only one domain specified.
 - Fixed a bug in the layer library where layers could be imported improperly in specific contexts.
+- Fixed a bug with the layer to SVG exporter which was causing sub-technique scores colors to disappear.
 
 # v1.8.1 - 3 March 2021
 ## Fixes
