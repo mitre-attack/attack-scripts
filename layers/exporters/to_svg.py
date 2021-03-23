@@ -7,6 +7,8 @@ except ModuleNotFoundError:
     from ..core import Layer
     from ..exporters.svg_templates import SvgTemplates
 
+from layers.core import Layer as topLayer # alternative import for typechecking
+
 class NoLayer(Exception):
     pass
 
@@ -405,7 +407,7 @@ class ToSvg:
             :return: (meta) svg file at the targeted output location
         """
         if layer is not None:
-            if not isinstance(layer, Layer):
+            if not isinstance(layer, Layer) and not isinstance(layer, topLayer):
                 raise TypeError
 
         if layer is None:

@@ -37,7 +37,8 @@ sectionNameToSectionHeaders = { # how we want to format headers for each section
     "minor_changes": "Minor {obj_type} changes",
     "deprecations": "{obj_type} deprecations",
     "revocations": "{obj_type} revocations",
-    "deletions": "{obj_type} deletions"
+    "deletions": "{obj_type} deletions",
+    "unchanged": "Unchanged {obj_type}"
 }
 statusToColor = { # color key for layers
     "additions": "#a1d99b",
@@ -45,7 +46,8 @@ statusToColor = { # color key for layers
     "minor_changes": "#c7c4e0",
     "deletions": "#ff00e1", # this will probably never show up but just in case
     "revocations": "#ff9000",
-    "deprecations": "#ff6363"
+    "deprecations": "#ff6363",
+    "unchanged": "#ffffff"
 }
 statusDescriptions = { # explanation of modification types to data objects for legend in layer files
     "additions": "objects which are present in the new data and not the old",
@@ -53,7 +55,8 @@ statusDescriptions = { # explanation of modification types to data objects for l
     "minor_changes": "objects which have a newer last edit date in the new data than in the old, but the same version number",
     "revocations": "objects which are revoked in the new data but not in the old",
     "deprecations": "objects which are deprecated in the new data but not in the old",
-    "deletions": "objects which are present in the old data but not the new"
+    "deletions": "objects which are present in the old data but not the new",
+    "unchanged": "objects which did not change between the two versions"
 }
 
 class DiffStix(object):
@@ -66,6 +69,7 @@ class DiffStix(object):
         layers=None,
         markdown=None,
         minor_changes=False,
+        unchanged=False,
         new='new',
         old='old',
         show_key=False,
@@ -93,6 +97,7 @@ class DiffStix(object):
         self.layers = layers
         self.markdown = markdown
         self.minor_changes = minor_changes
+        self.unchanged = unchanged
         self.new = new
         self.old = old
         self.show_key = show_key
@@ -109,7 +114,8 @@ class DiffStix(object):
                     # changes: [],
                     # minor_changes: [],
                     # revocations: [],
-                    # deprecations: []
+                    # deprecations: [],
+                    # unchanged: []
                 # }
                 # mobile-attack...
             # }
@@ -236,6 +242,7 @@ class DiffStix(object):
                 minor_changes = set()
                 revocations = set()
                 deprecations = set()
+                unchanged = set()
 
                 # find changes, revocations and deprecations
                 for key in intersection:
@@ -281,6 +288,8 @@ class DiffStix(object):
                             new_date = dateparser.parse(new["id_to_obj"][key]["modified"])
                             if new_date > old_date:
                                 minor_changes.add(key)
+                            else :
+                                unchanged.add(key)
                 
                 # set data
                 if obj_type not in self.data: self.data[obj_type] = {}
@@ -291,6 +300,11 @@ class DiffStix(object):
                 # only create minor_changes data if we want to display it later
                 if self.minor_changes:
                     self.data[obj_type][domain]["minor_changes"] = [new["id_to_obj"][key] for key in minor_changes]
+                
+                # ditto for unchanged
+                if self.unchanged:
+                    self.data[obj_type][domain]["unchanged"] = [new["id_to_obj"][key] for key in unchanged]
+
                 self.data[obj_type][domain]["revocations"] = [new["id_to_obj"][key] for key in revocations]
                 self.data[obj_type][domain]["deprecations"] = [new["id_to_obj"][key] for key in deprecations]
                 # only show deletions if objects were deleted
@@ -324,6 +338,8 @@ class DiffStix(object):
         )
         if self.minor_changes:
             key += "* Minor object changes: " + statusDescriptions['minor_changes'] + "\n"
+        if self.unchanged:
+            key += "* Unchanged objects: " + statusDescriptions['unchanged'] + "\n"
         key += (
             "* Object revocations: " + statusDescriptions['revocations'] + "\n"
             "* Object deprecations: " + statusDescriptions['deprecations']
@@ -474,7 +490,7 @@ class DiffStix(object):
                             "tactic": phase['phase_name'],
                             "enabled": True,
                             "color": statusToColor[status],
-                            "comment": status[:-1] # trim s off end of word
+                            "comment": status[:-1] if status != "unchanged" else status  # trim s off end of word
                         })
                         used_statuses.add(status)
 
@@ -528,8 +544,8 @@ def layers_dict_to_files(outfiles, layers):
     verboseprint("writing layers dict to layer files... ", end="", flush="true")
 
     # write each layer to separate files
-    json.dump(layers['enterprise-attack'], open(outfiles[0], "w"), indent=4)
-    json.dump(layers['mobile-attack'], open(outfiles[1], "w"), indent=4)
+    if 'enterprise-attack' in layers: json.dump(layers['enterprise-attack'], open(outfiles[0], "w"), indent=4)
+    if 'mobile-attack' in layers: json.dump(layers['mobile-attack'], open(outfiles[1], "w"), indent=4)
 
     verboseprint("done")
 
@@ -621,6 +637,11 @@ if __name__ == '__main__':
         help="show changes to objects which didn't increment the version number"
     )
 
+    parser.add_argument("--unchanged",
+        action="store_true",
+        help="show objects without changes in the markdown output"
+    )
+
     parser.add_argument("--use-taxii",
         action="store_true",
         help="Use content from the ATT&CK TAXII server for the -old data"
@@ -648,6 +669,7 @@ if __name__ == '__main__':
         layers=args.layers,
         markdown=args.markdown,
         minor_changes=args.minor_changes,
+        unchanged=args.unchanged,
         new=args.new,
         old=args.old,
         show_key=args.show_key,
