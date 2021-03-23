@@ -1,3 +1,7 @@
+# v1.9.0 - 23 March 2021
+## Fixes
+- Fixed a bug in the layer library where layers could be imported improperly in specific contexts.
+
 # v1.8.1 - 3 March 2021
 ## Fixes
 - Layer library should no longer throw errors when it encounters the "Network" and "PRE" platforms.
