@@ -1,3 +1,9 @@
+# v1.9.0 - 23 March 2021
+## Improvements
+- [diff_stix.py](scripts/diff_stix.py) now supports an `--unchanged` argument which adds a section listing objects which did _not_ change between releases.
+## Fixes
+- [diff_stix.py](scripts/diff_stix.py) should no longer crash when exporting layers but with only one domain specified.
+
 # v1.8.1 - 3 March 2021
 ## Fixes
 - Layer library should no longer throw errors when it encounters the "Network" and "PRE" platforms.
