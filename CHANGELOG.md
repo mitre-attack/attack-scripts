@@ -1,3 +1,12 @@
+# v1.9.1 - 9 April 2021
+With the release of our [mitreattack-python](https://github.com/mitre-attack/mitreattack-python) pip module, we're removing the tools previously found in the `layers` folder as they are now part of that module.
+
+## Improvements
+- Updated documentation to highlight the new [mitreattack-python](https://github.com/mitre-attack/mitreattack-python) pip module.
+- Removed the scripts in the `layers` folder which are now part of [mitreattack-python](https://github.com/mitre-attack/mitreattack-python).
+- Cleaned up `requirements.txt` to remove modules that are no longer required.
+
+
 # v1.9.0 - 23 March 2021
 ## Improvements
 - [diff_stix.py](scripts/diff_stix.py) now supports an `--unchanged` argument which adds a section listing objects which did _not_ change between releases.
