@@ -4,7 +4,7 @@ This repository contains standalone scripts and utilities for working with ATT&C
 - the [scripts](scripts) folder contains one-off scripts for processing and visualizing ATT&CK content.
 - the [scripts/layers/samples](scripts/layers/samples) folder contains one-off scripts demonstrating the generation of ATT&CK Navigator layers from ATT&CK data. The outputs of these scripts can also be found on the [ATT&CK Navigator repository](https://github.com/mitre-attack/attack-navigator/tree/master/layers/data/samples).
 
-See also our [mitreattack-python](https://github.com/mitre-attack/mitreattack-python/) pip module for more python tools.
+### See also our [mitreattack-python](https://github.com/mitre-attack/mitreattack-python/) pip module for more python tools!
 
 ## Requirements
 - [python3](https://www.python.org/)
