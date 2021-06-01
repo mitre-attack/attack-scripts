@@ -480,18 +480,18 @@ if __name__ == "__main__":
         nargs="+",
         metavar=("datasource1", "datasource2"),
         default=[
-            "windows event logs",
-            "anti-virus",
-            "binary file metadata",
-            "data loss prevention",
-            "dll monitoring",
-            "loaded dlls",
-            "malware reverse engineering",
-            "netflow/enclave netflow",
-            "network intrusion detection system",
-            "network protocol analysis",
-            "ssl/tls inspection",
-            "system calls"
+            "User Account: User Account Creation",
+            "Active Directory: Active Directory Object Creation",
+            "Container: Container Creation",
+            "Driver: Driver Load",
+            "File: File Deletion",
+            "Firmware: Firmware Modification",
+            "Instance: Instance Creation",
+            "Logon Session: Logon Session Metadata",
+            "Scheduled Job: Scheduled Job Creation",
+            "Service: Service Modification",
+            "Process: Process Metadata",
+            "Sensor Health: Host Status"
         ],
         help="list data source names for datasources written in techniques_datasources.csv." + defaultStr(True)
     )
