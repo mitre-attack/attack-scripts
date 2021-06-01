@@ -480,18 +480,18 @@ if __name__ == "__main__":
         nargs="+",
         metavar=("datasource1", "datasource2"),
         default=[
-            "User Account: User Account Creation",
-            "Active Directory: Active Directory Object Creation",
-            "Container: Container Creation",
-            "Driver: Driver Load",
-            "File: File Deletion",
-            "Firmware: Firmware Modification",
-            "Instance: Instance Creation",
-            "Logon Session: Logon Session Metadata",
-            "Scheduled Job: Scheduled Job Creation",
-            "Service: Service Modification",
-            "Process: Process Metadata",
-            "Sensor Health: Host Status"
+            "user account: user account creation",
+            "active directory: active directory object creation",
+            "container: container creation",
+            "driver: driver load",
+            "file: file deletion",
+            "firmware: firmware modification",
+            "instance: instance creation",
+            "logon session: logon session metadata",
+            "scheduled job: scheduled job creation",
+            "service: service modification",
+            "process: process metadata",
+            "sensor health: host status"
         ],
         help="list data source names for datasources written in techniques_datasources.csv." + defaultStr(True)
     )
