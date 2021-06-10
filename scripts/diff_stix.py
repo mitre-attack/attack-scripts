@@ -8,6 +8,7 @@ import datetime
 from string import Template
 from itertools import chain
 from dateutil import parser as dateparser
+from dictdiffer import diff
 
 # helper maps
 domainToDomainLabel = {
@@ -76,6 +77,7 @@ class DiffStix(object):
         site_prefix='',
         types=['technique', 'software', 'group', 'mitigation'],
         use_taxii=False,
+        no_details=[],
         verbose=False
     ):
         """
@@ -105,6 +107,10 @@ class DiffStix(object):
         self.types = types
         self.use_taxii = use_taxii
         self.verbose = verbose
+        self.change_details = {"num_changes": 0}
+        self.no_details = no_details if no_details else []
+
+        self.no_details.extend(["modified", "x_mitre_version"])
 
         self.data = {   # data gets load into here in the load() function. All other functionalities rely on this data structure
             # technique {
@@ -282,6 +288,9 @@ class DiffStix(object):
                         if new_version > old_version:
                             # an update has occurred to this object
                             changes.add(key)
+                            result = diff(old["id_to_obj"][key], new["id_to_obj"][key])
+                            attack_id = new["id_to_obj"][key]['external_references'][0]['external_id']
+                            self.change_details[attack_id] = result
                         else:
                             # check for minor change; modification date increased but not version
                             old_date = dateparser.parse(old["id_to_obj"][key]["modified"])
@@ -420,19 +429,70 @@ class DiffStix(object):
                     return f"[{item['name']}]({self.site_prefix}/{self.getUrlFromStix(item, is_subtechnique)})"
 
 
+            def change_details_placard(item, tab_count = 2):
+                attack_id = item['external_references'][0]['external_id']
+                details = self.change_details[attack_id]
+                changes = []
+                for change in details:
+                    what_changed, index_changed = (f"{change[1][0]}", change[1][1]) if type(change[1]) == list else (change[1], None)
+                    if what_changed not in self.no_details:
+                        self.change_details["num_changes"] += 1
+                        how_changed = change[2]
+                        change_type = change[0]
+                        indent = "\t" * tab_count
+                        if change_type == "add":
+                            changes.append(f"{indent}* Added entries to {what_changed} field")
+                            indent = "\t" * (tab_count + 1)
+                            for added in how_changed:
+                                index = added[0]
+                                value = added[1]
+                                changes.append(f"{indent}* {index}\n")
+                                changes.append(f"{indent}```\n{indent}{value}\n{indent}```\n")
+                        elif change_type == "change":
+                            if index_changed is None:
+                                changes.append(f"{indent}* Changed {what_changed} field")
+                            else:
+                                changes.append(f"{indent}* Changed index {index_changed} in {what_changed} field")
+
+                            indent = "\t" * (tab_count + 1)
+                            old_change = how_changed[0].replace("\n", f"\n{indent}")
+                            new_change = how_changed[1].replace("\n", f"\n{indent}")
+                            changes.append(f"{indent}* Old:  \n{indent}```\n{indent}{old_change}\n{indent}```\n")
+                            changes.append(f"{indent}* New:  \n{indent}```\n{indent}{new_change}\n{indent}```\n")
+                        elif change_type == "remove":
+                            changes.append(f"{indent}* Removed entries from {what_changed} field")
+                            indent = "\t" * (tab_count + 1)
+                            for removed in how_changed:
+                                index = removed[0]
+                                value = removed[1]
+                                removed = f"{index}:  {value}"
+                                changes.append(f"{indent}* {removed}\n")
+                        else:
+                            print(f"Warning:  Unprocessed change:  {change}")
+
+                return "\n".join(changes)
+
+
             # build sectionList string
             sectionString = ""
             for grouping in groupings:
                 if grouping["parentInSection"]:
                     sectionString += f"* { placard(grouping['parent']) }\n"
+                    if section == "changes":
+                        sectionString += f"{change_details_placard(grouping['parent'], 1) }\n"
                 # else:
                 #     sectionString += f"* _{grouping['parent']['name']}_\n"
                 for child in sorted(grouping["children"], key=lambda child: child["name"]):
                     if grouping["parentInSection"]:
                         sectionString += f"\t* {placard(child) }\n"
+                        if section == "changes":
+                            sectionString += f"{change_details_placard(child) }\n"
                     else:
                         sectionString += f"* { grouping['parent']['name'] }: { placard(child) }\n"
+                        if section == "changes":
+                            sectionString += f"{change_details_placard(child, 1) }\n"
 
+            print(f"Number of (sub-)technique changes in section {section} is {self.change_details['num_changes']}")
             return sectionString
 
         self.verboseprint("generating markdown string... ", end="", flush="true")
@@ -651,6 +711,12 @@ if __name__ == '__main__':
         action="store_true",
         help="Add a key explaining the change types to the markdown"
     )
+
+    parser.add_argument("--no-details",
+        type=str,
+        action="append",
+        help="Skip providing details for the specified field"
+    )
     
     args = parser.parse_args()
 
@@ -676,6 +742,7 @@ if __name__ == '__main__':
         site_prefix=args.site_prefix,
         types=args.types,
         use_taxii=args.use_taxii,
+        no_details=args.no_details,
         verbose=args.verbose
     )
 
