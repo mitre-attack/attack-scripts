@@ -1,5 +1,4 @@
-# 25 June 2021
-# v1.9.2
+# v1.9.2 - 25 June 2021
 ## Fixes
 - Patched list of data sources in [techniques_data_sources_vis.py](/scripts/techniques_data_sources_vis.py) and [techniques_from_Data_source.py](/scripts/techniques_from_Data_source.py) to use current data sources.
 
