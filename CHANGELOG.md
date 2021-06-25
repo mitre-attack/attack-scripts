@@ -1,3 +1,8 @@
+# 25 June 2021
+# v1.9.2
+## Fixes
+- Patched list of data sources in [techniques_data_sources_vis.py](/scripts/techniques_data_sources_vis.py) and [techniques_from_Data_source.py](/scripts/techniques_from_Data_source.py) to use current data sources.
+
 # v1.9.1 - 9 April 2021
 With the release of our [mitreattack-python](https://github.com/mitre-attack/mitreattack-python) pip module, we're removing the tools previously found in the `layers` folder as they are now part of that module.
 

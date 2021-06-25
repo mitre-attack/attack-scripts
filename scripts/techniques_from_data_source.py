@@ -41,7 +41,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("-data_source",
         type=str,
-        default="Windows Registry",
+        default="User Account: User Account Creation",
         help="the datasource by which to filter techniques. Default value is '%(default)s'."
     )
 
