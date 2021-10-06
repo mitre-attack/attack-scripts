@@ -22,14 +22,16 @@ attackTypeToStixFilter = { # stix filters for querying for each type of data
     'technique': [Filter('type', '=', 'attack-pattern')],
     'software': [Filter('type', '=', 'malware'), Filter('type', '=', 'tool')],
     'group': [Filter('type', '=', 'intrusion-set')],
-    'mitigation': [Filter('type', '=', 'course-of-action')]
+    'mitigation': [Filter('type', '=', 'course-of-action')],
+    'datasource': [Filter('type', '=', 'x-mitre-data-source'), Filter('type', '=', 'x-mitre-data-component')]
 }
 attackTypeToPlural = { # because some of these pluralize differently
     'technique': 'techniques',
     'malware': 'malware',
     'software': 'software',
     'group': 'groups',
-    'mitigation': 'mitigations'
+    'mitigation': 'mitigations',
+    'datasource': 'data sources'
 }
 sectionNameToSectionHeaders = { # how we want to format headers for each section
     "additions": "New {obj_type}",
@@ -74,7 +76,7 @@ class DiffStix(object):
         old='old',
         show_key=False,
         site_prefix='',
-        types=['technique', 'software', 'group', 'mitigation'],
+        types=['technique', 'software', 'group', 'mitigation', 'datasource'],
         use_taxii=False,
         verbose=False
     ):
@@ -124,14 +126,20 @@ class DiffStix(object):
         self.stixIDToName = {} # stixID to object name
         self.new_subtechnique_of_rels = [] # all subtechnique-of relationships in the new data
         self.old_subtechnique_of_rels = [] # all subtechnique-of relationships in the old data
+        self.new_datacomponents = [] # all data components in the new data
+        self.old_datacomponents = [] # all data components in the old data
         self.new_id_to_technique = {} # stixID => technique for every technique in the new data
         self.old_id_to_technique = {} # stixID => technique for every technique in the old data
+        self.new_id_to_datasource = {} # stixID => data source for every data source in the new data
+        self.old_id_to_datasource = {} # stixID => data source for every data source in the old data
         # build the bove data structures
         self.load_data()
         # remove duplicate relationships
         self.new_subtechnique_of_rels = [i for n, i in enumerate(self.new_subtechnique_of_rels) if i not in self.new_subtechnique_of_rels[n+1:]]
         self.old_subtechnique_of_rels = [i for n, i in enumerate(self.old_subtechnique_of_rels) if i not in self.old_subtechnique_of_rels[n+1:]]
-
+        # remove duplicate data components
+        self.new_datacomponents = [i for n, i in enumerate(self.new_datacomponents) if i not in self.new_datacomponents[n+1:]]
+        self.old_datacomponents = [i for n, i in enumerate(self.old_datacomponents) if i not in self.old_datacomponents[n+1:]]
 
     def verboseprint(self, *args, **kwargs):
         if self.verbose:
@@ -142,11 +150,13 @@ class DiffStix(object):
         """
         Parse the website url from a stix object.
         """
-        url = datum['external_references'][0]['url']
-        split_url = url.split('/')
-        splitfrom = -3 if is_subtechnique else -2
-        link = '/'.join(split_url[splitfrom:])
-        return link
+        if datum.get('external_references'):
+            url = datum['external_references'][0]['url']
+            split_url = url.split('/')
+            splitfrom = -3 if is_subtechnique else -2
+            link = '/'.join(split_url[splitfrom:])
+            return link
+        return None
 
 
     def deep_copy_stix(self, objects):
@@ -211,6 +221,21 @@ class DiffStix(object):
                             Filter("type", "=", "relationship"),
                             Filter("relationship_type", "=", "subtechnique-of")
                         ]))
+                
+                def parse_datacomponents(data_store, new=False):
+                    # parse dataStore sub-technique-of relationships
+                    if new:
+                        for datasource in list(data_store.query(attackTypeToStixFilter["datasource"])):
+                            self.new_id_to_datasource[datasource["id"]] = datasource
+                        self.new_datacomponents += list(data_store.query([
+                            Filter("type", "=", "x-mitre-data-component")
+                        ]))
+                    else:
+                        for datasource in list(data_store.query(attackTypeToStixFilter["datasource"])):
+                            self.old_id_to_datasource[datasource["id"]] = datasource
+                        self.old_datacomponents += list(data_store.query([
+                            Filter("type", "=", "x-mitre-data-component")
+                        ]))
 
                 # load data from directory according to domain
                 def load_dir(dir, new=False):
@@ -218,6 +243,7 @@ class DiffStix(object):
                     datafile = os.path.join(dir, domain + ".json")
                     data_store.load_from_file(datafile)
                     parse_subtechniques(data_store, new)
+                    parse_datacomponents(data_store, new)
                     return load_datastore(data_store)
 
                 # load data from TAXII server according to domain
@@ -364,12 +390,20 @@ class DiffStix(object):
             """
             
             # get parents which have children
-            childless = list(filter(lambda item: not self.has_subtechniques(item, True) and not ("x_mitre_is_subtechnique" in item and item["x_mitre_is_subtechnique"]), items))
-            parents = list(filter(lambda item: self.has_subtechniques(item, True) and not ("x_mitre_is_subtechnique" in item and item["x_mitre_is_subtechnique"]), items))
-            children = { item["id"]: item for item in filter(lambda item: "x_mitre_is_subtechnique" in item and item["x_mitre_is_subtechnique"], items) }
+            if obj_type != "datasource":
+                childless = list(filter(lambda item: not self.has_subtechniques(item, True) and not ("x_mitre_is_subtechnique" in item and item["x_mitre_is_subtechnique"]), items))
+                parents = list(filter(lambda item: self.has_subtechniques(item, True) and not ("x_mitre_is_subtechnique" in item and item["x_mitre_is_subtechnique"]), items))
+                children = { item["id"]: item for item in filter(lambda item: ("x_mitre_is_subtechnique") in item and (item["x_mitre_is_subtechnique"]), items) }
+            else:
+                childless = [] # all data sources should have data components, i.e., should have children
+                parents = list(filter(lambda item: not ("x_mitre_data_source_ref" in item and item["x_mitre_data_source_ref"]), items))
+                children = { item["id"]: item for item in filter(lambda item: ("x_mitre_data_source_ref") in item and (item["x_mitre_data_source_ref"]), items) }
 
             subtechnique_of_rels = self.new_subtechnique_of_rels if section != "deletions" else self.old_subtechnique_of_rels
             id_to_technique = self.new_id_to_technique if section != "deletions" else self.old_id_to_technique
+
+            datacomponents = self.new_datacomponents if section != "deletions" else self.old_datacomponents
+            id_to_datasource = self.new_id_to_datasource if section != "deletions" else self.old_id_to_datasource
 
             parentToChildren = {} # stixID => [ children ]
             for relationship in subtechnique_of_rels:
@@ -378,9 +412,15 @@ class DiffStix(object):
                         parentToChildren[relationship["target_ref"]].append(children[relationship["source_ref"]])
                 else:
                     if relationship["source_ref"] in children:
-                        parentToChildren[relationship["target_ref"]] = children[relationship["source_ref"]]
                         parentToChildren[relationship["target_ref"]] = [ children[relationship["source_ref"]] ]
 
+            for datacomponent in datacomponents:
+                if datacomponent["x_mitre_data_source_ref"] in parentToChildren:
+                    if datacomponent["id"] in children:
+                        parentToChildren[datacomponent["x_mitre_data_source_ref"]].append(children[datacomponent["id"]])
+                else:
+                    if datacomponent["id"] in children:
+                        parentToChildren[datacomponent["x_mitre_data_source_ref"]] = [ children[datacomponent["id"]] ]
 
             # now group parents and children
             groupings = []
@@ -394,11 +434,18 @@ class DiffStix(object):
                 })
 
             for parentID in parentToChildren:
-                groupings.append({
-                    "parent": id_to_technique[parentID],
-                    "parentInSection": False,
-                    "children": parentToChildren[parentID]
-                })
+
+                if id_to_technique.get(parentID):
+                    parentObj = id_to_technique[parentID]
+                elif id_to_datasource.get(parentID):
+                    parentObj = id_to_datasource[parentID]
+                
+                if parentObj:
+                    groupings.append({
+                        "parent": parentObj,
+                        "parentInSection": False,
+                        "children": parentToChildren[parentID]
+                    })
             
             groupings = sorted(groupings, key=lambda grouping: grouping["parent"]["name"])
             
@@ -411,12 +458,21 @@ class DiffStix(object):
                         parentID = list(filter(lambda rel: rel["source_ref"] == revoker["id"], subtechnique_of_rels))[0]["target_ref"]
                         parentName = id_to_technique[parentID]["name"] if parentID in id_to_technique else "ERROR NO PARENT"
                         return f"{item['name']} (revoked by { parentName}: [{revoker['name']}]({self.site_prefix}/{self.getUrlFromStix(revoker, True)}))"
+                    elif "x_mitre_data_source_ref" in revoker and revoker["x_mitre_data_source_ref"]:
+                        # get revoking technique's parent for display
+                        parentID = list(filter(lambda rel: rel["id"] == revoker["id"], datacomponents))[0]["x_mitre_data_source_ref"]
+                        parentName = id_to_datasource[parentID]["name"] if parentID in id_to_datasource else "ERROR NO PARENT"
+                        return f"{item['name']} (revoked by { parentName}: [{revoker['name']}]({self.site_prefix}/{self.getUrlFromStix(id_to_datasource[parentID])}))"
                     else:
                         return f"{item['name']} (revoked by [{revoker['name']}]({self.site_prefix}/{self.getUrlFromStix(revoker)}))"
                 if section == "deletions":
                     return f"{item['name']}"
                 else:
                     is_subtechnique = item["type"] == "attack-pattern" and "x_mitre_is_subtechnique" in item and item["x_mitre_is_subtechnique"]
+                    if item["type"] == "x-mitre-data-component":
+                        parentID = item["x_mitre_data_source_ref"]
+                        if id_to_datasource.get(parentID):
+                            return f"[{item['name']}]({self.site_prefix}/{self.getUrlFromStix(id_to_datasource[parentID])})"
                     return f"[{item['name']}]({self.site_prefix}/{self.getUrlFromStix(item, is_subtechnique)})"
 
 
@@ -582,10 +638,10 @@ if __name__ == '__main__':
         nargs="+",
         metavar=("OBJ_TYPE", "OBJ_TYPE"),
         choices=[
-            "technique", "software", "group", "mitigation"
+            "technique", "software", "group", "mitigation", "datasource"
         ],
         default=[
-            "technique", "software", "group", "mitigation"
+            "technique", "software", "group", "mitigation", "datasource"
         ],
         help="which types of objects to report on. Choices (and defaults) are %(choices)s"
     )
