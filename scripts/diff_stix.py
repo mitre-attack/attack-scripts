@@ -26,13 +26,21 @@ attackTypeToStixFilter = { # stix filters for querying for each type of data
     'datasource': [Filter('type', '=', 'x-mitre-data-source'), Filter('type', '=', 'x-mitre-data-component')],
     'datasource-only': [Filter('type', '=', 'x-mitre-data-source')] 
 }
-attackTypeToPlural = { # because some of these pluralize differently
-    'technique': 'techniques',
-    'malware': 'malware',
-    'software': 'software',
-    'group': 'groups',
-    'mitigation': 'mitigations',
-    'datasource': 'data sources'
+attackTypeToTitle = { # ATT&CK type to Title
+    'technique': 'Techniques',
+    'malware': 'Malware',
+    'software': 'Software',
+    'group': 'Groups',
+    'mitigation': 'Mitigations',
+    'datasource': 'Data Sources and/or Components'
+}
+attackTypeToSectionHeader = { # ATT&CK type to Title
+    'technique': 'Technique',
+    'malware': 'Malware',
+    'software': 'Software',
+    'group': 'Group',
+    'mitigation': 'Mitigation',
+    'datasource': 'Data Source and/or Component'
 }
 sectionNameToSectionHeaders = { # how we want to format headers for each section
     "additions": "New {obj_type}",
@@ -514,13 +522,13 @@ class DiffStix(object):
                     header = sectionNameToSectionHeaders[section] + ":"
                     if "{obj_type}" in header:
                         if section == "additions":
-                            header = header.replace("{obj_type}", attackTypeToPlural[obj_type].capitalize())
-                        else: header = header.replace("{obj_type}", obj_type.capitalize())
+                            header = header.replace("{obj_type}", attackTypeToTitle[obj_type])
+                        else: header = header.replace("{obj_type}", attackTypeToSectionHeader[obj_type])
                     if section_items == "No changes":
                         domain_sections += f"{header}\n{section_items}\n\n" # e.g "added techniques:"
                     else: domain_sections += f"{header}\n\n{section_items}\n\n" # add empty line between header and section list
                 domains += f"**{domainToDomainLabel[domain]}**\n\n{domain_sections}" # e.g "enterprise"
-            content += f"### {attackTypeToPlural[obj_type].capitalize()}\n\n{domains}" # e.g "techniques"
+            content += f"### {attackTypeToTitle[obj_type]}\n\n{domains}" # e.g "techniques"
 
         if self.show_key:
             key_content = self.get_md_key()
