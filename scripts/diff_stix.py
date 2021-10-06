@@ -23,7 +23,8 @@ attackTypeToStixFilter = { # stix filters for querying for each type of data
     'software': [Filter('type', '=', 'malware'), Filter('type', '=', 'tool')],
     'group': [Filter('type', '=', 'intrusion-set')],
     'mitigation': [Filter('type', '=', 'course-of-action')],
-    'datasource': [Filter('type', '=', 'x-mitre-data-source'), Filter('type', '=', 'x-mitre-data-component')]
+    'datasource': [Filter('type', '=', 'x-mitre-data-source'), Filter('type', '=', 'x-mitre-data-component')],
+    'datasource-only': [Filter('type', '=', 'x-mitre-data-source')] 
 }
 attackTypeToPlural = { # because some of these pluralize differently
     'technique': 'techniques',
@@ -159,6 +160,13 @@ class DiffStix(object):
         return None
 
 
+    def getDataComponentUrl(self, datasource, datacomponent):
+        """
+        Create url of data component with parent data source
+        """
+        return f"{self.getUrlFromStix(datasource)}/#{'%20'.join(datacomponent['name'].split(' '))}"
+
+
     def deep_copy_stix(self, objects):
         """
         Transform stix to dict and deep copy the dict.
@@ -225,13 +233,13 @@ class DiffStix(object):
                 def parse_datacomponents(data_store, new=False):
                     # parse dataStore sub-technique-of relationships
                     if new:
-                        for datasource in list(data_store.query(attackTypeToStixFilter["datasource"])):
+                        for datasource in list(data_store.query(attackTypeToStixFilter["datasource-only"])):
                             self.new_id_to_datasource[datasource["id"]] = datasource
                         self.new_datacomponents += list(data_store.query([
                             Filter("type", "=", "x-mitre-data-component")
                         ]))
                     else:
-                        for datasource in list(data_store.query(attackTypeToStixFilter["datasource"])):
+                        for datasource in list(data_store.query(attackTypeToStixFilter["datasource-only"])):
                             self.old_id_to_datasource[datasource["id"]] = datasource
                         self.old_datacomponents += list(data_store.query([
                             Filter("type", "=", "x-mitre-data-component")
@@ -462,7 +470,7 @@ class DiffStix(object):
                         # get revoking technique's parent for display
                         parentID = list(filter(lambda rel: rel["id"] == revoker["id"], datacomponents))[0]["x_mitre_data_source_ref"]
                         parentName = id_to_datasource[parentID]["name"] if parentID in id_to_datasource else "ERROR NO PARENT"
-                        return f"{item['name']} (revoked by { parentName}: [{revoker['name']}]({self.site_prefix}/{self.getUrlFromStix(id_to_datasource[parentID])}))"
+                        return f"{item['name']} (revoked by { parentName}: [{revoker['name']}]({self.site_prefix}/{self.getDataComponentUrl(id_to_datasource[parentID], item)}))"
                     else:
                         return f"{item['name']} (revoked by [{revoker['name']}]({self.site_prefix}/{self.getUrlFromStix(revoker)}))"
                 if section == "deletions":
@@ -472,7 +480,7 @@ class DiffStix(object):
                     if item["type"] == "x-mitre-data-component":
                         parentID = item["x_mitre_data_source_ref"]
                         if id_to_datasource.get(parentID):
-                            return f"[{item['name']}]({self.site_prefix}/{self.getUrlFromStix(id_to_datasource[parentID])})"
+                            return f"[{item['name']}]({self.site_prefix}/{self.getDataComponentUrl(id_to_datasource[parentID], item)})"
                     return f"[{item['name']}]({self.site_prefix}/{self.getUrlFromStix(item, is_subtechnique)})"
 
 
