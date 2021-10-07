@@ -252,6 +252,31 @@ class DiffStix(object):
                         self.old_datacomponents += list(data_store.query([
                             Filter("type", "=", "x-mitre-data-component")
                         ]))
+                
+                def update_contributors(old_object, new_object):
+                    # update contributors list if new object has contributors
+                    if new_object.get("x_mitre_contributors"):
+                        new_object_contributors = set(new_object["x_mitre_contributors"])
+                        
+                        # Check if old objects had contributors
+                        if old_object is None or not old_object.get("x_mitre_contributors"):
+                            old_object_contributors = set()
+                        else:
+                            old_object_contributors = set(old_object["x_mitre_contributors"])
+
+                        # Remove old contributors from showing up
+                        # if contributors are the same the result will be empty
+                        new_contributors = new_object_contributors - old_object_contributors
+
+                        if not self.data.get("new_contributors"):
+                            self.data["new_contributors"] = {}
+                        
+                        # Update counter of contributor to track contributions
+                        for new_contributor in new_contributors:
+                            if not self.data["new_contributors"].get(new_contributor):
+                                self.data["new_contributors"][new_contributor] = 1
+                            else:
+                                self.data["new_contributors"][new_contributor] += 1
 
                 # load data from directory according to domain
                 def load_dir(dir, new=False):
@@ -320,6 +345,9 @@ class DiffStix(object):
                         except: 
                             print("ERROR: cannot get new version for object: " + key)
 
+                        # Verify if there are new contributors on the object
+                        update_contributors(old["id_to_obj"][key], new["id_to_obj"][key])
+
                         # check for changes
                         if new_version > old_version:
                             # an update has occurred to this object
@@ -332,6 +360,10 @@ class DiffStix(object):
                                 minor_changes.add(key)
                             else :
                                 unchanged.add(key)
+
+                # Add contributions from additions
+                for key in additions:
+                    update_contributors(None, new["id_to_obj"][key])
                 
                 # set data
                 if obj_type not in self.data: self.data[obj_type] = {}
@@ -369,6 +401,7 @@ class DiffStix(object):
 
         have_deletions = False
         for types in self.data.keys():
+            if obj_type == "new_contributors": continue # Skip new contributors
             for domain in self.data[types].keys():
                 if "deletions" in self.data[types][domain].keys():
                     have_deletions = True
@@ -507,10 +540,22 @@ class DiffStix(object):
 
             return sectionString
 
+        def getContributorSection():
+            # Get contributors markdown
+            contribSection = "#### Contributors to this release\n\n"
+            sorted_contributors = sorted(self.data["new_contributors"])
+
+            for contributor in sorted_contributors:
+                if contributor == "ATT&CK": continue # do not include ATT&CK as contributor
+                contribSection += f"* { contributor }\n"
+            
+            return contribSection
+
         self.verboseprint("generating markdown string... ", end="", flush="true")
 
         content = ""
         for obj_type in self.data.keys():
+            if obj_type == "new_contributors": continue # Skip new contributors
             domains = ""
             for domain in self.data[obj_type]:
                 domain_sections = ""
@@ -533,6 +578,9 @@ class DiffStix(object):
         if self.show_key:
             key_content = self.get_md_key()
             content = f"{key_content}\n\n{content}"
+
+        # Add contributors
+        content += getContributorSection()
 
         self.verboseprint("done")
 
