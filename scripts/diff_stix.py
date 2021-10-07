@@ -542,7 +542,7 @@ class DiffStix(object):
 
         def getContributorSection():
             # Get contributors markdown
-            contribSection = "#### Contributors to this release\n\n"
+            contribSection = "### Contributors to this release\n\n"
             sorted_contributors = sorted(self.data["new_contributors"])
 
             for contributor in sorted_contributors:
@@ -558,6 +558,10 @@ class DiffStix(object):
             if obj_type == "new_contributors": continue # Skip new contributors
             domains = ""
             for domain in self.data[obj_type]:
+                domains += f"**{domainToDomainLabel[domain]}**\n\n" # e.g "enterprise"
+                if domain == "mobile-attack" and obj_type == "datasource": 
+                    domains += "ATT&CK for Mobile does not support data sources\n\n"
+                    continue # Skip mobile sections for data sources
                 domain_sections = ""
                 for section in self.data[obj_type][domain]:
                     if len(self.data[obj_type][domain][section]) > 0: # if there are items in the section
@@ -572,7 +576,7 @@ class DiffStix(object):
                     if section_items == "No changes":
                         domain_sections += f"{header}\n{section_items}\n\n" # e.g "added techniques:"
                     else: domain_sections += f"{header}\n\n{section_items}\n\n" # add empty line between header and section list
-                domains += f"**{domainToDomainLabel[domain]}**\n\n{domain_sections}" # e.g "enterprise"
+                domains += f"{domain_sections}" # add domain sections
             content += f"### {attackTypeToTitle[obj_type]}\n\n{domains}" # e.g "techniques"
 
         if self.show_key:
