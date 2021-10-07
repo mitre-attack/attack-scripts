@@ -87,7 +87,8 @@ class DiffStix(object):
         site_prefix='',
         types=['technique', 'software', 'group', 'mitigation', 'datasource'],
         use_taxii=False,
-        verbose=False
+        verbose=False,
+        contributors=False
     ):
         """
         Construct a new 'DiffStix' object.
@@ -116,6 +117,7 @@ class DiffStix(object):
         self.types = types
         self.use_taxii = use_taxii
         self.verbose = verbose
+        self.contributors = contributors
 
         self.data = {   # data gets load into here in the load() function. All other functionalities rely on this data structure
             # technique {
@@ -583,8 +585,9 @@ class DiffStix(object):
             key_content = self.get_md_key()
             content = f"{key_content}\n\n{content}"
 
-        # Add contributors
-        content += getContributorSection()
+        # Add contributors if requested by argument
+        if self.contributors:
+            content += getContributorSection()
 
         self.verboseprint("done")
 
@@ -775,6 +778,11 @@ if __name__ == '__main__':
         action="store_true",
         help="Add a key explaining the change types to the markdown"
     )
+
+    parser.add_argument("--contributors",
+        action="store_true",
+        help="show new contributors between releases"
+    )
     
     args = parser.parse_args()
 
@@ -800,7 +808,8 @@ if __name__ == '__main__':
         site_prefix=args.site_prefix,
         types=args.types,
         use_taxii=args.use_taxii,
-        verbose=args.verbose
+        verbose=args.verbose,
+        contributors=args.contributors
     )
 
     if args.verbose:
