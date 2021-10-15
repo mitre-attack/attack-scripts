@@ -88,7 +88,8 @@ class DiffStix(object):
         types=['technique', 'software', 'group', 'mitigation', 'datasource'],
         use_taxii=False,
         verbose=False,
-        contributors=False
+        include_contributors=False,
+        release_contributors={}
     ):
         """
         Construct a new 'DiffStix' object.
@@ -117,7 +118,8 @@ class DiffStix(object):
         self.types = types
         self.use_taxii = use_taxii
         self.verbose = verbose
-        self.contributors = contributors
+        self.include_contributors = include_contributors
+        self.release_contributors = {} # will hold information of contributors of the new release {... {"contributor_credit/name_as_key": counter]} ...}
 
         self.data = {   # data gets load into here in the load() function. All other functionalities rely on this data structure
             # technique {
@@ -269,16 +271,13 @@ class DiffStix(object):
                         # Remove old contributors from showing up
                         # if contributors are the same the result will be empty
                         new_contributors = new_object_contributors - old_object_contributors
-
-                        if not self.data.get("new_contributors"):
-                            self.data["new_contributors"] = {}
                         
                         # Update counter of contributor to track contributions
                         for new_contributor in new_contributors:
-                            if not self.data["new_contributors"].get(new_contributor):
-                                self.data["new_contributors"][new_contributor] = 1
+                            if not self.release_contributors.get(new_contributor):
+                                self.release_contributors[new_contributor] = 1
                             else:
-                                self.data["new_contributors"][new_contributor] += 1
+                                self.release_contributors[new_contributor] += 1
 
                 # load data from directory according to domain
                 def load_dir(dir, new=False):
@@ -403,7 +402,6 @@ class DiffStix(object):
 
         have_deletions = False
         for types in self.data.keys():
-            if obj_type == "new_contributors": continue # Skip new contributors
             for domain in self.data[types].keys():
                 if "deletions" in self.data[types][domain].keys():
                     have_deletions = True
@@ -545,7 +543,7 @@ class DiffStix(object):
         def getContributorSection():
             # Get contributors markdown
             contribSection = "### Contributors to this release\n\n"
-            sorted_contributors = sorted(self.data["new_contributors"])
+            sorted_contributors = sorted(self.release_contributors, key=lambda v: v.lower())
 
             for contributor in sorted_contributors:
                 if contributor == "ATT&CK": continue # do not include ATT&CK as contributor
@@ -557,7 +555,6 @@ class DiffStix(object):
 
         content = ""
         for obj_type in self.data.keys():
-            if obj_type == "new_contributors": continue # Skip new contributors
             domains = ""
             for domain in self.data[obj_type]:
                 domains += f"**{domainToDomainLabel[domain]}**\n\n" # e.g "enterprise"
@@ -586,7 +583,7 @@ class DiffStix(object):
             content = f"{key_content}\n\n{content}"
 
         # Add contributors if requested by argument
-        if self.contributors:
+        if self.include_contributors:
             content += getContributorSection()
 
         self.verboseprint("done")
@@ -809,7 +806,7 @@ if __name__ == '__main__':
         types=args.types,
         use_taxii=args.use_taxii,
         verbose=args.verbose,
-        contributors=args.contributors
+        include_contributors=args.contributors
     )
 
     if args.verbose:
