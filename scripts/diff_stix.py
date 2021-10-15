@@ -34,7 +34,7 @@ attackTypeToTitle = { # ATT&CK type to Title
     'mitigation': 'Mitigations',
     'datasource': 'Data Sources and/or Components'
 }
-attackTypeToSectionHeader = { # ATT&CK type to Title
+attackTypeToSectionName = { # ATT&CK type to section name
     'technique': 'Technique',
     'malware': 'Malware',
     'software': 'Software',
@@ -574,7 +574,7 @@ class DiffStix(object):
                     if "{obj_type}" in header:
                         if section == "additions":
                             header = header.replace("{obj_type}", attackTypeToTitle[obj_type])
-                        else: header = header.replace("{obj_type}", attackTypeToSectionHeader[obj_type])
+                        else: header = header.replace("{obj_type}", attackTypeToSectionName[obj_type])
                     if section_items == "No changes":
                         domain_sections += f"{header}\n{section_items}\n\n" # e.g "added techniques:"
                     else: domain_sections += f"{header}\n\n{section_items}\n\n" # add empty line between header and section list
