@@ -293,6 +293,7 @@ class DiffStix(object):
                     collection = Collection("https://cti-taxii.mitre.org/stix/collections/" + domainToTaxiiCollectionId[domain])
                     data_store = TAXIICollectionSource(collection)
                     parse_subtechniques(data_store, new)
+                    parse_datacomponents(data_store, new)
                     return load_datastore(data_store)
 
                 if self.use_taxii:
