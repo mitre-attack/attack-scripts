@@ -1,3 +1,8 @@
+# v1.10.0 - 21 October 2021
+## Improvements
+- [diff_stix.py](scripts/diff_stix.py) now supports an `--contributors` argument which adds a section listing contributors that contributed to the release.
+- [diff_stix.py](scripts/diff_stix.py) now supports data source and data components objects. A single section (Data Sources and/or Components) will track additions, modifications, deprecations, and revocations for these object types.
+
 # v1.9.2 - 25 June 2021
 ## Fixes
 - Patched list of data sources in [techniques_data_sources_vis.py](/scripts/techniques_data_sources_vis.py) and [techniques_from_Data_source.py](/scripts/techniques_from_Data_source.py) to use current data sources.
