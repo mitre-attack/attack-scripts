@@ -5,6 +5,8 @@ import os
 import json
 from tqdm import tqdm
 import datetime
+import requests
+import urllib3
 from string import Template
 from itertools import chain
 from dateutil import parser as dateparser
@@ -87,6 +89,7 @@ class DiffStix(object):
         site_prefix='',
         types=['technique', 'software', 'group', 'mitigation', 'datasource'],
         use_taxii=False,
+        use_mitre_cti=False,
         verbose=False,
         include_contributors=False,
         release_contributors={}
@@ -117,6 +120,7 @@ class DiffStix(object):
         self.site_prefix = site_prefix
         self.types = types
         self.use_taxii = use_taxii
+        self.use_mitre_cti = use_mitre_cti
         self.verbose = verbose
         self.include_contributors = include_contributors
         self.release_contributors = {} # will hold information of contributors of the new release {... {"contributor_credit/name_as_key": counter]} ...}
@@ -296,8 +300,23 @@ class DiffStix(object):
                     parse_datacomponents(data_store, new)
                     return load_datastore(data_store)
 
+                # load data from MITRE CTI repo according to domain
+                def load_mitre_cti(new=False):
+                    # Disable cert warnings
+                    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+                    stix_json = requests.get(f"https://raw.githubusercontent.com/mitre/cti/master/{domain}/{domain}.json", verify=False)
+                    if stix_json.status_code == 200:
+                        stix_json = stix_json.json()
+                        data_store = MemoryStore(stix_data=stix_json['objects'])
+                        parse_subtechniques(data_store, new)
+                        parse_datacomponents(data_store, new)
+                        return load_datastore(data_store)
+                    exit(f"\n{domain} stix bundle download was unsuccessful") 
+
                 if self.use_taxii:
                     old = load_taxii(False)
+                elif self.use_mitre_cti:
+                    old = load_mitre_cti(False)
                 else:
                     old = load_dir(self.old, False)
                 new = load_dir(self.new, True)
@@ -772,6 +791,11 @@ if __name__ == '__main__':
         help="Use content from the ATT&CK TAXII server for the -old data"
     )
 
+    parser.add_argument("--use-mitre-cti",
+        action="store_true",
+        help="Use content from the MITRE CTI repo for the -old data"
+    )
+
     parser.add_argument("--show-key",
         action="store_true",
         help="Add a key explaining the change types to the markdown"
@@ -786,6 +810,9 @@ if __name__ == '__main__':
 
     if args.use_taxii and args.old is not None:
         parser.error('--use-taxii and -old cannot be used together')
+
+    if args.use_mitre_cti and args.old is not None:
+        parser.error('--use-mitre-cti and -old cannot be used together')
         
     if (not args.markdown and args.layers is None):
         print("Script doesn't output anything unless -markdown and/or -layers are specified. Run 'python3 diff_stix.py -h' for usage instructions")
@@ -806,6 +833,7 @@ if __name__ == '__main__':
         site_prefix=args.site_prefix,
         types=args.types,
         use_taxii=args.use_taxii,
+        use_mitre_cti=args.use_mitre_cti,
         verbose=args.verbose,
         include_contributors=args.contributors
     )

@@ -1,7 +1,8 @@
 # v1.10.0 - 21 October 2021
 ## Improvements
-- [diff_stix.py](scripts/diff_stix.py) now supports an `--contributors` argument which adds a section listing contributors that contributed to the release.
+- [diff_stix.py](scripts/diff_stix.py) now supports a `--contributors` argument which adds a section listing contributors that contributed to the release.
 - [diff_stix.py](scripts/diff_stix.py) now supports data source and data components objects. A single section (Data Sources and/or Components) will track additions, modifications, deprecations, and revocations for these object types.
+- [diff_stix.py](scripts/diff_stix.py) now supports an `--use-mitre-cti` argument which downloads the MITRE CTI bundles for the old release comparison.
 
 # v1.9.2 - 25 June 2021
 ## Fixes
