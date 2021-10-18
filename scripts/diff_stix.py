@@ -7,6 +7,7 @@ from tqdm import tqdm
 import datetime
 import requests
 import urllib3
+import markdown
 from string import Template
 from itertools import chain
 from dateutil import parser as dateparser
@@ -680,6 +681,32 @@ def markdown_string_to_file(outfile, content):
     verboseprint("done")
 
 
+def markdown_to_index_html(markdown_outfile, content):
+    """
+    Convert the markdown string passed in to HTML and store in index.html 
+    of indicated output file path
+    """
+
+    verboseprint("writing HTML to file... ", end="", flush="true")
+
+    # get output file path
+    outputfile_path = os.path.split(markdown_outfile)[0]
+    outfile = os.path.join(outputfile_path, "index.html")
+
+    # Center content
+    html_string = """<div style='max-width: 55em;margin: auto;margin-top:20px;font-family: "Roboto", sans-serif;'>"""
+    html_string += "<meta charset='utf-8'>"
+    html_string += "<h1 style='text-align:center;'>Changelog for the release</h1>"
+    html_string += markdown.markdown(content)
+    html_string += "</div>"
+
+    outfile = open(outfile, "w", encoding="utf-8")
+    outfile.write(html_string)
+    outfile.close()
+
+    verboseprint("done")
+
+
 def layers_dict_to_files(outfiles, layers):
     """
     Print the layers dict passed in to layer files.
@@ -752,6 +779,11 @@ if __name__ == '__main__':
         nargs="?",
         const=md_default, # default if no value specified
         help="create a markdown file reporting changes. If value is unspecified, defaults to %(const)s"
+    )
+
+    parser.add_argument("--create-html",
+        action="store_true",
+        help="create index.html page of markdown file that reported changes. Does not do anything unless -markdown is provided"
     )
     
     parser.add_argument("-layers",
@@ -849,6 +881,9 @@ if __name__ == '__main__':
     if args.markdown:
         md_string = diffStix.get_markdown_string()
         markdown_string_to_file(args.markdown, md_string)
+
+        if args.create_html:
+            markdown_to_index_html(args.markdown, md_string)
 
     if args.layers is not None:
         if len(args.layers) == 0:

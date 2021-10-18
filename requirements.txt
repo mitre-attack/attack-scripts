@@ -2,6 +2,7 @@ antlr4-python3-runtime==4.8
 certifi==2020.12.5
 chardet==4.0.0
 idna==2.10
+markdown==2.6.11
 python-dateutil==2.8.1
 pytz==2021.1
 requests==2.25.1
