@@ -3,6 +3,7 @@
 - [diff_stix.py](scripts/diff_stix.py) now supports a `--contributors` argument which adds a section listing contributors that contributed to the release.
 - [diff_stix.py](scripts/diff_stix.py) now supports data source and data components objects. A single section (Data Sources and/or Components) will track additions, modifications, deprecations, and revocations for these object types.
 - [diff_stix.py](scripts/diff_stix.py) now supports an `--use-mitre-cti` argument which downloads the MITRE CTI bundles for the old release comparison.
+- [diff_stix.py](scripts/diff_stix.py) now supports a `--create-html` argument which creates an HTML index page from the markdown of the changelog.
 
 # v1.9.2 - 25 June 2021
 ## Fixes
