@@ -1,3 +1,5 @@
+> :warning: **This repository is no longer actively maintained. Please check out our work at [mitre-attack/mitreattack-python](https://github.com/mitre-attack/mitreattack-python) instead.**
+
 # attack-scripts
 
 This repository contains standalone scripts and utilities for working with ATT&CK.
